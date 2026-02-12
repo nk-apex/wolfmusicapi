@@ -1,8 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Search,
   Music,
@@ -10,9 +7,7 @@ import {
   Copy,
   Check,
   Zap,
-  Globe,
   Code2,
-  ArrowRight,
   ExternalLink,
   Loader2,
   Download,
@@ -20,117 +15,29 @@ import {
   Clock,
   User,
   Terminal,
-  Radio,
+  ChevronDown,
+  Shield,
+  Lock,
+  Settings,
 } from "lucide-react";
 import { endpointInfo, type SearchResult, type EndpointInfo } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
 
-function NeonParticles() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let animationId: number;
-    const particles: { x: number; y: number; vx: number; vy: number; size: number; alpha: number }[] = [];
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    for (let i = 0; i < 60; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        size: Math.random() * 2 + 0.5,
-        alpha: Math.random() * 0.5 + 0.1,
-      });
-    }
-
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0) p.x = canvas.width;
-        if (p.x > canvas.width) p.x = 0;
-        if (p.y < 0) p.y = canvas.height;
-        if (p.y > canvas.height) p.y = 0;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 255, 0, ${p.alpha})`;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "rgba(0, 255, 0, 0.5)";
-        ctx.fill();
-      });
-      animationId = requestAnimationFrame(animate);
-    };
-    animate();
-
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none"
-      style={{ zIndex: 0 }}
-    />
-  );
-}
-
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <Button
-      size="icon"
-      variant="ghost"
-      data-testid={`button-copy-${text.slice(0, 20)}`}
+    <button
+      data-testid={`button-copy`}
+      className="p-1.5 rounded-md transition-colors"
+      style={{ color: copied ? "#00ff00" : "rgba(255,255,255,0.4)" }}
       onClick={() => {
         navigator.clipboard.writeText(text);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }}
     >
-      {copied ? <Check className="w-4 h-4" style={{ color: "#00ff00" }} /> : <Copy className="w-4 h-4" />}
-    </Button>
-  );
-}
-
-function GlassCard({ children, className = "", glow = false, ...props }: { children: React.ReactNode; className?: string; glow?: boolean; [key: string]: any }) {
-  return (
-    <div
-      className={`relative rounded-md border border-[#00ff00]/20 ${className}`}
-      style={{
-        background: "rgba(0, 20, 0, 0.6)",
-        backdropFilter: "blur(12px)",
-        boxShadow: glow ? "0 0 20px rgba(0, 255, 0, 0.1), inset 0 0 20px rgba(0, 255, 0, 0.02)" : "none",
-        transition: "box-shadow 0.3s ease, border-color 0.3s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = "0 0 30px rgba(0, 255, 0, 0.2), inset 0 0 30px rgba(0, 255, 0, 0.03)";
-        e.currentTarget.style.borderColor = "rgba(0, 255, 0, 0.4)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = glow ? "0 0 20px rgba(0, 255, 0, 0.1), inset 0 0 20px rgba(0, 255, 0, 0.02)" : "none";
-        e.currentTarget.style.borderColor = "rgba(0, 255, 0, 0.2)";
-      }}
-      {...props}
-    >
-      {children}
-    </div>
+      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+    </button>
   );
 }
 
@@ -141,47 +48,46 @@ function EndpointCard({ endpoint, baseUrl }: { endpoint: EndpointInfo; baseUrl: 
       : `${baseUrl}${endpoint.path}?url=https://youtube.com/watch?v=60ItHLz5WEA`;
 
   return (
-    <GlassCard data-testid={`card-endpoint-${endpoint.path}`} glow>
-      <div className="p-4 space-y-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span
-            className="font-mono text-xs font-semibold px-2 py-1 rounded-md"
-            style={{ background: "rgba(0, 255, 0, 0.1)", color: "#00ff00" }}
-          >
-            {endpoint.method}
-          </span>
-          <code className="text-sm font-mono break-all" style={{ color: "#ffffff" }}>{endpoint.path}</code>
-          {endpoint.format !== "json" && (
-            <span
-              className="text-xs px-2 py-0.5 rounded-md ml-auto border"
-              style={{ borderColor: "rgba(255, 255, 255, 0.2)", color: "rgba(255, 255, 255, 0.7)" }}
-            >
-              {endpoint.format.toUpperCase()}
-            </span>
-          )}
-        </div>
-        <p className="text-sm" style={{ color: "rgba(255, 255, 255, 0.6)" }}>{endpoint.description}</p>
-        <div className="space-y-1">
-          {endpoint.params.map((p) => (
-            <div key={p.name} className="flex items-center gap-2 text-xs flex-wrap">
-              <code className="font-mono px-1.5 py-0.5 rounded-md" style={{ background: "rgba(0, 255, 0, 0.08)", color: "#00ff00" }}>{p.name}</code>
-              <span style={{ color: "rgba(255, 255, 255, 0.5)" }}>{p.type}</span>
-              {p.required && (
-                <span className="text-[10px] font-bold" style={{ color: "#ff4444" }}>REQUIRED</span>
-              )}
-              <span style={{ color: "rgba(255, 255, 255, 0.5)" }}>- {p.description}</span>
-            </div>
-          ))}
-        </div>
-        <div
-          className="flex items-center gap-1 rounded-md p-2"
-          style={{ background: "rgba(255, 255, 255, 0.03)" }}
+    <div
+      data-testid={`card-endpoint-${endpoint.path}`}
+      className="rounded-md p-4 space-y-3 transition-all"
+      style={{
+        background: "rgba(255, 255, 255, 0.02)",
+        border: "1px solid rgba(255, 255, 255, 0.06)",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(0, 255, 0, 0.2)"; e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.06)"; e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)"; }}
+    >
+      <div className="flex items-center gap-2 flex-wrap">
+        <span
+          className="font-mono text-[10px] font-bold px-2 py-0.5 rounded"
+          style={{ background: "rgba(0, 255, 0, 0.12)", color: "#00ff00", letterSpacing: "0.05em" }}
         >
-          <code className="text-xs font-mono break-all flex-1" style={{ color: "rgba(255, 255, 255, 0.45)" }}>{exampleUrl}</code>
-          <CopyButton text={exampleUrl} />
-        </div>
+          {endpoint.method}
+        </span>
+        <code className="text-sm font-mono" style={{ color: "#ffffff" }}>{endpoint.path}</code>
+        {endpoint.format !== "json" && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded ml-auto" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}>
+            {endpoint.format.toUpperCase()}
+          </span>
+        )}
       </div>
-    </GlassCard>
+      <p className="text-xs" style={{ color: "rgba(255, 255, 255, 0.45)" }}>{endpoint.description}</p>
+      <div className="space-y-1">
+        {endpoint.params.map((p) => (
+          <div key={p.name} className="flex items-center gap-2 text-xs flex-wrap">
+            <code className="font-mono px-1.5 py-0.5 rounded" style={{ background: "rgba(0, 255, 0, 0.06)", color: "#00ff00", fontSize: "11px" }}>{p.name}</code>
+            <span style={{ color: "rgba(255,255,255,0.35)" }}>{p.type}</span>
+            {p.required && <span className="text-[9px] font-bold" style={{ color: "#ff4444" }}>REQUIRED</span>}
+            <span style={{ color: "rgba(255,255,255,0.35)" }}>- {p.description}</span>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-1 rounded px-2 py-1.5" style={{ background: "rgba(0,0,0,0.3)" }}>
+        <code className="text-[10px] font-mono break-all flex-1" style={{ color: "rgba(255,255,255,0.35)" }}>{exampleUrl}</code>
+        <CopyButton text={exampleUrl} />
+      </div>
+    </div>
   );
 }
 
@@ -190,64 +96,47 @@ function SearchResultCard({ result, baseUrl }: { result: SearchResult; baseUrl: 
   const mp4Url = `${baseUrl}/download/mp4?url=https://youtube.com/watch?v=${result.id}`;
 
   return (
-    <GlassCard data-testid={`card-result-${result.id}`} glow>
-      <div className="p-4">
-        <div className="flex items-start gap-3">
-          <div
-            className="w-24 h-16 rounded-md bg-cover bg-center flex-shrink-0 border"
-            style={{
-              backgroundImage: `url(https://img.youtube.com/vi/${result.id}/mqdefault.jpg)`,
-              borderColor: "rgba(0, 255, 0, 0.2)",
-            }}
-          />
-          <div className="flex-1 min-w-0 space-y-1">
-            <h3 className="text-sm font-medium leading-tight line-clamp-2" style={{ color: "#ffffff" }} data-testid={`text-title-${result.id}`}>
-              {result.title}
-            </h3>
-            <div className="flex items-center gap-3 text-xs flex-wrap" style={{ color: "rgba(255, 255, 255, 0.5)" }}>
-              {result.channelTitle && (
-                <span className="flex items-center gap-1">
-                  <User className="w-3 h-3" />
-                  {result.channelTitle}
-                </span>
-              )}
-              {result.duration && (
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {result.duration}
-                </span>
-              )}
-              {result.size && (
-                <span className="flex items-center gap-1">
-                  <Download className="w-3 h-3" />
-                  {result.size}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2 pt-1 flex-wrap">
-              <Button size="sm" asChild data-testid={`button-mp3-${result.id}`}>
-                <a href={mp3Url} target="_blank" rel="noopener noreferrer">
-                  <Music className="w-3 h-3 mr-1" />
-                  MP3
-                </a>
-              </Button>
-              <Button size="sm" variant="secondary" asChild data-testid={`button-mp4-${result.id}`}>
-                <a href={mp4Url} target="_blank" rel="noopener noreferrer">
-                  <Video className="w-3 h-3 mr-1" />
-                  MP4
-                </a>
-              </Button>
-              <Button size="sm" variant="outline" asChild data-testid={`button-play-${result.id}`}>
-                <a href={`https://youtube.com/watch?v=${result.id}`} target="_blank" rel="noopener noreferrer">
-                  <Play className="w-3 h-3 mr-1" />
-                  Watch
-                </a>
-              </Button>
-            </div>
+    <div
+      data-testid={`card-result-${result.id}`}
+      className="rounded-md p-3 transition-all"
+      style={{
+        background: "rgba(255,255,255,0.02)",
+        border: "1px solid rgba(255,255,255,0.06)",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(0, 255, 0, 0.2)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className="w-20 h-14 rounded bg-cover bg-center flex-shrink-0"
+          style={{
+            backgroundImage: `url(https://img.youtube.com/vi/${result.id}/mqdefault.jpg)`,
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        />
+        <div className="flex-1 min-w-0 space-y-1">
+          <h3 className="text-xs font-medium leading-tight line-clamp-2" style={{ color: "#ffffff" }} data-testid={`text-title-${result.id}`}>
+            {result.title}
+          </h3>
+          <div className="flex items-center gap-3 text-[10px] flex-wrap" style={{ color: "rgba(255,255,255,0.4)" }}>
+            {result.channelTitle && <span className="flex items-center gap-1"><User className="w-2.5 h-2.5" />{result.channelTitle}</span>}
+            {result.duration && <span className="flex items-center gap-1"><Clock className="w-2.5 h-2.5" />{result.duration}</span>}
+            {result.size && <span className="flex items-center gap-1"><Download className="w-2.5 h-2.5" />{result.size}</span>}
+          </div>
+          <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
+            <Button size="sm" asChild data-testid={`button-mp3-${result.id}`}>
+              <a href={mp3Url} target="_blank" rel="noopener noreferrer"><Music className="w-3 h-3 mr-1" />MP3</a>
+            </Button>
+            <Button size="sm" variant="secondary" asChild data-testid={`button-mp4-${result.id}`}>
+              <a href={mp4Url} target="_blank" rel="noopener noreferrer"><Video className="w-3 h-3 mr-1" />MP4</a>
+            </Button>
+            <Button size="sm" variant="outline" asChild data-testid={`button-play-${result.id}`}>
+              <a href={`https://youtube.com/watch?v=${result.id}`} target="_blank" rel="noopener noreferrer"><Play className="w-3 h-3 mr-1" />Watch</a>
+            </Button>
           </div>
         </div>
       </div>
-    </GlassCard>
+    </div>
   );
 }
 
@@ -259,6 +148,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"download" | "search">("download");
   const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null);
   const [lastSearchQuery, setLastSearchQuery] = useState("");
+  const [activeSection, setActiveSection] = useState<"playground" | "docs">("playground");
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
@@ -284,187 +174,149 @@ export default function Home() {
 
   const downloadEndpoints = endpointInfo.filter((e) => e.path.startsWith("/download"));
   const apiEndpoints = endpointInfo.filter((e) => e.path.startsWith("/api"));
+  const fullUrl = `${baseUrl}${tryEndpoint}?${tryEndpoint === "/api/search" ? "q" : "url"}=${tryUrl ? encodeURIComponent(tryUrl) : ""}`;
 
   return (
-    <div className="min-h-screen relative" style={{ background: "#000000" }}>
-      <NeonParticles />
+    <div className="min-h-screen flex flex-col" style={{ background: "#0a0a0a" }}>
 
-      <div className="relative" style={{ zIndex: 1 }}>
-        <header
-          className="sticky top-0 border-b"
-          style={{
-            zIndex: 50,
-            background: "rgba(0, 0, 0, 0.8)",
-            backdropFilter: "blur(16px)",
-            borderColor: "rgba(0, 255, 0, 0.15)",
-          }}
-        >
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-3">
-              <img
-                src={wolfLogo}
-                alt="WolfMusicApi Logo"
-                className="w-10 h-10 rounded-md object-cover"
-                style={{
-                  border: "1px solid rgba(0, 255, 0, 0.3)",
-                  boxShadow: "0 0 12px rgba(0, 255, 0, 0.2)",
-                }}
-              />
-              <h1
-                className="text-lg font-bold tracking-wider"
-                style={{ fontFamily: "'Orbitron', sans-serif" }}
-              >
-                <span style={{ color: "#00ff00" }}>WolfMusic</span><span style={{ color: "#ffffff" }}>Api</span>
+      <header
+        className="sticky top-0 border-b"
+        style={{
+          zIndex: 50,
+          background: "rgba(10, 10, 10, 0.9)",
+          backdropFilter: "blur(20px)",
+          borderColor: "rgba(255, 255, 255, 0.06)",
+        }}
+      >
+        <div className="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <img
+              src={wolfLogo}
+              alt="WolfMusicApi Logo"
+              className="w-9 h-9 rounded-md object-cover"
+              style={{ border: "1px solid rgba(0, 255, 0, 0.25)" }}
+            />
+            <div>
+              <h1 className="text-sm font-bold tracking-widest leading-none" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                <span style={{ color: "#00ff00" }}>WOLF-MUSIC</span><span style={{ color: "#ffffff" }}>API</span>
               </h1>
-            </div>
-            <div className="flex items-center gap-3">
-              <span
-                className="text-xs font-mono px-2 py-1 rounded-md border"
-                style={{ borderColor: "rgba(0, 255, 0, 0.2)", color: "rgba(255, 255, 255, 0.5)" }}
-              >
-                v1.0
-              </span>
-              <div className="flex items-center gap-1">
-                <Radio className="w-3 h-3" style={{ color: "#00ff00" }} />
-                <span className="text-xs" style={{ color: "#00ff00" }}>ONLINE</span>
-              </div>
+              <p className="text-[10px] tracking-[0.2em] mt-0.5" style={{ color: "rgba(0, 255, 0, 0.4)" }}>
+                YOUTUBE DOWNLOAD SERVICE
+              </p>
             </div>
           </div>
-        </header>
+          <div className="flex items-center gap-3">
+            <span
+              className="text-[10px] font-mono px-2 py-1 rounded"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}
+            >
+              v1.0
+            </span>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded" style={{ background: "rgba(0, 255, 0, 0.06)", border: "1px solid rgba(0, 255, 0, 0.15)" }}>
+              <Lock className="w-3 h-3" style={{ color: "#00ff00" }} />
+              <span className="text-[10px] font-semibold tracking-wider" style={{ color: "#00ff00" }}>ONLINE</span>
+            </div>
+          </div>
+        </div>
+      </header>
 
-        <section className="relative overflow-hidden py-20">
+      <section className="relative flex-shrink-0" style={{ minHeight: "380px" }}>
+        <div
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(ellipse at 50% 80%, rgba(0, 255, 0, 0.04), transparent 55%)" }}
+        />
+        <div className="relative max-w-5xl mx-auto px-5 pt-16 pb-10 text-center space-y-5">
           <div
-            className="absolute inset-0"
+            className="inline-flex items-center gap-2 text-[10px] px-4 py-2 rounded-md tracking-[0.15em] font-semibold"
             style={{
-              background: "radial-gradient(ellipse at center top, rgba(0, 255, 0, 0.06), transparent 60%)",
+              border: "1px solid rgba(0, 255, 0, 0.25)",
+              color: "#00ff00",
+              background: "rgba(0, 255, 0, 0.04)",
             }}
-          />
-          <div className="relative max-w-6xl mx-auto px-4 text-center space-y-6">
-            <div
-              className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-md border"
-              style={{ borderColor: "rgba(0, 255, 0, 0.3)", color: "rgba(0, 255, 0, 0.7)", background: "rgba(0, 255, 0, 0.05)" }}
-              data-testid="badge-hero"
-            >
-              <Globe className="w-3 h-3" />
-              OPEN API // FREE ACCESS
-            </div>
-            <h2
-              className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight"
-              style={{ fontFamily: "'Orbitron', sans-serif" }}
-            >
-              <span style={{ color: "#ffffff" }}>Download Music & Video</span>
-              <br />
-              <span style={{ color: "#00ff00", textShadow: "0 0 30px rgba(0, 255, 0, 0.4)" }}>via Simple API</span>
-            </h2>
-            <p className="max-w-2xl mx-auto text-lg" style={{ color: "rgba(255, 255, 255, 0.55)", fontFamily: "'JetBrains Mono', monospace" }}>
-              Search, convert and download YouTube content as MP3 or MP4.
-              Multiple endpoints for maximum compatibility.
-            </p>
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <Button asChild data-testid="button-get-started">
-                <a href="#playground">
-                  <Search className="w-4 h-4 mr-2" />
-                  Test Endpoints
-                </a>
-              </Button>
-              <Button variant="outline" asChild data-testid="button-view-docs">
-                <a href="#endpoints">
-                  <Code2 className="w-4 h-4 mr-2" />
-                  View Docs
-                </a>
-              </Button>
-            </div>
-
-            <div className="flex justify-center gap-12 pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#00ff00", textShadow: "0 0 20px rgba(0, 255, 0, 0.3)" }}>{downloadEndpoints.length}</p>
-                <p className="text-xs mt-1" style={{ color: "rgba(255, 255, 255, 0.35)" }}>ENDPOINTS</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#00ff00", textShadow: "0 0 20px rgba(0, 255, 0, 0.3)" }}>2</p>
-                <p className="text-xs mt-1" style={{ color: "rgba(255, 255, 255, 0.35)" }}>FORMATS</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#00ff00", textShadow: "0 0 20px rgba(0, 255, 0, 0.3)" }}>0</p>
-                <p className="text-xs mt-1" style={{ color: "rgba(255, 255, 255, 0.35)" }}>AUTH</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="endpoints" className="max-w-6xl mx-auto px-4 py-12 space-y-6">
-          <div className="flex items-center gap-2">
-            <Code2 className="w-5 h-5" style={{ color: "#00ff00" }} />
-            <h2 className="text-2xl font-semibold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
-              API Endpoints
-            </h2>
+            data-testid="badge-hero"
+          >
+            <Zap className="w-3 h-3" />
+            FREE MUSIC DOWNLOAD API
           </div>
 
-          <div className="flex gap-1 p-1 rounded-md w-fit" style={{ background: "rgba(0, 255, 0, 0.05)", border: "1px solid rgba(0, 255, 0, 0.15)" }}>
-            <button
-              className="px-4 py-2 rounded-md text-sm font-medium transition-all"
-              style={{
-                background: activeTab === "download" ? "rgba(0, 255, 0, 0.15)" : "transparent",
-                color: activeTab === "download" ? "#00ff00" : "rgba(255, 255, 255, 0.5)",
-                boxShadow: activeTab === "download" ? "0 0 10px rgba(0, 255, 0, 0.1)" : "none",
-              }}
-              onClick={() => setActiveTab("download")}
-              data-testid="tab-download"
-            >
-              <span className="flex items-center gap-1">
-                <Download className="w-4 h-4" />
-                Download ({downloadEndpoints.length})
-              </span>
-            </button>
-            <button
-              className="px-4 py-2 rounded-md text-sm font-medium transition-all"
-              style={{
-                background: activeTab === "search" ? "rgba(0, 255, 0, 0.15)" : "transparent",
-                color: activeTab === "search" ? "#00ff00" : "rgba(255, 255, 255, 0.5)",
-                boxShadow: activeTab === "search" ? "0 0 10px rgba(0, 255, 0, 0.1)" : "none",
-              }}
-              onClick={() => setActiveTab("search")}
-              data-testid="tab-search-api"
-            >
-              <span className="flex items-center gap-1">
-                <Search className="w-4 h-4" />
-                Search ({apiEndpoints.length})
-              </span>
-            </button>
-          </div>
+          <h2
+            className="text-3xl sm:text-4xl font-bold leading-tight"
+            style={{ fontFamily: "'Orbitron', sans-serif", letterSpacing: "-0.01em" }}
+          >
+            <span style={{ color: "#ffffff" }}>Search & Download </span>
+            <span style={{ color: "#00ff00" }}>YouTube Music</span>
+          </h2>
 
-          {activeTab === "download" && (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {downloadEndpoints.map((ep) => (
-                <EndpointCard key={ep.path} endpoint={ep} baseUrl={baseUrl} />
-              ))}
-            </div>
-          )}
-
-          {activeTab === "search" && (
-            <div className="space-y-3">
-              {apiEndpoints.map((ep) => (
-                <EndpointCard key={ep.path} endpoint={ep} baseUrl={baseUrl} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section id="playground" className="max-w-6xl mx-auto px-4 py-12 space-y-6">
-          <div className="flex items-center gap-2">
-            <Terminal className="w-5 h-5" style={{ color: "#00ff00" }} />
-            <h2 className="text-2xl font-semibold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
-              API Playground
-            </h2>
-          </div>
-          <p className="text-sm" style={{ color: "rgba(255, 255, 255, 0.5)" }}>
-            Select an endpoint, enter a song name or YouTube URL, then hit Execute to see the live API response.
+          <p className="max-w-lg mx-auto text-sm leading-relaxed" style={{ color: "rgba(255, 255, 255, 0.45)" }}>
+            Multi-endpoint API for searching, converting, and downloading
+            YouTube content as MP3 or MP4 with zero authentication required.
           </p>
-          <GlassCard glow>
-            <div className="p-6 space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" style={{ color: "rgba(255, 255, 255, 0.7)" }}>Endpoint</label>
+
+          <div
+            className="inline-flex items-center gap-2 text-xs px-4 py-2 rounded-md"
+            style={{
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              color: "rgba(255, 255, 255, 0.6)",
+              background: "rgba(255, 255, 255, 0.02)",
+            }}
+            data-testid="badge-author"
+          >
+            <Shield className="w-3.5 h-3.5" style={{ color: "#00ff00" }} />
+            By <strong style={{ color: "#ffffff" }}>WolfMusicApi</strong>
+          </div>
+        </div>
+      </section>
+
+      <div className="flex-1 max-w-5xl mx-auto w-full px-5 pb-8">
+
+        <div
+          className="flex items-center gap-0 border-b mb-6"
+          style={{ borderColor: "rgba(255, 255, 255, 0.06)" }}
+        >
+          <button
+            className="px-5 py-3 text-xs font-semibold tracking-wider transition-colors relative"
+            style={{
+              color: activeSection === "playground" ? "#00ff00" : "rgba(255, 255, 255, 0.4)",
+              borderBottom: activeSection === "playground" ? "2px solid #00ff00" : "2px solid transparent",
+              marginBottom: "-1px",
+            }}
+            onClick={() => setActiveSection("playground")}
+            data-testid="tab-playground"
+          >
+            <span className="flex items-center gap-2">
+              <Terminal className="w-3.5 h-3.5" />
+              PLAYGROUND
+            </span>
+          </button>
+          <button
+            className="px-5 py-3 text-xs font-semibold tracking-wider transition-colors relative"
+            style={{
+              color: activeSection === "docs" ? "#00ff00" : "rgba(255, 255, 255, 0.4)",
+              borderBottom: activeSection === "docs" ? "2px solid #00ff00" : "2px solid transparent",
+              marginBottom: "-1px",
+            }}
+            onClick={() => setActiveSection("docs")}
+            data-testid="tab-docs"
+          >
+            <span className="flex items-center gap-2">
+              <Code2 className="w-3.5 h-3.5" />
+              ENDPOINTS
+            </span>
+          </button>
+        </div>
+
+        {activeSection === "playground" && (
+          <div className="space-y-5">
+            <div
+              className="rounded-md overflow-hidden"
+              style={{ border: "1px solid rgba(255, 255, 255, 0.06)", background: "rgba(255, 255, 255, 0.02)" }}
+            >
+              <div
+                className="flex items-center gap-3 px-4 py-2.5 border-b flex-wrap"
+                style={{ borderColor: "rgba(255, 255, 255, 0.06)", background: "rgba(0, 0, 0, 0.3)" }}
+              >
+                <div className="flex items-center gap-2">
+                  <Code2 className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.35)" }} />
                   <select
                     data-testid="select-endpoint"
                     value={tryEndpoint}
@@ -472,182 +324,227 @@ export default function Home() {
                       setTryEndpoint(e.target.value);
                       setTryResult(null);
                       setSearchResults(null);
-                      if (e.target.value === "/api/search") {
-                        setTryUrl("");
-                      } else {
-                        setTryUrl("https://youtube.com/watch?v=60ItHLz5WEA");
-                      }
+                      setTryUrl(e.target.value === "/api/search" ? "" : "https://youtube.com/watch?v=60ItHLz5WEA");
                     }}
-                    className="w-full h-10 rounded-md px-3 text-sm focus:outline-none"
-                    style={{
-                      background: "rgba(0, 255, 0, 0.05)",
-                      border: "1px solid rgba(0, 255, 0, 0.2)",
-                      color: "#ffffff",
-                    }}
+                    className="text-xs font-mono bg-transparent focus:outline-none cursor-pointer pr-1"
+                    style={{ color: "#ffffff", border: "none" }}
                   >
                     {endpointInfo.map((ep) => (
-                      <option key={ep.path} value={ep.path} style={{ background: "#000", color: "#00ff00" }}>
+                      <option key={ep.path} value={ep.path} style={{ background: "#0a0a0a", color: "#00ff00" }}>
                         {ep.method} {ep.path}
                       </option>
                     ))}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" style={{ color: "rgba(255, 255, 255, 0.7)" }}>
-                    {tryEndpoint === "/api/search" ? "Song Name" : "YouTube URL"}
-                  </label>
-                  <input
-                    type="text"
-                    data-testid="input-try-url"
-                    value={tryUrl}
-                    onChange={(e) => setTryUrl(e.target.value)}
-                    placeholder={tryEndpoint === "/api/search" ? "e.g. Home by NF, Alan Walker Faded..." : "https://youtube.com/watch?v=..."}
-                    className="w-full h-10 rounded-md px-3 text-sm focus:outline-none"
-                    style={{
-                      background: "rgba(0, 255, 0, 0.05)",
-                      border: "1px solid rgba(0, 255, 0, 0.2)",
-                      color: "#ffffff",
-                      caretColor: "#00ff00",
-                    }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(0, 255, 0, 0.5)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(0, 255, 0, 0.1)"; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(0, 255, 0, 0.2)"; e.currentTarget.style.boxShadow = "none"; }}
-                    onKeyDown={(e) => { if (e.key === "Enter") handleTryEndpoint(); }}
-                  />
-                </div>
-              </div>
-              <div className="space-y-3">
-                <Button onClick={handleTryEndpoint} disabled={tryLoading || !tryUrl.trim()} data-testid="button-try-execute" className="w-full sm:w-auto">
-                  {tryLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
-                  Execute
-                </Button>
-                <div
-                  className="rounded-md px-4 py-3 flex items-center gap-2"
-                  style={{ background: "rgba(0, 255, 0, 0.03)", border: "1px solid rgba(0, 255, 0, 0.1)" }}
-                  data-testid="display-full-url"
+                <span style={{ color: "rgba(255,255,255,0.1)" }}>|</span>
+                <button
+                  className="flex items-center gap-1.5 text-xs transition-colors"
+                  style={{ color: "#00ff00" }}
+                  onClick={handleTryEndpoint}
+                  disabled={tryLoading || !tryUrl.trim()}
+                  data-testid="button-load-sample"
                 >
-                  <Terminal className="w-4 h-4 flex-shrink-0" style={{ color: "#00ff00" }} />
-                  <code className="text-xs font-mono break-all flex-1" style={{ color: "rgba(255, 255, 255, 0.6)" }}>
-                    {baseUrl}{tryEndpoint}?{tryEndpoint === "/api/search" ? "q" : "url"}={tryUrl ? encodeURIComponent(tryUrl) : ""}
-                  </code>
-                  <CopyButton text={`${baseUrl}${tryEndpoint}?${tryEndpoint === "/api/search" ? "q" : "url"}=${tryUrl ? encodeURIComponent(tryUrl) : ""}`} />
+                  <Code2 className="w-3 h-3" />
+                  Execute
+                </button>
+                <div className="ml-auto flex items-center gap-2">
+                  <button
+                    className="flex items-center gap-1.5 text-[10px] px-2 py-1 rounded transition-colors"
+                    style={{ color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.04)" }}
+                    onClick={() => setActiveSection("docs")}
+                  >
+                    <Settings className="w-3 h-3" />
+                    Docs
+                  </button>
                 </div>
               </div>
 
-              {tryLoading && (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin" style={{ color: "#00ff00" }} />
-                  <span className="ml-2" style={{ color: "rgba(255, 255, 255, 0.5)" }}>Fetching response...</span>
-                </div>
-              )}
-
-              {searchResults && searchResults.length > 0 && (
-                <div className="space-y-3">
-                  <div
-                    className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-mono"
-                    style={{ background: "rgba(0, 255, 0, 0.05)", borderLeft: "2px solid #00ff00", color: "rgba(255, 255, 255, 0.6)" }}
-                  >
-                    <Terminal className="w-3 h-3" style={{ color: "#00ff00" }} />
-                    GET /api/search?q={encodeURIComponent(lastSearchQuery)} -- {searchResults.length} results
+              <div className="p-5 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      {tryEndpoint === "/api/search" ? "SONG NAME" : "YOUTUBE URL"}
+                    </label>
+                    <input
+                      type="text"
+                      data-testid="input-try-url"
+                      value={tryUrl}
+                      onChange={(e) => setTryUrl(e.target.value)}
+                      placeholder={tryEndpoint === "/api/search" ? "e.g. Home by NF, Alan Walker Faded..." : "https://youtube.com/watch?v=..."}
+                      className="w-full h-10 rounded-md px-3 text-sm focus:outline-none font-mono"
+                      style={{
+                        background: "rgba(0, 0, 0, 0.4)",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        color: "#ffffff",
+                        caretColor: "#00ff00",
+                      }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(0, 255, 0, 0.3)"; }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)"; }}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleTryEndpoint(); }}
+                    />
                   </div>
-                  <div className="grid gap-3" data-testid="container-search-results">
-                    {searchResults.map((result) => (
-                      <SearchResultCard key={result.id} result={result} baseUrl={baseUrl} />
-                    ))}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      FULL API URL
+                    </label>
+                    <div
+                      className="h-10 rounded-md px-3 flex items-center gap-2"
+                      style={{ background: "rgba(0, 0, 0, 0.4)", border: "1px solid rgba(255,255,255,0.08)" }}
+                      data-testid="display-full-url"
+                    >
+                      <code className="text-[11px] font-mono break-all flex-1 truncate" style={{ color: "rgba(0, 255, 0, 0.6)" }}>
+                        {fullUrl}
+                      </code>
+                      <CopyButton text={fullUrl} />
+                    </div>
                   </div>
                 </div>
-              )}
 
-              {searchResults && searchResults.length === 0 && (
-                <div className="p-8 text-center">
-                  <Music className="w-10 h-10 mx-auto mb-3" style={{ color: "rgba(0, 255, 0, 0.3)" }} />
-                  <p style={{ color: "rgba(255, 255, 255, 0.4)" }}>No results found. Try a different song name.</p>
+                <Button
+                  onClick={handleTryEndpoint}
+                  disabled={tryLoading || !tryUrl.trim()}
+                  data-testid="button-try-execute"
+                  className="w-full"
+                >
+                  {tryLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
+                  Execute Request
+                </Button>
+              </div>
+            </div>
+
+            {tryLoading && (
+              <div className="flex items-center justify-center py-10">
+                <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#00ff00" }} />
+                <span className="ml-2 text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Fetching response...</span>
+              </div>
+            )}
+
+            {searchResults && searchResults.length > 0 && (
+              <div className="space-y-3">
+                <div
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-[11px] font-mono"
+                  style={{ background: "rgba(0,255,0,0.03)", borderLeft: "2px solid #00ff00", color: "rgba(255,255,255,0.5)" }}
+                >
+                  <Terminal className="w-3 h-3" style={{ color: "#00ff00" }} />
+                  GET /api/search?q={encodeURIComponent(lastSearchQuery)} -- {searchResults.length} results
                 </div>
-              )}
+                <div className="grid gap-2" data-testid="container-search-results">
+                  {searchResults.map((result) => (
+                    <SearchResultCard key={result.id} result={result} baseUrl={baseUrl} />
+                  ))}
+                </div>
+              </div>
+            )}
 
-              {tryResult && !searchResults && (
-                <div className="relative">
+            {searchResults && searchResults.length === 0 && (
+              <div className="py-12 text-center">
+                <Music className="w-8 h-8 mx-auto mb-2" style={{ color: "rgba(255,255,255,0.15)" }} />
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>No results found. Try a different song name.</p>
+              </div>
+            )}
+
+            {tryResult && !searchResults && (
+              <div className="relative rounded-md overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="absolute top-2 right-2" style={{ zIndex: 2 }}>
+                  <CopyButton text={tryResult} />
+                </div>
+                <pre
+                  className="p-4 text-xs font-mono overflow-auto max-h-80"
+                  style={{ background: "rgba(0, 0, 0, 0.5)", color: "#00ff00" }}
+                >
+                  {tryResult}
+                </pre>
+              </div>
+            )}
+
+            {tryResult && searchResults && searchResults.length > 0 && (
+              <details className="group">
+                <summary
+                  className="cursor-pointer text-[11px] font-mono px-3 py-2 rounded-md flex items-center gap-2"
+                  style={{ color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
+                  data-testid="button-raw-json"
+                >
+                  <Code2 className="w-3 h-3" />
+                  View Raw JSON Response
+                </summary>
+                <div className="relative mt-2 rounded-md overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
                   <div className="absolute top-2 right-2" style={{ zIndex: 2 }}>
                     <CopyButton text={tryResult} />
                   </div>
                   <pre
-                    className="rounded-md p-4 text-xs font-mono overflow-auto max-h-80"
-                    style={{
-                      background: "rgba(0, 0, 0, 0.6)",
-                      border: "1px solid rgba(0, 255, 0, 0.15)",
-                      color: "#00ff00",
-                    }}
+                    className="p-4 text-xs font-mono overflow-auto max-h-80"
+                    style={{ background: "rgba(0, 0, 0, 0.5)", color: "#00ff00" }}
                   >
                     {tryResult}
                   </pre>
                 </div>
-              )}
-
-              {tryResult && searchResults && searchResults.length > 0 && (
-                <details className="group">
-                  <summary
-                    className="cursor-pointer text-xs font-mono px-3 py-2 rounded-md flex items-center gap-2"
-                    style={{ color: "rgba(255, 255, 255, 0.5)", background: "rgba(255, 255, 255, 0.03)" }}
-                    data-testid="button-raw-json"
-                  >
-                    <Code2 className="w-3 h-3" />
-                    View Raw JSON Response
-                  </summary>
-                  <div className="relative mt-2">
-                    <div className="absolute top-2 right-2" style={{ zIndex: 2 }}>
-                      <CopyButton text={tryResult} />
-                    </div>
-                    <pre
-                      className="rounded-md p-4 text-xs font-mono overflow-auto max-h-80"
-                      style={{
-                        background: "rgba(0, 0, 0, 0.6)",
-                        border: "1px solid rgba(0, 255, 0, 0.15)",
-                        color: "#00ff00",
-                      }}
-                    >
-                      {tryResult}
-                    </pre>
-                  </div>
-                </details>
-              )}
-            </div>
-          </GlassCard>
-        </section>
-
-        <section className="max-w-6xl mx-auto px-4 py-12 space-y-6">
-          <div className="flex items-center gap-2">
-            <Code2 className="w-5 h-5" style={{ color: "#00ff00" }} />
-            <h2 className="text-2xl font-semibold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
-              Quick Start
-            </h2>
+              </details>
+            )}
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <GlassCard glow>
-              <div className="p-4 space-y-3">
-                <h3 className="font-medium text-sm flex items-center gap-2" style={{ color: "#ffffff" }}>
-                  <span className="text-xs px-2 py-0.5 rounded-md border" style={{ borderColor: "rgba(0, 255, 0, 0.2)", color: "rgba(0, 255, 0, 0.6)" }}>JavaScript</span>
+        )}
+
+        {activeSection === "docs" && (
+          <div className="space-y-5">
+            <div className="flex gap-1 p-1 rounded-md w-fit" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <button
+                className="px-4 py-1.5 rounded text-[11px] font-semibold tracking-wider transition-all"
+                style={{
+                  background: activeTab === "download" ? "rgba(0, 255, 0, 0.1)" : "transparent",
+                  color: activeTab === "download" ? "#00ff00" : "rgba(255,255,255,0.4)",
+                }}
+                onClick={() => setActiveTab("download")}
+                data-testid="tab-download"
+              >
+                Download ({downloadEndpoints.length})
+              </button>
+              <button
+                className="px-4 py-1.5 rounded text-[11px] font-semibold tracking-wider transition-all"
+                style={{
+                  background: activeTab === "search" ? "rgba(0, 255, 0, 0.1)" : "transparent",
+                  color: activeTab === "search" ? "#00ff00" : "rgba(255,255,255,0.4)",
+                }}
+                onClick={() => setActiveTab("search")}
+                data-testid="tab-search-api"
+              >
+                Search ({apiEndpoints.length})
+              </button>
+            </div>
+
+            {activeTab === "download" && (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {downloadEndpoints.map((ep) => (
+                  <EndpointCard key={ep.path} endpoint={ep} baseUrl={baseUrl} />
+                ))}
+              </div>
+            )}
+
+            {activeTab === "search" && (
+              <div className="space-y-2">
+                {apiEndpoints.map((ep) => (
+                  <EndpointCard key={ep.path} endpoint={ep} baseUrl={baseUrl} />
+                ))}
+              </div>
+            )}
+
+            <div className="grid gap-3 sm:grid-cols-2 pt-4">
+              <div className="rounded-md p-4 space-y-3" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <h3 className="font-medium text-xs flex items-center gap-2" style={{ color: "#ffffff" }}>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "rgba(0,255,0,0.08)", color: "rgba(0,255,0,0.6)" }}>JavaScript</span>
                   Fetch MP3
                 </h3>
-                <pre
-                  className="rounded-md p-3 text-xs font-mono overflow-auto"
-                  style={{ background: "rgba(0, 0, 0, 0.5)", color: "#00ff00", border: "1px solid rgba(0, 255, 0, 0.1)" }}
-                >{`const res = await fetch(
+                <pre className="rounded p-3 text-[11px] font-mono overflow-auto" style={{ background: "rgba(0,0,0,0.4)", color: "#00ff00" }}>{`const res = await fetch(
   '${baseUrl}/download/mp3?url=' +
   encodeURIComponent(youtubeUrl)
 );
 const data = await res.json();
 console.log(data.downloadUrl);`}</pre>
               </div>
-            </GlassCard>
-            <GlassCard glow>
-              <div className="p-4 space-y-3">
-                <h3 className="font-medium text-sm flex items-center gap-2" style={{ color: "#ffffff" }}>
-                  <span className="text-xs px-2 py-0.5 rounded-md border" style={{ borderColor: "rgba(0, 255, 0, 0.2)", color: "rgba(0, 255, 0, 0.6)" }}>Python</span>
+              <div className="rounded-md p-4 space-y-3" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <h3 className="font-medium text-xs flex items-center gap-2" style={{ color: "#ffffff" }}>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "rgba(0,255,0,0.08)", color: "rgba(0,255,0,0.6)" }}>Python</span>
                   Search & Download
                 </h3>
-                <pre
-                  className="rounded-md p-3 text-xs font-mono overflow-auto"
-                  style={{ background: "rgba(0, 0, 0, 0.5)", color: "#00ff00", border: "1px solid rgba(0, 255, 0, 0.1)" }}
-                >{`import requests
+                <pre className="rounded p-3 text-[11px] font-mono overflow-auto" style={{ background: "rgba(0,0,0,0.4)", color: "#00ff00" }}>{`import requests
 
 results = requests.get(
   '${baseUrl}/api/search',
@@ -657,30 +554,30 @@ results = requests.get(
 for item in results:
     print(item['title'], item['id'])`}</pre>
               </div>
-            </GlassCard>
+            </div>
           </div>
-        </section>
-
-        <footer
-          className="border-t mt-12"
-          style={{ borderColor: "rgba(0, 255, 0, 0.1)" }}
-        >
-          <div className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between gap-2 flex-wrap text-sm">
-            <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "12px" }}>
-              <span style={{ color: "rgba(0, 255, 0, 0.3)" }}>WolfMusic</span><span style={{ color: "rgba(255, 255, 255, 0.3)" }}>Api</span>
-            </p>
-            <a
-              href="https://rinodepot.fr"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 transition-colors"
-              style={{ color: "rgba(255, 255, 255, 0.4)" }}
-            >
-              Source <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </footer>
+        )}
       </div>
+
+      <footer
+        className="border-t mt-auto"
+        style={{ borderColor: "rgba(255, 255, 255, 0.04)" }}
+      >
+        <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between gap-2 flex-wrap">
+          <p className="text-[10px] tracking-widest" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+            <span style={{ color: "rgba(0, 255, 0, 0.3)" }}>WOLF-MUSIC</span><span style={{ color: "rgba(255, 255, 255, 0.2)" }}>API</span>
+          </p>
+          <a
+            href="https://rinodepot.fr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-[11px] transition-colors"
+            style={{ color: "rgba(255, 255, 255, 0.25)" }}
+          >
+            Source <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
