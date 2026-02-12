@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediaDL API - YouTube MP3 & MP4 Download API</title>
+  <meta name="description" content="Free API to search, convert and download YouTube content as MP3 or MP4. Multiple endpoints for maximum compatibility.">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #09090b; --card: #18181b; --border: #27272a; --fg: #fafafa;
+      --muted: #a1a1aa; --primary: #3b82f6; --primary-fg: #fff;
+      --accent: #1e3a5f; --green: #22c55e; --red: #ef4444;
+      --radius: 8px; --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+    body { background: var(--bg); color: var(--fg); font-family: var(--font); line-height: 1.6; }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+    header { border-bottom: 1px solid var(--border); padding: 14px 0; position: sticky; top: 0; background: var(--bg); z-index: 50; }
+    header .inner { display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 600; }
+    .logo-icon { width: 32px; height: 32px; background: var(--primary); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: var(--primary-fg); font-size: 16px; }
+    .version { font-size: 12px; font-family: var(--mono); color: var(--muted); border: 1px solid var(--border); padding: 2px 8px; border-radius: var(--radius); }
+
+    .hero { text-align: center; padding: 60px 0; background: linear-gradient(135deg, rgba(59,130,246,0.05), transparent, rgba(59,130,246,0.03)); }
+    .hero h2 { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 16px; }
+    .hero h2 span { color: var(--primary); }
+    .hero p { color: var(--muted); font-size: 18px; max-width: 560px; margin: 0 auto 24px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; margin-bottom: 20px; }
+    .stats { display: flex; justify-content: center; gap: 40px; margin-top: 32px; }
+    .stat-num { font-size: 28px; font-weight: 700; color: var(--primary); }
+    .stat-label { font-size: 12px; color: var(--muted); }
+    .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: opacity 0.15s; }
+    .btn:hover { opacity: 0.85; text-decoration: none; }
+    .btn-primary { background: var(--primary); color: var(--primary-fg); }
+    .btn-outline { background: transparent; color: var(--fg); border: 1px solid var(--border); }
+
+    section { padding: 48px 0; }
+    h3 { font-size: 22px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .section-icon { color: var(--primary); }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+    .endpoint-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .method-badge { background: var(--accent); color: var(--primary); font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; }
+    .format-badge { font-size: 11px; color: var(--muted); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; margin-left: auto; }
+    .path { font-family: var(--mono); font-size: 14px; }
+    .desc { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .param { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-bottom: 4px; }
+    .param code { font-family: var(--mono); background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; }
+    .param .type { color: var(--muted); }
+    .param .required { color: var(--red); font-size: 10px; font-weight: 600; }
+    .example-url { background: rgba(255,255,255,0.03); border-radius: var(--radius); padding: 8px 12px; margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+    .example-url code { font-family: var(--mono); font-size: 11px; color: var(--muted); word-break: break-all; flex: 1; }
+    .copy-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px; font-size: 14px; }
+    .copy-btn:hover { color: var(--fg); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 12px; }
+    @media (max-width: 500px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .tabs { display: flex; gap: 4px; background: var(--card); border-radius: var(--radius); padding: 4px; margin-bottom: 16px; border: 1px solid var(--border); width: fit-content; }
+    .tab { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--muted); transition: all 0.15s; }
+    .tab.active { background: var(--primary); color: var(--primary-fg); }
+    .tab:hover:not(.active) { color: var(--fg); }
+
+    .playground-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 600px) { .playground-form { grid-template-columns: 1fr; } }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+    .form-group select, .form-group input { width: 100%; height: 40px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg); color: var(--fg); padding: 0 12px; font-size: 13px; font-family: var(--font); }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+    .execute-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .execute-row code { font-family: var(--mono); font-size: 11px; color: var(--muted); background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: var(--radius); flex: 1; word-break: break-all; }
+    .result-box { background: rgba(255,255,255,0.03); border-radius: var(--radius); padding: 16px; overflow: auto; max-height: 320px; }
+    .result-box pre { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; word-break: break-all; color: var(--fg); }
+
+    .code-card h4 { font-size: 13px; font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .code-card .lang { font-size: 11px; color: var(--muted); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+    .code-card pre { background: rgba(255,255,255,0.03); border-radius: var(--radius); padding: 12px; font-family: var(--mono); font-size: 12px; overflow: auto; color: var(--fg); }
+
+    footer { border-top: 1px solid var(--border); padding: 20px 0; margin-top: 40px; }
+    footer .inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--muted); }
+
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container inner">
+    <div class="logo">
+      <div class="logo-icon">&#9889;</div>
+      MediaDL API
+    </div>
+    <span class="version">v1.0</span>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="container">
+    <div class="badge">&#127760; Open API - Free to Use</div>
+    <h2>Download Music & Video<br><span>via Simple API</span></h2>
+    <p>Search, convert and download YouTube content as MP3 or MP4. Multiple endpoints for maximum compatibility.</p>
+    <div class="btn-row">
+      <a href="#endpoints" class="btn btn-primary">&#128196; View Endpoints</a>
+      <a href="#playground" class="btn btn-outline">&#9654; Try It Out</a>
+    </div>
+    <div class="stats">
+      <div><div class="stat-num">7</div><div class="stat-label">Download Endpoints</div></div>
+      <div><div class="stat-num">2</div><div class="stat-label">Formats (MP3/MP4)</div></div>
+      <div><div class="stat-num">0</div><div class="stat-label">Auth Required</div></div>
+    </div>
+  </div>
+</div>
+
+<section id="endpoints">
+  <div class="container">
+    <h3><span class="section-icon">&#128187;</span> API Endpoints</h3>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('download')">Download (7)</button>
+      <button class="tab" onclick="showTab('search')">Search (1)</button>
+    </div>
+
+    <div id="tab-download">
+      <div class="grid-2" id="download-endpoints"></div>
+    </div>
+    <div id="tab-search" class="hidden">
+      <div id="search-endpoints"></div>
+    </div>
+  </div>
+</section>
+
+<section id="playground">
+  <div class="container">
+    <h3><span class="section-icon">&#9889;</span> API Playground</h3>
+    <div class="card">
+      <div class="playground-form">
+        <div class="form-group">
+          <label>Endpoint</label>
+          <select id="pg-endpoint" onchange="updatePlayground()">
+            <option value="/download/audio">GET /download/audio</option>
+            <option value="/download/ytmp3">GET /download/ytmp3</option>
+            <option value="/download/dlmp3">GET /download/dlmp3</option>
+            <option value="/download/mp3" selected>GET /download/mp3</option>
+            <option value="/download/yta">GET /download/yta</option>
+            <option value="/download/yta2">GET /download/yta2</option>
+            <option value="/download/yta3">GET /download/yta3</option>
+            <option value="/download/mp4">GET /download/mp4</option>
+            <option value="/api/search">GET /api/search</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label id="pg-label">YouTube URL</label>
+          <input type="text" id="pg-input" value="https://youtube.com/watch?v=60ItHLz5WEA" placeholder="https://youtube.com/watch?v=...">
+        </div>
+      </div>
+      <div class="execute-row">
+        <button class="btn btn-primary" id="pg-execute" onclick="executePlayground()">&#9889; Execute</button>
+        <code id="pg-preview">GET /download/mp3?url=https://youtube.com/watch?v=60ItHLz5WEA</code>
+      </div>
+      <div id="pg-result" class="hidden">
+        <div class="result-box">
+          <pre id="pg-result-text"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h3><span class="section-icon">&#128187;</span> Quick Start</h3>
+    <div class="grid-2">
+      <div class="card code-card">
+        <h4><span class="lang">JavaScript</span> Fetch MP3</h4>
+        <pre>const res = await fetch(
+  '<span class="js-base"></span>/download/mp3?url=' +
+  encodeURIComponent(youtubeUrl)
+);
+const data = await res.json();
+console.log(data.downloadUrl);</pre>
+      </div>
+      <div class="card code-card">
+        <h4><span class="lang">Python</span> Search & Download</h4>
+        <pre>import requests
+
+results = requests.get(
+  '<span class="js-base"></span>/api/search',
+  params={'q': 'Alan Walker Faded'}
+).json()
+
+for item in results['items']:
+    print(item['title'], item['id'])</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container inner">
+    <span>MediaDL API - Powered by rinodepot.fr scraping</span>
+    <a href="https://rinodepot.fr" target="_blank" rel="noopener noreferrer">Source &#8599;</a>
+  </div>
+</footer>
+
+<script>
+const BASE = window.location.origin;
+const endpoints = [
+  { path: "/download/audio", method: "GET", desc: "Download audio from a YouTube URL", param: "url", format: "mp3" },
+  { path: "/download/ytmp3", method: "GET", desc: "Convert YouTube video to MP3", param: "url", format: "mp3" },
+  { path: "/download/dlmp3", method: "GET", desc: "Direct MP3 download from YouTube URL", param: "url", format: "mp3" },
+  { path: "/download/mp3", method: "GET", desc: "MP3 download endpoint", param: "url", format: "mp3" },
+  { path: "/download/yta", method: "GET", desc: "YouTube Audio extractor (primary)", param: "url", format: "mp3" },
+  { path: "/download/yta2", method: "GET", desc: "YouTube Audio extractor (secondary)", param: "url", format: "mp3" },
+  { path: "/download/yta3", method: "GET", desc: "YouTube Audio extractor (tertiary)", param: "url", format: "mp3" },
+  { path: "/download/mp4", method: "GET", desc: "Download video as MP4 from YouTube URL", param: "url", format: "mp4" },
+  { path: "/api/search", method: "GET", desc: "Search for songs by keyword", param: "q", format: "json" },
+];
+
+function renderEndpoint(ep) {
+  const example = ep.param === 'q'
+    ? `${BASE}${ep.path}?q=Alan+Walker+Faded`
+    : `${BASE}${ep.path}?url=https://youtube.com/watch?v=60ItHLz5WEA`;
+  const paramDesc = ep.param === 'q' ? 'Search query (song name, artist, etc.)' : 'YouTube video URL';
+  return `<div class="card">
+    <div class="endpoint-header">
+      <span class="method-badge">${ep.method}</span>
+      <span class="path">${ep.path}</span>
+      ${ep.format !== 'json' ? `<span class="format-badge">${ep.format.toUpperCase()}</span>` : ''}
+    </div>
+    <div class="desc">${ep.desc}</div>
+    <div class="param">
+      <code>${ep.param}</code>
+      <span class="type">string</span>
+      <span class="required">required</span>
+      <span class="type">- ${paramDesc}</span>
+    </div>
+    <div class="example-url">
+      <code>${example}</code>
+      <button class="copy-btn" onclick="copyText('${example}')" title="Copy">&#128203;</button>
+    </div>
+  </div>`;
+}
+
+document.getElementById('download-endpoints').innerHTML = endpoints.filter(e => e.path.startsWith('/download')).map(renderEndpoint).join('');
+document.getElementById('search-endpoints').innerHTML = endpoints.filter(e => e.path.startsWith('/api')).map(renderEndpoint).join('');
+
+document.querySelectorAll('.js-base').forEach(el => el.textContent = BASE);
+
+function showTab(tab) {
+  document.getElementById('tab-download').classList.toggle('hidden', tab !== 'download');
+  document.getElementById('tab-search').classList.toggle('hidden', tab !== 'search');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function updatePlayground() {
+  const ep = document.getElementById('pg-endpoint').value;
+  const isSearch = ep === '/api/search';
+  document.getElementById('pg-label').textContent = isSearch ? 'Search Query' : 'YouTube URL';
+  document.getElementById('pg-input').placeholder = isSearch ? 'Enter search query...' : 'https://youtube.com/watch?v=...';
+  if (isSearch) document.getElementById('pg-input').value = 'Alan Walker Faded';
+  else document.getElementById('pg-input').value = 'https://youtube.com/watch?v=60ItHLz5WEA';
+  updatePreview();
+}
+
+function updatePreview() {
+  const ep = document.getElementById('pg-endpoint').value;
+  const val = document.getElementById('pg-input').value;
+  const param = ep === '/api/search' ? 'q' : 'url';
+  document.getElementById('pg-preview').textContent = `GET ${ep}?${param}=${val}`;
+}
+
+document.getElementById('pg-input').addEventListener('input', updatePreview);
+
+async function executePlayground() {
+  const ep = document.getElementById('pg-endpoint').value;
+  const val = document.getElementById('pg-input').value;
+  const param = ep === '/api/search' ? 'q' : 'url';
+  const btn = document.getElementById('pg-execute');
+
+  btn.innerHTML = '<span class="spinner"></span> Loading...';
+  btn.disabled = true;
+  document.getElementById('pg-result').classList.remove('hidden');
+  document.getElementById('pg-result-text').textContent = 'Loading...';
+
+  try {
+    const url = `${ep}?${param}=${encodeURIComponent(val)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    document.getElementById('pg-result-text').textContent = JSON.stringify(data, null, 2);
+  } catch (err) {
+    document.getElementById('pg-result-text').textContent = JSON.stringify({ error: err.message }, null, 2);
+  }
+
+  btn.innerHTML = '&#9889; Execute';
+  btn.disabled = false;
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '\u2713';
+    setTimeout(() => btn.textContent = '\ud83d\udccb', 1500);
+  });
+}
+</script>
+
+</body>
+</html>

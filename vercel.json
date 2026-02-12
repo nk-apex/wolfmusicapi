@@ -1,7 +1,4 @@
 {
-  "version": 2,
-  "buildCommand": "npx vite build",
-  "outputDirectory": "dist/public",
   "rewrites": [
     { "source": "/download/audio", "destination": "/api/download/audio" },
     { "source": "/download/ytmp3", "destination": "/api/download/ytmp3" },
