@@ -1,6 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "npx vite build --outDir dist/public",
+  "framework": null,
+  "installCommand": "npm install",
+  "buildCommand": "npx vite build",
   "outputDirectory": "dist/public",
   "functions": {
     "api/**/*.ts": {
@@ -16,7 +18,7 @@
     { "source": "/download/yta2", "destination": "/api/download/yta2" },
     { "source": "/download/yta3", "destination": "/api/download/yta3" },
     { "source": "/download/mp4", "destination": "/api/download/mp4" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
