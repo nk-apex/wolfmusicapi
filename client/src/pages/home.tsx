@@ -149,34 +149,34 @@ function EndpointCard({ endpoint, baseUrl }: { endpoint: EndpointInfo; baseUrl: 
           >
             {endpoint.method}
           </span>
-          <code className="text-sm font-mono break-all" style={{ color: "#e0ffe0" }}>{endpoint.path}</code>
+          <code className="text-sm font-mono break-all" style={{ color: "#ffffff" }}>{endpoint.path}</code>
           {endpoint.format !== "json" && (
             <span
               className="text-xs px-2 py-0.5 rounded-md ml-auto border"
-              style={{ borderColor: "rgba(0, 255, 0, 0.2)", color: "rgba(0, 255, 0, 0.6)" }}
+              style={{ borderColor: "rgba(255, 255, 255, 0.2)", color: "rgba(255, 255, 255, 0.7)" }}
             >
               {endpoint.format.toUpperCase()}
             </span>
           )}
         </div>
-        <p className="text-sm" style={{ color: "rgba(0, 255, 0, 0.5)" }}>{endpoint.description}</p>
+        <p className="text-sm" style={{ color: "rgba(255, 255, 255, 0.6)" }}>{endpoint.description}</p>
         <div className="space-y-1">
           {endpoint.params.map((p) => (
             <div key={p.name} className="flex items-center gap-2 text-xs flex-wrap">
               <code className="font-mono px-1.5 py-0.5 rounded-md" style={{ background: "rgba(0, 255, 0, 0.08)", color: "#00ff00" }}>{p.name}</code>
-              <span style={{ color: "rgba(0, 255, 0, 0.4)" }}>{p.type}</span>
+              <span style={{ color: "rgba(255, 255, 255, 0.5)" }}>{p.type}</span>
               {p.required && (
                 <span className="text-[10px] font-bold" style={{ color: "#ff4444" }}>REQUIRED</span>
               )}
-              <span style={{ color: "rgba(0, 255, 0, 0.4)" }}>- {p.description}</span>
+              <span style={{ color: "rgba(255, 255, 255, 0.5)" }}>- {p.description}</span>
             </div>
           ))}
         </div>
         <div
           className="flex items-center gap-1 rounded-md p-2"
-          style={{ background: "rgba(0, 255, 0, 0.03)" }}
+          style={{ background: "rgba(255, 255, 255, 0.03)" }}
         >
-          <code className="text-xs font-mono break-all flex-1" style={{ color: "rgba(0, 255, 0, 0.4)" }}>{exampleUrl}</code>
+          <code className="text-xs font-mono break-all flex-1" style={{ color: "rgba(255, 255, 255, 0.45)" }}>{exampleUrl}</code>
           <CopyButton text={exampleUrl} />
         </div>
       </div>
@@ -200,10 +200,10 @@ function SearchResultCard({ result, baseUrl }: { result: SearchResult; baseUrl: 
             }}
           />
           <div className="flex-1 min-w-0 space-y-1">
-            <h3 className="text-sm font-medium leading-tight line-clamp-2" style={{ color: "#e0ffe0" }} data-testid={`text-title-${result.id}`}>
+            <h3 className="text-sm font-medium leading-tight line-clamp-2" style={{ color: "#ffffff" }} data-testid={`text-title-${result.id}`}>
               {result.title}
             </h3>
-            <div className="flex items-center gap-3 text-xs flex-wrap" style={{ color: "rgba(0, 255, 0, 0.4)" }}>
+            <div className="flex items-center gap-3 text-xs flex-wrap" style={{ color: "rgba(255, 255, 255, 0.5)" }}>
               {result.channelTitle && (
                 <span className="flex items-center gap-1">
                   <User className="w-3 h-3" />
@@ -251,41 +251,30 @@ function SearchResultCard({ result, baseUrl }: { result: SearchResult; baseUrl: 
 }
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeSearch, setActiveSearch] = useState("");
-  const [tryUrl, setTryUrl] = useState("https://youtube.com/watch?v=60ItHLz5WEA");
-  const [tryEndpoint, setTryEndpoint] = useState("/download/mp3");
+  const [tryUrl, setTryUrl] = useState("");
+  const [tryEndpoint, setTryEndpoint] = useState("/api/search");
   const [tryResult, setTryResult] = useState<string | null>(null);
   const [tryLoading, setTryLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"download" | "search">("download");
+  const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null);
+  const [lastSearchQuery, setLastSearchQuery] = useState("");
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
-  const { data: searchResults, isLoading: searchLoading, error: searchError } = useQuery<SearchResult[]>({
-    queryKey: ["/api/search", activeSearch],
-    queryFn: async () => {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(activeSearch)}`);
-      if (!res.ok) throw new Error("Search failed");
-      return res.json();
-    },
-    enabled: activeSearch.length > 0,
-  });
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      setActiveSearch(searchQuery.trim());
-    }
-  };
-
   const handleTryEndpoint = async () => {
+    if (!tryUrl.trim()) return;
     setTryLoading(true);
     setTryResult(null);
+    setSearchResults(null);
     try {
       const param = tryEndpoint === "/api/search" ? `q=${encodeURIComponent(tryUrl)}` : `url=${encodeURIComponent(tryUrl)}`;
       const res = await fetch(`${tryEndpoint}?${param}`);
       const data = await res.json();
       setTryResult(JSON.stringify(data, null, 2));
+      if (tryEndpoint === "/api/search" && Array.isArray(data)) {
+        setSearchResults(data);
+        setLastSearchQuery(tryUrl);
+      }
     } catch (err: any) {
       setTryResult(JSON.stringify({ error: err.message }, null, 2));
     }
@@ -331,7 +320,7 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <span
                 className="text-xs font-mono px-2 py-1 rounded-md border"
-                style={{ borderColor: "rgba(0, 255, 0, 0.2)", color: "rgba(0, 255, 0, 0.5)" }}
+                style={{ borderColor: "rgba(0, 255, 0, 0.2)", color: "rgba(255, 255, 255, 0.5)" }}
               >
                 v1.0
               </span>
@@ -363,17 +352,17 @@ export default function Home() {
               className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight"
               style={{ fontFamily: "'Orbitron', sans-serif" }}
             >
-              <span style={{ color: "#e0ffe0" }}>Download Music & Video</span>
+              <span style={{ color: "#ffffff" }}>Download Music & Video</span>
               <br />
               <span style={{ color: "#00ff00", textShadow: "0 0 30px rgba(0, 255, 0, 0.4)" }}>via Simple API</span>
             </h2>
-            <p className="max-w-2xl mx-auto text-lg" style={{ color: "rgba(0, 255, 0, 0.45)", fontFamily: "'JetBrains Mono', monospace" }}>
+            <p className="max-w-2xl mx-auto text-lg" style={{ color: "rgba(255, 255, 255, 0.55)", fontFamily: "'JetBrains Mono', monospace" }}>
               Search, convert and download YouTube content as MP3 or MP4.
               Multiple endpoints for maximum compatibility.
             </p>
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <Button asChild data-testid="button-get-started">
-                <a href="#search-test">
+                <a href="#playground">
                   <Search className="w-4 h-4 mr-2" />
                   Test Endpoints
                 </a>
@@ -389,103 +378,24 @@ export default function Home() {
             <div className="flex justify-center gap-12 pt-6">
               <div className="text-center">
                 <p className="text-3xl font-bold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#00ff00", textShadow: "0 0 20px rgba(0, 255, 0, 0.3)" }}>{downloadEndpoints.length}</p>
-                <p className="text-xs mt-1" style={{ color: "rgba(0, 255, 0, 0.35)" }}>ENDPOINTS</p>
+                <p className="text-xs mt-1" style={{ color: "rgba(255, 255, 255, 0.35)" }}>ENDPOINTS</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#00ff00", textShadow: "0 0 20px rgba(0, 255, 0, 0.3)" }}>2</p>
-                <p className="text-xs mt-1" style={{ color: "rgba(0, 255, 0, 0.35)" }}>FORMATS</p>
+                <p className="text-xs mt-1" style={{ color: "rgba(255, 255, 255, 0.35)" }}>FORMATS</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#00ff00", textShadow: "0 0 20px rgba(0, 255, 0, 0.3)" }}>0</p>
-                <p className="text-xs mt-1" style={{ color: "rgba(0, 255, 0, 0.35)" }}>AUTH</p>
+                <p className="text-xs mt-1" style={{ color: "rgba(255, 255, 255, 0.35)" }}>AUTH</p>
               </div>
             </div>
           </div>
-        </section>
-
-        <section id="search-test" className="max-w-6xl mx-auto px-4 py-12 space-y-6">
-          <div className="flex items-center gap-2">
-            <Search className="w-5 h-5" style={{ color: "#00ff00" }} />
-            <h2 className="text-2xl font-semibold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#e0ffe0" }}>
-              Test Search Endpoint
-            </h2>
-          </div>
-          <p className="text-sm" style={{ color: "rgba(0, 255, 0, 0.4)" }}>
-            Search for any song and see the live API response. Try "Home by NF" or "Alan Walker Faded".
-          </p>
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "rgba(0, 255, 0, 0.3)" }} />
-              <input
-                type="text"
-                data-testid="input-search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for songs, artists..."
-                className="w-full pl-10 pr-4 h-10 rounded-md text-sm focus:outline-none"
-                style={{
-                  background: "rgba(0, 255, 0, 0.05)",
-                  border: "1px solid rgba(0, 255, 0, 0.2)",
-                  color: "#e0ffe0",
-                  caretColor: "#00ff00",
-                }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(0, 255, 0, 0.5)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(0, 255, 0, 0.1)"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(0, 255, 0, 0.2)"; e.currentTarget.style.boxShadow = "none"; }}
-              />
-            </div>
-            <Button type="submit" data-testid="button-search" disabled={!searchQuery.trim()}>
-              <Search className="w-4 h-4 mr-2" />
-              Search
-            </Button>
-          </form>
-
-          {searchLoading && (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin" style={{ color: "#00ff00" }} />
-              <span className="ml-2" style={{ color: "rgba(0, 255, 0, 0.5)" }}>Scanning endpoints...</span>
-            </div>
-          )}
-
-          {searchResults && searchResults.length > 0 && (
-            <div className="space-y-3">
-              <div
-                className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-mono"
-                style={{ background: "rgba(0, 255, 0, 0.05)", borderLeft: "2px solid #00ff00", color: "rgba(0, 255, 0, 0.6)" }}
-              >
-                <Terminal className="w-3 h-3" style={{ color: "#00ff00" }} />
-                GET /api/search?q={encodeURIComponent(activeSearch)} — {searchResults.length} results
-              </div>
-              <div className="grid gap-3" data-testid="container-search-results">
-                {searchResults.map((result) => (
-                  <SearchResultCard key={result.id} result={result} baseUrl={baseUrl} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {searchError && (
-            <GlassCard>
-              <div className="p-8 text-center">
-                <Zap className="w-10 h-10 mx-auto mb-3" style={{ color: "#ff4444" }} />
-                <p style={{ color: "rgba(255, 68, 68, 0.7)" }}>Connection failed. Try again.</p>
-              </div>
-            </GlassCard>
-          )}
-
-          {searchResults && searchResults.length === 0 && (
-            <GlassCard>
-              <div className="p-8 text-center">
-                <Music className="w-10 h-10 mx-auto mb-3" style={{ color: "rgba(0, 255, 0, 0.3)" }} />
-                <p style={{ color: "rgba(0, 255, 0, 0.4)" }}>No results found. Try a different query.</p>
-              </div>
-            </GlassCard>
-          )}
         </section>
 
         <section id="endpoints" className="max-w-6xl mx-auto px-4 py-12 space-y-6">
           <div className="flex items-center gap-2">
             <Code2 className="w-5 h-5" style={{ color: "#00ff00" }} />
-            <h2 className="text-2xl font-semibold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#e0ffe0" }}>
+            <h2 className="text-2xl font-semibold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
               API Endpoints
             </h2>
           </div>
@@ -495,7 +405,7 @@ export default function Home() {
               className="px-4 py-2 rounded-md text-sm font-medium transition-all"
               style={{
                 background: activeTab === "download" ? "rgba(0, 255, 0, 0.15)" : "transparent",
-                color: activeTab === "download" ? "#00ff00" : "rgba(0, 255, 0, 0.4)",
+                color: activeTab === "download" ? "#00ff00" : "rgba(255, 255, 255, 0.5)",
                 boxShadow: activeTab === "download" ? "0 0 10px rgba(0, 255, 0, 0.1)" : "none",
               }}
               onClick={() => setActiveTab("download")}
@@ -510,7 +420,7 @@ export default function Home() {
               className="px-4 py-2 rounded-md text-sm font-medium transition-all"
               style={{
                 background: activeTab === "search" ? "rgba(0, 255, 0, 0.15)" : "transparent",
-                color: activeTab === "search" ? "#00ff00" : "rgba(0, 255, 0, 0.4)",
+                color: activeTab === "search" ? "#00ff00" : "rgba(255, 255, 255, 0.5)",
                 boxShadow: activeTab === "search" ? "0 0 10px rgba(0, 255, 0, 0.1)" : "none",
               }}
               onClick={() => setActiveTab("search")}
@@ -543,24 +453,36 @@ export default function Home() {
         <section id="playground" className="max-w-6xl mx-auto px-4 py-12 space-y-6">
           <div className="flex items-center gap-2">
             <Terminal className="w-5 h-5" style={{ color: "#00ff00" }} />
-            <h2 className="text-2xl font-semibold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#e0ffe0" }}>
+            <h2 className="text-2xl font-semibold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
               API Playground
             </h2>
           </div>
+          <p className="text-sm" style={{ color: "rgba(255, 255, 255, 0.5)" }}>
+            Select an endpoint, enter a song name or YouTube URL, then hit Execute to see the live API response.
+          </p>
           <GlassCard glow>
             <div className="p-6 space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium" style={{ color: "rgba(0, 255, 0, 0.6)" }}>Endpoint</label>
+                  <label className="text-sm font-medium" style={{ color: "rgba(255, 255, 255, 0.7)" }}>Endpoint</label>
                   <select
                     data-testid="select-endpoint"
                     value={tryEndpoint}
-                    onChange={(e) => setTryEndpoint(e.target.value)}
+                    onChange={(e) => {
+                      setTryEndpoint(e.target.value);
+                      setTryResult(null);
+                      setSearchResults(null);
+                      if (e.target.value === "/api/search") {
+                        setTryUrl("");
+                      } else {
+                        setTryUrl("https://youtube.com/watch?v=60ItHLz5WEA");
+                      }
+                    }}
                     className="w-full h-10 rounded-md px-3 text-sm focus:outline-none"
                     style={{
                       background: "rgba(0, 255, 0, 0.05)",
                       border: "1px solid rgba(0, 255, 0, 0.2)",
-                      color: "#e0ffe0",
+                      color: "#ffffff",
                     }}
                   >
                     {endpointInfo.map((ep) => (
@@ -571,42 +493,75 @@ export default function Home() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium" style={{ color: "rgba(0, 255, 0, 0.6)" }}>
-                    {tryEndpoint === "/api/search" ? "Search Query" : "YouTube URL"}
+                  <label className="text-sm font-medium" style={{ color: "rgba(255, 255, 255, 0.7)" }}>
+                    {tryEndpoint === "/api/search" ? "Song Name" : "YouTube URL"}
                   </label>
                   <input
                     type="text"
                     data-testid="input-try-url"
                     value={tryUrl}
                     onChange={(e) => setTryUrl(e.target.value)}
-                    placeholder={tryEndpoint === "/api/search" ? "Enter search query..." : "https://youtube.com/watch?v=..."}
+                    placeholder={tryEndpoint === "/api/search" ? "e.g. Home by NF, Alan Walker Faded..." : "https://youtube.com/watch?v=..."}
                     className="w-full h-10 rounded-md px-3 text-sm focus:outline-none"
                     style={{
                       background: "rgba(0, 255, 0, 0.05)",
                       border: "1px solid rgba(0, 255, 0, 0.2)",
-                      color: "#e0ffe0",
+                      color: "#ffffff",
                       caretColor: "#00ff00",
                     }}
                     onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(0, 255, 0, 0.5)"; e.currentTarget.style.boxShadow = "0 0 12px rgba(0, 255, 0, 0.1)"; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(0, 255, 0, 0.2)"; e.currentTarget.style.boxShadow = "none"; }}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleTryEndpoint(); }}
                   />
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <Button onClick={handleTryEndpoint} disabled={tryLoading} data-testid="button-try-execute">
+                <Button onClick={handleTryEndpoint} disabled={tryLoading || !tryUrl.trim()} data-testid="button-try-execute">
                   {tryLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
                   Execute
                 </Button>
                 <div
                   className="flex-1 rounded-md px-3 py-2"
-                  style={{ background: "rgba(0, 255, 0, 0.03)" }}
+                  style={{ background: "rgba(255, 255, 255, 0.03)" }}
                 >
-                  <code className="text-xs font-mono break-all" style={{ color: "rgba(0, 255, 0, 0.4)" }}>
+                  <code className="text-xs font-mono break-all" style={{ color: "rgba(255, 255, 255, 0.4)" }}>
                     GET {tryEndpoint}?{tryEndpoint === "/api/search" ? "q" : "url"}={tryUrl}
                   </code>
                 </div>
               </div>
-              {tryResult && (
+
+              {tryLoading && (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin" style={{ color: "#00ff00" }} />
+                  <span className="ml-2" style={{ color: "rgba(255, 255, 255, 0.5)" }}>Fetching response...</span>
+                </div>
+              )}
+
+              {searchResults && searchResults.length > 0 && (
+                <div className="space-y-3">
+                  <div
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-mono"
+                    style={{ background: "rgba(0, 255, 0, 0.05)", borderLeft: "2px solid #00ff00", color: "rgba(255, 255, 255, 0.6)" }}
+                  >
+                    <Terminal className="w-3 h-3" style={{ color: "#00ff00" }} />
+                    GET /api/search?q={encodeURIComponent(lastSearchQuery)} -- {searchResults.length} results
+                  </div>
+                  <div className="grid gap-3" data-testid="container-search-results">
+                    {searchResults.map((result) => (
+                      <SearchResultCard key={result.id} result={result} baseUrl={baseUrl} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {searchResults && searchResults.length === 0 && (
+                <div className="p-8 text-center">
+                  <Music className="w-10 h-10 mx-auto mb-3" style={{ color: "rgba(0, 255, 0, 0.3)" }} />
+                  <p style={{ color: "rgba(255, 255, 255, 0.4)" }}>No results found. Try a different song name.</p>
+                </div>
+              )}
+
+              {tryResult && !searchResults && (
                 <div className="relative">
                   <div className="absolute top-2 right-2" style={{ zIndex: 2 }}>
                     <CopyButton text={tryResult} />
@@ -623,6 +578,34 @@ export default function Home() {
                   </pre>
                 </div>
               )}
+
+              {tryResult && searchResults && searchResults.length > 0 && (
+                <details className="group">
+                  <summary
+                    className="cursor-pointer text-xs font-mono px-3 py-2 rounded-md flex items-center gap-2"
+                    style={{ color: "rgba(255, 255, 255, 0.5)", background: "rgba(255, 255, 255, 0.03)" }}
+                    data-testid="button-raw-json"
+                  >
+                    <Code2 className="w-3 h-3" />
+                    View Raw JSON Response
+                  </summary>
+                  <div className="relative mt-2">
+                    <div className="absolute top-2 right-2" style={{ zIndex: 2 }}>
+                      <CopyButton text={tryResult} />
+                    </div>
+                    <pre
+                      className="rounded-md p-4 text-xs font-mono overflow-auto max-h-80"
+                      style={{
+                        background: "rgba(0, 0, 0, 0.6)",
+                        border: "1px solid rgba(0, 255, 0, 0.15)",
+                        color: "#00ff00",
+                      }}
+                    >
+                      {tryResult}
+                    </pre>
+                  </div>
+                </details>
+              )}
             </div>
           </GlassCard>
         </section>
@@ -630,14 +613,14 @@ export default function Home() {
         <section className="max-w-6xl mx-auto px-4 py-12 space-y-6">
           <div className="flex items-center gap-2">
             <Code2 className="w-5 h-5" style={{ color: "#00ff00" }} />
-            <h2 className="text-2xl font-semibold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#e0ffe0" }}>
+            <h2 className="text-2xl font-semibold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
               Quick Start
             </h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <GlassCard glow>
               <div className="p-4 space-y-3">
-                <h3 className="font-medium text-sm flex items-center gap-2" style={{ color: "#e0ffe0" }}>
+                <h3 className="font-medium text-sm flex items-center gap-2" style={{ color: "#ffffff" }}>
                   <span className="text-xs px-2 py-0.5 rounded-md border" style={{ borderColor: "rgba(0, 255, 0, 0.2)", color: "rgba(0, 255, 0, 0.6)" }}>JavaScript</span>
                   Fetch MP3
                 </h3>
@@ -654,7 +637,7 @@ console.log(data.downloadUrl);`}</pre>
             </GlassCard>
             <GlassCard glow>
               <div className="p-4 space-y-3">
-                <h3 className="font-medium text-sm flex items-center gap-2" style={{ color: "#e0ffe0" }}>
+                <h3 className="font-medium text-sm flex items-center gap-2" style={{ color: "#ffffff" }}>
                   <span className="text-xs px-2 py-0.5 rounded-md border" style={{ borderColor: "rgba(0, 255, 0, 0.2)", color: "rgba(0, 255, 0, 0.6)" }}>Python</span>
                   Search & Download
                 </h3>
@@ -680,7 +663,7 @@ for item in results:
           style={{ borderColor: "rgba(0, 255, 0, 0.1)" }}
         >
           <div className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between gap-2 flex-wrap text-sm">
-            <p style={{ color: "rgba(0, 255, 0, 0.3)", fontFamily: "'Orbitron', sans-serif", fontSize: "12px" }}>
+            <p style={{ color: "rgba(255, 255, 255, 0.3)", fontFamily: "'Orbitron', sans-serif", fontSize: "12px" }}>
               MediaDL API
             </p>
             <a
@@ -688,7 +671,7 @@ for item in results:
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 transition-colors"
-              style={{ color: "rgba(0, 255, 0, 0.4)" }}
+              style={{ color: "rgba(255, 255, 255, 0.4)" }}
             >
               Source <ExternalLink className="w-3 h-3" />
             </a>
