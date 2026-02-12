@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "buildCommand": "npx vite build --outDir dist/public",
+  "outputDirectory": "dist/public",
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "@vercel/node@3"
+    }
+  },
+  "rewrites": [
+    { "source": "/download/audio", "destination": "/api/download/audio" },
+    { "source": "/download/ytmp3", "destination": "/api/download/ytmp3" },
+    { "source": "/download/dlmp3", "destination": "/api/download/dlmp3" },
+    { "source": "/download/mp3", "destination": "/api/download/mp3" },
+    { "source": "/download/yta", "destination": "/api/download/yta" },
+    { "source": "/download/yta2", "destination": "/api/download/yta2" },
+    { "source": "/download/yta3", "destination": "/api/download/yta3" },
+    { "source": "/download/mp4", "destination": "/api/download/mp4" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    },
+    {
+      "source": "/download/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    }
+  ]
+}
