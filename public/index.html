@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MediaDL API - YouTube MP3 & MP4 Download API</title>
+  <title>WolfMusicApi - YouTube MP3 & MP4 Download API</title>
   <meta name="description" content="Free API to search, convert and download YouTube content as MP3 or MP4. Multiple endpoints for maximum compatibility.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -122,8 +122,8 @@
 <header>
   <div class="container inner">
     <div class="logo">
-      <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff00" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-      <span class="logo-text">MediaDL</span>
+      <img src="/wolf-logo.png" alt="WolfMusicApi Logo" style="width:40px;height:40px;border-radius:var(--radius);object-fit:cover;border:1px solid rgba(0,255,0,0.3);box-shadow:0 0 12px rgba(0,255,0,0.2)">
+      <span class="logo-text"><span style="color:#00ff00">WolfMusic</span><span style="color:#ffffff">Api</span></span>
     </div>
     <div class="status"><div class="status-dot"></div> ONLINE</div>
   </div>
@@ -183,9 +183,13 @@
           <input type="text" id="pg-input" value="" placeholder="e.g. Home by NF, Alan Walker Faded..." onkeydown="if(event.key==='Enter')executePlayground()">
         </div>
       </div>
-      <div class="execute-row">
-        <button class="btn btn-primary" id="pg-execute" onclick="executePlayground()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Execute</button>
-        <code id="pg-preview">GET /api/search?q=</code>
+      <div style="margin-bottom:16px">
+        <button class="btn btn-primary" id="pg-execute" onclick="executePlayground()" style="margin-bottom:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Execute</button>
+        <div style="display:flex;align-items:center;gap:8px;background:rgba(0,255,0,0.03);border:1px solid rgba(0,255,0,0.1);border-radius:var(--radius);padding:10px 14px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00ff00" stroke-width="2" style="flex-shrink:0"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          <code id="pg-preview" style="font-size:11px;color:rgba(255,255,255,0.6);word-break:break-all;flex:1"></code>
+          <button class="copy-btn" id="pg-copy-url" onclick="copyFullUrl()" title="Copy full URL"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        </div>
       </div>
       <div id="pg-loading" class="loading-center hidden"><span class="spinner"></span> Fetching response...</div>
       <div id="pg-search-results"></div>
@@ -225,7 +229,7 @@ for item in results:
 
 <footer>
   <div class="container inner">
-    <span class="brand">MediaDL API</span>
+    <span class="brand"><span style="color:rgba(0,255,0,0.3)">WolfMusic</span><span style="color:rgba(255,255,255,0.3)">Api</span></span>
     <a href="https://rinodepot.fr" target="_blank" rel="noopener noreferrer">Source <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
   </div>
 </footer>
@@ -282,12 +286,23 @@ function updatePlayground() {
   document.getElementById('pg-search-results').innerHTML = '';
   updatePreview();
 }
-function updatePreview() {
+function getFullUrl() {
   const ep = document.getElementById('pg-endpoint').value;
   const val = document.getElementById('pg-input').value;
-  document.getElementById('pg-preview').textContent = `GET ${ep}?${ep==='/api/search'?'q':'url'}=${val}`;
+  const param = ep==='/api/search' ? 'q' : 'url';
+  return `${BASE}${ep}?${param}=${encodeURIComponent(val)}`;
+}
+function updatePreview() {
+  document.getElementById('pg-preview').textContent = getFullUrl();
+}
+function copyFullUrl() {
+  navigator.clipboard.writeText(getFullUrl()).then(()=>{
+    const btn = document.getElementById('pg-copy-url');
+    if (btn) { const orig = btn.innerHTML; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00ff00" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'; setTimeout(()=>btn.innerHTML = orig, 1500); }
+  });
 }
 document.getElementById('pg-input').addEventListener('input', updatePreview);
+updatePreview();
 
 async function executePlayground() {
   const ep = document.getElementById('pg-endpoint').value;

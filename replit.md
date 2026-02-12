@@ -1,7 +1,7 @@
-# MediaDL API
+# WolfMusicApi
 
 ## Overview
-A media download API service that scrapes rinodepot.fr to provide YouTube search, MP3, and MP4 download endpoints. Features a beautiful API documentation frontend with playground. Supports both Express.js (local/Replit) and Vercel serverless deployment.
+A media download API service (branded as WolfMusicApi) that scrapes rinodepot.fr to provide YouTube search, MP3, and MP4 download endpoints. Features a cyberpunk neon-themed API documentation frontend with playground. Supports both Express.js (local/Replit) and Vercel serverless deployment.
 
 ## Architecture
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui components

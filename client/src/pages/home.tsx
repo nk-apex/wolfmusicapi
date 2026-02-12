@@ -23,6 +23,7 @@ import {
   Radio,
 } from "lucide-react";
 import { endpointInfo, type SearchResult, type EndpointInfo } from "@shared/schema";
+import wolfLogo from "../assets/wolf-logo.png";
 
 function NeonParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -300,21 +301,20 @@ export default function Home() {
         >
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-3">
-              <div
-                className="w-9 h-9 rounded-md flex items-center justify-center"
+              <img
+                src={wolfLogo}
+                alt="WolfMusicApi Logo"
+                className="w-10 h-10 rounded-md object-cover"
                 style={{
-                  background: "rgba(0, 255, 0, 0.1)",
                   border: "1px solid rgba(0, 255, 0, 0.3)",
                   boxShadow: "0 0 12px rgba(0, 255, 0, 0.2)",
                 }}
-              >
-                <Zap className="w-5 h-5" style={{ color: "#00ff00" }} />
-              </div>
+              />
               <h1
                 className="text-lg font-bold tracking-wider"
-                style={{ fontFamily: "'Orbitron', sans-serif", color: "#00ff00" }}
+                style={{ fontFamily: "'Orbitron', sans-serif" }}
               >
-                MediaDL
+                <span style={{ color: "#00ff00" }}>WolfMusic</span><span style={{ color: "#ffffff" }}>Api</span>
               </h1>
             </div>
             <div className="flex items-center gap-3">
@@ -515,18 +515,21 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button onClick={handleTryEndpoint} disabled={tryLoading || !tryUrl.trim()} data-testid="button-try-execute">
+              <div className="space-y-3">
+                <Button onClick={handleTryEndpoint} disabled={tryLoading || !tryUrl.trim()} data-testid="button-try-execute" className="w-full sm:w-auto">
                   {tryLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
                   Execute
                 </Button>
                 <div
-                  className="flex-1 rounded-md px-3 py-2"
-                  style={{ background: "rgba(255, 255, 255, 0.03)" }}
+                  className="rounded-md px-4 py-3 flex items-center gap-2"
+                  style={{ background: "rgba(0, 255, 0, 0.03)", border: "1px solid rgba(0, 255, 0, 0.1)" }}
+                  data-testid="display-full-url"
                 >
-                  <code className="text-xs font-mono break-all" style={{ color: "rgba(255, 255, 255, 0.4)" }}>
-                    GET {tryEndpoint}?{tryEndpoint === "/api/search" ? "q" : "url"}={tryUrl}
+                  <Terminal className="w-4 h-4 flex-shrink-0" style={{ color: "#00ff00" }} />
+                  <code className="text-xs font-mono break-all flex-1" style={{ color: "rgba(255, 255, 255, 0.6)" }}>
+                    {baseUrl}{tryEndpoint}?{tryEndpoint === "/api/search" ? "q" : "url"}={tryUrl ? encodeURIComponent(tryUrl) : ""}
                   </code>
+                  <CopyButton text={`${baseUrl}${tryEndpoint}?${tryEndpoint === "/api/search" ? "q" : "url"}=${tryUrl ? encodeURIComponent(tryUrl) : ""}`} />
                 </div>
               </div>
 
@@ -663,8 +666,8 @@ for item in results:
           style={{ borderColor: "rgba(0, 255, 0, 0.1)" }}
         >
           <div className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between gap-2 flex-wrap text-sm">
-            <p style={{ color: "rgba(255, 255, 255, 0.3)", fontFamily: "'Orbitron', sans-serif", fontSize: "12px" }}>
-              MediaDL API
+            <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "12px" }}>
+              <span style={{ color: "rgba(0, 255, 0, 0.3)" }}>WolfMusic</span><span style={{ color: "rgba(255, 255, 255, 0.3)" }}>Api</span>
             </p>
             <a
               href="https://rinodepot.fr"
