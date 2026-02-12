@@ -1,14 +1,7 @@
 {
   "version": 2,
-  "framework": null,
-  "installCommand": "npm install",
   "buildCommand": "npx vite build",
   "outputDirectory": "dist/public",
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "@vercel/node@3"
-    }
-  },
   "rewrites": [
     { "source": "/download/audio", "destination": "/api/download/audio" },
     { "source": "/download/ytmp3", "destination": "/api/download/ytmp3" },
@@ -17,8 +10,7 @@
     { "source": "/download/yta", "destination": "/api/download/yta" },
     { "source": "/download/yta2", "destination": "/api/download/yta2" },
     { "source": "/download/yta3", "destination": "/api/download/yta3" },
-    { "source": "/download/mp4", "destination": "/api/download/mp4" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/download/mp4", "destination": "/api/download/mp4" }
   ],
   "headers": [
     {
