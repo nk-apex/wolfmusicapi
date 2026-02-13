@@ -1,11 +1,14 @@
 import type { Express } from "express";
 import { type Server } from "http";
 import { searchSongs, getDownloadInfo } from "./scraper";
+import { registerAIRoutes } from "./ai-routes";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  registerAIRoutes(app);
+
   app.get("/api/search", async (req, res) => {
     try {
       const q = req.query.q as string;
