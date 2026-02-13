@@ -15,12 +15,8 @@ import {
   Clock,
   User,
   Terminal,
-  Shield,
-  Lock,
   MessageSquare,
   Image,
-  ChevronRight,
-  ArrowRight,
 } from "lucide-react";
 import { allEndpoints, apiCategories, type ApiEndpoint, type SearchResult } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
@@ -95,11 +91,6 @@ function EndpointCard({ endpoint, baseUrl, onTry }: { endpoint: ApiEndpoint; bas
         >
           <Play className="w-3 h-3" /> Try it
         </button>
-        {endpoint.envKey && (
-          <span className="text-[10px] font-mono ml-auto" style={{ color: "rgba(255,255,255,0.2)" }}>
-            <Lock className="w-3 h-3 inline mr-1" />{endpoint.envKey}
-          </span>
-        )}
       </div>
     </div>
   );
