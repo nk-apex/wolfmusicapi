@@ -27,164 +27,113 @@ async function chatEverywhereProxy(prompt: string, systemPrompt?: string): Promi
   return text;
 }
 
+interface ChatEndpointConfig {
+  path: string;
+  label: string;
+  model: string;
+  defaultSystem: string;
+}
+
+const chatEndpoints: ChatEndpointConfig[] = [
+  {
+    path: "/api/ai/gpt",
+    label: "GPT",
+    model: "gpt-3.5-turbo",
+    defaultSystem: "You are a helpful assistant.",
+  },
+  {
+    path: "/api/ai/claude",
+    label: "Claude",
+    model: "gpt-3.5-turbo",
+    defaultSystem: "You are Claude, a helpful AI assistant made by Anthropic. Respond thoughtfully and accurately.",
+  },
+  {
+    path: "/api/ai/mistral",
+    label: "Mistral",
+    model: "gpt-3.5-turbo",
+    defaultSystem: "You are a helpful AI assistant. Respond clearly and accurately.",
+  },
+  {
+    path: "/api/ai/gemini",
+    label: "Gemini",
+    model: "gpt-3.5-turbo",
+    defaultSystem: "You are a helpful AI assistant. Respond clearly and accurately.",
+  },
+  {
+    path: "/api/ai/deepseek",
+    label: "DeepSeek",
+    model: "gpt-3.5-turbo",
+    defaultSystem: "You are a helpful AI assistant. Respond clearly and accurately.",
+  },
+  {
+    path: "/api/ai/venice",
+    label: "Venice",
+    model: "gpt-3.5-turbo",
+    defaultSystem: "You are a helpful AI assistant. Respond clearly and accurately.",
+  },
+  {
+    path: "/api/ai/groq",
+    label: "Groq",
+    model: "gpt-3.5-turbo",
+    defaultSystem: "You are a helpful AI assistant. Respond clearly and accurately.",
+  },
+  {
+    path: "/api/ai/cohere",
+    label: "Cohere",
+    model: "gpt-3.5-turbo",
+    defaultSystem: "You are a helpful AI assistant. Respond clearly and accurately.",
+  },
+];
+
 export function registerAIRoutes(app: Express): void {
-  app.post("/api/ai/gpt", async (req: Request, res: Response) => {
-    const { prompt, system } = req.body;
-    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-      return res.status(400).json({ success: false, error: "Parameter 'prompt' is required." });
-    }
-
-    try {
-      const text = await chatEverywhereProxy(prompt, system);
+  for (const ep of chatEndpoints) {
+    app.get(ep.path, (_req: Request, res: Response) => {
       return res.json({
-        success: true,
-        provider: "ChatEverywhere",
-        model: "gpt-3.5-turbo",
-        response: text,
+        endpoint: ep.path,
+        method: "POST",
+        description: `${ep.label} AI Chat endpoint. Send a POST request with a JSON body.`,
+        usage: {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: { prompt: "Your message here", system: "(optional) Custom system prompt" },
+        },
+        example: `curl -X POST ${ep.path} -H "Content-Type: application/json" -d '{"prompt":"Hello!"}'`,
       });
-    } catch (error: any) {
-      return res.status(500).json({ success: false, error: error.message, provider: "ChatEverywhere" });
-    }
-  });
+    });
 
-  app.post("/api/ai/claude", async (req: Request, res: Response) => {
-    const { prompt, system } = req.body;
-    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-      return res.status(400).json({ success: false, error: "Parameter 'prompt' is required." });
-    }
+    app.post(ep.path, async (req: Request, res: Response) => {
+      const { prompt, system } = req.body;
+      if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
+        return res.status(400).json({ success: false, error: "Parameter 'prompt' is required." });
+      }
 
-    try {
-      const systemPrompt = system || "You are Claude, a helpful AI assistant made by Anthropic. Respond thoughtfully and accurately.";
-      const text = await chatEverywhereProxy(prompt, systemPrompt);
-      return res.json({
-        success: true,
-        provider: "ChatEverywhere",
-        model: "gpt-3.5-turbo",
-        response: text,
-      });
-    } catch (error: any) {
-      return res.status(500).json({ success: false, error: error.message, provider: "ChatEverywhere" });
-    }
-  });
+      try {
+        const systemPrompt = system || ep.defaultSystem;
+        const text = await chatEverywhereProxy(prompt, systemPrompt);
+        return res.json({
+          success: true,
+          provider: "ChatEverywhere",
+          model: ep.model,
+          response: text,
+        });
+      } catch (error: any) {
+        return res.status(500).json({ success: false, error: error.message, provider: "ChatEverywhere" });
+      }
+    });
+  }
 
-  app.post("/api/ai/mistral", async (req: Request, res: Response) => {
-    const { prompt, system } = req.body;
-    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-      return res.status(400).json({ success: false, error: "Parameter 'prompt' is required." });
-    }
-
-    try {
-      const systemPrompt = system || "You are a helpful AI assistant. Respond clearly and accurately.";
-      const text = await chatEverywhereProxy(prompt, systemPrompt);
-      return res.json({
-        success: true,
-        provider: "ChatEverywhere",
-        model: "gpt-3.5-turbo",
-        response: text,
-      });
-    } catch (error: any) {
-      return res.status(500).json({ success: false, error: error.message, provider: "ChatEverywhere" });
-    }
-  });
-
-  app.post("/api/ai/gemini", async (req: Request, res: Response) => {
-    const { prompt, system } = req.body;
-    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-      return res.status(400).json({ success: false, error: "Parameter 'prompt' is required." });
-    }
-
-    try {
-      const systemPrompt = system || "You are a helpful AI assistant. Respond clearly and accurately.";
-      const text = await chatEverywhereProxy(prompt, systemPrompt);
-      return res.json({
-        success: true,
-        provider: "ChatEverywhere",
-        model: "gpt-3.5-turbo",
-        response: text,
-      });
-    } catch (error: any) {
-      return res.status(500).json({ success: false, error: error.message, provider: "ChatEverywhere" });
-    }
-  });
-
-  app.post("/api/ai/deepseek", async (req: Request, res: Response) => {
-    const { prompt, system } = req.body;
-    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-      return res.status(400).json({ success: false, error: "Parameter 'prompt' is required." });
-    }
-
-    try {
-      const systemPrompt = system || "You are a helpful AI assistant. Respond clearly and accurately.";
-      const text = await chatEverywhereProxy(prompt, systemPrompt);
-      return res.json({
-        success: true,
-        provider: "ChatEverywhere",
-        model: "gpt-3.5-turbo",
-        response: text,
-      });
-    } catch (error: any) {
-      return res.status(500).json({ success: false, error: error.message, provider: "ChatEverywhere" });
-    }
-  });
-
-  app.post("/api/ai/venice", async (req: Request, res: Response) => {
-    const { prompt, system } = req.body;
-    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-      return res.status(400).json({ success: false, error: "Parameter 'prompt' is required." });
-    }
-
-    try {
-      const systemPrompt = system || "You are a helpful AI assistant. Respond clearly and accurately.";
-      const text = await chatEverywhereProxy(prompt, systemPrompt);
-      return res.json({
-        success: true,
-        provider: "ChatEverywhere",
-        model: "gpt-3.5-turbo",
-        response: text,
-      });
-    } catch (error: any) {
-      return res.status(500).json({ success: false, error: error.message, provider: "ChatEverywhere" });
-    }
-  });
-
-  app.post("/api/ai/groq", async (req: Request, res: Response) => {
-    const { prompt, system } = req.body;
-    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-      return res.status(400).json({ success: false, error: "Parameter 'prompt' is required." });
-    }
-
-    try {
-      const systemPrompt = system || "You are a helpful AI assistant. Respond clearly and accurately.";
-      const text = await chatEverywhereProxy(prompt, systemPrompt);
-      return res.json({
-        success: true,
-        provider: "ChatEverywhere",
-        model: "gpt-3.5-turbo",
-        response: text,
-      });
-    } catch (error: any) {
-      return res.status(500).json({ success: false, error: error.message, provider: "ChatEverywhere" });
-    }
-  });
-
-  app.post("/api/ai/cohere", async (req: Request, res: Response) => {
-    const { prompt, system } = req.body;
-    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-      return res.status(400).json({ success: false, error: "Parameter 'prompt' is required." });
-    }
-
-    try {
-      const systemPrompt = system || "You are a helpful AI assistant. Respond clearly and accurately.";
-      const text = await chatEverywhereProxy(prompt, systemPrompt);
-      return res.json({
-        success: true,
-        provider: "ChatEverywhere",
-        model: "gpt-3.5-turbo",
-        response: text,
-      });
-    } catch (error: any) {
-      return res.status(500).json({ success: false, error: error.message, provider: "ChatEverywhere" });
-    }
+  app.get("/api/ai/image/dall-e", (_req: Request, res: Response) => {
+    return res.json({
+      endpoint: "/api/ai/image/dall-e",
+      method: "POST",
+      description: "Image search endpoint. Send a POST request with a JSON body.",
+      usage: {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: { prompt: "Image description" },
+      },
+      example: `curl -X POST /api/ai/image/dall-e -H "Content-Type: application/json" -d '{"prompt":"sunset ocean"}'`,
+    });
   });
 
   app.post("/api/ai/image/dall-e", async (req: Request, res: Response) => {
