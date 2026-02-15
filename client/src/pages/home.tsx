@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, type MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Search,
@@ -12,6 +12,8 @@ import {
   Loader2,
   Download,
   Play,
+  Pause,
+  Square,
   Clock,
   User,
   Terminal,
@@ -20,6 +22,8 @@ import {
   Camera,
   Youtube,
   Facebook,
+  Volume2,
+  X,
 } from "lucide-react";
 import { allEndpoints, apiCategories, type ApiEndpoint, type SearchResult } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
@@ -103,9 +107,154 @@ function EndpointCard({ endpoint, baseUrl, onTry }: { endpoint: ApiEndpoint; bas
   );
 }
 
-function SearchResultCard({ result, baseUrl }: { result: SearchResult; baseUrl: string }) {
+interface MediaPlayerState {
+  type: "mp3" | "mp4";
+  title: string;
+  thumbnail: string;
+  streamUrl: string;
+  videoId: string;
+}
+
+function MediaPlayerBar({ media, onClose }: { media: MediaPlayerState; onClose: () => void }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [showVideo, setShowVideo] = useState(media.type === "mp4");
+
+  useEffect(() => {
+    setPlaying(true);
+    setProgress(0);
+    setDuration(0);
+    setShowVideo(media.type === "mp4");
+  }, [media.streamUrl, media.type]);
+
+  const togglePlay = () => {
+    const el = media.type === "mp3" ? audioRef.current : videoRef.current;
+    if (!el) return;
+    if (playing) { el.pause(); } else { el.play(); }
+    setPlaying(!playing);
+  };
+
+  const handleTimeUpdate = () => {
+    const el = media.type === "mp3" ? audioRef.current : videoRef.current;
+    if (!el) return;
+    setProgress(el.currentTime);
+    setDuration(el.duration || 0);
+  };
+
+  const handleSeek = (e: MouseEvent<HTMLDivElement>) => {
+    const el = media.type === "mp3" ? audioRef.current : videoRef.current;
+    if (!el || !duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    el.currentTime = ratio * duration;
+  };
+
+  const formatTime = (s: number) => {
+    if (!s || isNaN(s)) return "0:00";
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, "0")}`;
+  };
+
+  return (
+    <div
+      className="fixed bottom-0 left-0 right-0 border-t"
+      style={{ zIndex: 100, background: "rgba(10,10,10,0.97)", backdropFilter: "blur(20px)", borderColor: "rgba(0,255,0,0.15)" }}
+      data-testid="media-player-bar"
+    >
+      {media.type === "mp4" && (
+        <div
+          className="flex justify-center py-2"
+          style={{ background: "rgba(0,0,0,0.6)", display: showVideo ? "flex" : "none" }}
+        >
+          <video
+            ref={videoRef}
+            src={media.streamUrl}
+            autoPlay
+            onTimeUpdate={handleTimeUpdate}
+            onEnded={() => setPlaying(false)}
+            className="rounded"
+            style={{ maxHeight: "280px", maxWidth: "90vw", border: "1px solid rgba(255,255,255,0.1)" }}
+            data-testid="video-player"
+          />
+        </div>
+      )}
+      {media.type === "mp3" && (
+        <audio ref={audioRef} src={media.streamUrl} autoPlay onTimeUpdate={handleTimeUpdate} onEnded={() => setPlaying(false)} />
+      )}
+      <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center gap-3">
+        <div
+          className="w-10 h-10 rounded bg-cover bg-center flex-shrink-0"
+          style={{ backgroundImage: `url(${media.thumbnail})`, border: "1px solid rgba(255,255,255,0.1)" }}
+        />
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium truncate" style={{ color: "#ffffff" }} data-testid="text-now-playing">{media.title}</span>
+            <span
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0"
+              style={{ background: media.type === "mp3" ? "rgba(0,255,0,0.1)" : "rgba(59,130,246,0.1)", color: media.type === "mp3" ? "#00ff00" : "#60a5fa" }}
+            >
+              {media.type.toUpperCase()}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono flex-shrink-0" style={{ color: "rgba(255,255,255,0.35)" }}>{formatTime(progress)}</span>
+            <div
+              className="flex-1 h-1 rounded-full cursor-pointer"
+              style={{ background: "rgba(255,255,255,0.08)" }}
+              onClick={handleSeek}
+              data-testid="seek-bar"
+            >
+              <div
+                className="h-full rounded-full transition-all"
+                style={{ width: duration ? `${(progress / duration) * 100}%` : "0%", background: "#00ff00" }}
+              />
+            </div>
+            <span className="text-[10px] font-mono flex-shrink-0" style={{ color: "rgba(255,255,255,0.35)" }}>{formatTime(duration)}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button onClick={togglePlay} className="p-2 rounded-md transition-colors" style={{ color: "#00ff00" }} data-testid="button-play-pause">
+            {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+          </button>
+          {media.type === "mp4" && (
+            <button
+              onClick={() => setShowVideo(!showVideo)}
+              className="p-2 rounded-md transition-colors"
+              style={{ color: showVideo ? "#00ff00" : "rgba(255,255,255,0.35)" }}
+              data-testid="button-toggle-video"
+            >
+              <Video className="w-4 h-4" />
+            </button>
+          )}
+          <button onClick={onClose} className="p-2 rounded-md transition-colors" style={{ color: "rgba(255,255,255,0.35)" }} data-testid="button-close-player">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SearchResultCard({ result, baseUrl, onPlay }: { result: SearchResult; baseUrl: string; onPlay: (media: MediaPlayerState) => void }) {
+  const streamMp3Url = `${baseUrl}/download/stream/mp3?url=https://youtube.com/watch?v=${result.id}`;
+  const streamMp4Url = `${baseUrl}/download/stream/mp4?url=https://youtube.com/watch?v=${result.id}`;
   const mp3Url = `${baseUrl}/download/mp3?url=https://youtube.com/watch?v=${result.id}`;
   const mp4Url = `${baseUrl}/download/mp4?url=https://youtube.com/watch?v=${result.id}`;
+  const thumbnail = `https://img.youtube.com/vi/${result.id}/mqdefault.jpg`;
+
+  const playMedia = (type: "mp3" | "mp4") => {
+    onPlay({
+      type,
+      title: result.title,
+      thumbnail,
+      streamUrl: type === "mp3" ? streamMp3Url : streamMp4Url,
+      videoId: result.id,
+    });
+  };
 
   return (
     <div
@@ -115,9 +264,20 @@ function SearchResultCard({ result, baseUrl }: { result: SearchResult; baseUrl: 
     >
       <div className="flex items-start gap-3">
         <div
-          className="w-20 h-14 rounded bg-cover bg-center flex-shrink-0"
-          style={{ backgroundImage: `url(https://img.youtube.com/vi/${result.id}/mqdefault.jpg)`, border: "1px solid rgba(255,255,255,0.08)" }}
-        />
+          className="w-20 h-14 rounded bg-cover bg-center flex-shrink-0 relative cursor-pointer group"
+          style={{ backgroundImage: `url(${thumbnail})`, border: "1px solid rgba(255,255,255,0.08)" }}
+          onClick={() => playMedia("mp3")}
+          data-testid={`button-play-thumb-${result.id}`}
+        >
+          <div
+            className="absolute inset-0 rounded flex items-center justify-center transition-opacity"
+            style={{ background: "rgba(0,0,0,0.5)", opacity: 0 }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = "0"; }}
+          >
+            <Play className="w-5 h-5" style={{ color: "#00ff00" }} />
+          </div>
+        </div>
         <div className="flex-1 min-w-0 space-y-1">
           <h3 className="text-xs font-medium leading-tight line-clamp-2" style={{ color: "#ffffff" }} data-testid={`text-title-${result.id}`}>{result.title}</h3>
           <div className="flex items-center gap-3 text-[10px] flex-wrap" style={{ color: "rgba(255,255,255,0.4)" }}>
@@ -125,11 +285,14 @@ function SearchResultCard({ result, baseUrl }: { result: SearchResult; baseUrl: 
             {result.duration && <span className="flex items-center gap-1"><Clock className="w-2.5 h-2.5" />{result.duration}</span>}
           </div>
           <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
-            <Button size="sm" asChild data-testid={`button-mp3-${result.id}`}>
-              <a href={mp3Url} target="_blank" rel="noopener noreferrer"><Music className="w-3 h-3 mr-1" />MP3</a>
+            <Button size="sm" onClick={() => playMedia("mp3")} data-testid={`button-play-mp3-${result.id}`}>
+              <Play className="w-3 h-3 mr-1" />MP3
             </Button>
-            <Button size="sm" variant="secondary" asChild data-testid={`button-mp4-${result.id}`}>
-              <a href={mp4Url} target="_blank" rel="noopener noreferrer"><Video className="w-3 h-3 mr-1" />MP4</a>
+            <Button size="sm" variant="secondary" onClick={() => playMedia("mp4")} data-testid={`button-play-mp4-${result.id}`}>
+              <Video className="w-3 h-3 mr-1" />MP4
+            </Button>
+            <Button size="sm" variant="outline" asChild data-testid={`button-dl-mp3-${result.id}`}>
+              <a href={mp3Url} target="_blank" rel="noopener noreferrer"><Download className="w-3 h-3 mr-1" />DL</a>
             </Button>
           </div>
         </div>
@@ -145,6 +308,7 @@ export default function Home() {
   const [result, setResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null);
+  const [nowPlaying, setNowPlaying] = useState<MediaPlayerState | null>(null);
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
@@ -467,7 +631,7 @@ export default function Home() {
                   </div>
                   <div className="grid gap-2" data-testid="container-search-results">
                     {searchResults.map((r) => (
-                      <SearchResultCard key={r.id} result={r} baseUrl={baseUrl} />
+                      <SearchResultCard key={r.id} result={r} baseUrl={baseUrl} onPlay={setNowPlaying} />
                     ))}
                   </div>
                 </div>
@@ -475,6 +639,54 @@ export default function Home() {
 
               {result && !searchResults && (
                 <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                  {(() => {
+                    try {
+                      const parsed = JSON.parse(result);
+                      const hasMedia = parsed.downloadUrl || (parsed.media && Array.isArray(parsed.media));
+                      if (hasMedia) {
+                        const mediaItems: { url: string; format: string; title: string }[] = [];
+                        if (parsed.downloadUrl) {
+                          mediaItems.push({ url: parsed.downloadUrl, format: parsed.format || "mp3", title: parsed.title || "Media" });
+                        }
+                        if (parsed.media && Array.isArray(parsed.media)) {
+                          parsed.media.forEach((m: any) => {
+                            if (m.downloadUrl) mediaItems.push({ url: m.downloadUrl, format: m.format || "mp3", title: `${parsed.title || "Media"} (${m.quality || m.format})` });
+                          });
+                        }
+                        if (mediaItems.length > 0) {
+                          return (
+                            <div className="p-4 space-y-2">
+                              <div className="text-[10px] font-semibold tracking-wider mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>PLAY MEDIA</div>
+                              <div className="flex gap-2 flex-wrap">
+                                {mediaItems.map((item, i) => {
+                                  const isAudio = item.format === "mp3" || item.format === "audio";
+                                  return (
+                                    <Button
+                                      key={i}
+                                      size="sm"
+                                      variant={isAudio ? "default" : "secondary"}
+                                      onClick={() => setNowPlaying({
+                                        type: isAudio ? "mp3" : "mp4",
+                                        title: item.title,
+                                        thumbnail: `https://img.youtube.com/vi/${parsed.videoId || ""}/mqdefault.jpg`,
+                                        streamUrl: item.url,
+                                        videoId: parsed.videoId || "",
+                                      })}
+                                      data-testid={`button-play-result-${i}`}
+                                    >
+                                      {isAudio ? <Volume2 className="w-3 h-3 mr-1" /> : <Video className="w-3 h-3 mr-1" />}
+                                      {item.format.toUpperCase()}
+                                    </Button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }
+                      }
+                    } catch {}
+                    return null;
+                  })()}
                   <div className="relative">
                     <div className="absolute top-2 right-2" style={{ zIndex: 2 }}>
                       <CopyButton text={result} />
@@ -508,7 +720,7 @@ export default function Home() {
         </section>
       </div>
 
-      <footer className="border-t mt-auto" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
+      <footer className="border-t mt-auto" style={{ borderColor: "rgba(255,255,255,0.04)", marginBottom: nowPlaying ? "72px" : "0" }}>
         <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between gap-2 flex-wrap">
           <p className="text-[10px] tracking-widest" style={{ fontFamily: "'Orbitron', sans-serif" }}>
             <span style={{ color: "rgba(0,255,0,0.3)" }}>WOLF</span><span style={{ color: "rgba(255,255,255,0.2)" }}>APIS</span>
@@ -518,6 +730,10 @@ export default function Home() {
           </p>
         </div>
       </footer>
+
+      {nowPlaying && (
+        <MediaPlayerBar media={nowPlaying} onClose={() => setNowPlaying(null)} />
+      )}
     </div>
   );
 }
