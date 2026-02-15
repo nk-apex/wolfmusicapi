@@ -22,6 +22,42 @@ interface YouTubeResult {
   error?: string;
 }
 
+async function resolveMediaUrl(processingUrl: string): Promise<string | null> {
+  const maxRetries = 4;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const res = await fetch(processingUrl, {
+        headers: {
+          "User-Agent": USER_AGENT,
+          "Accept": "application/json",
+        },
+      });
+      if (!res.ok) return null;
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("json")) {
+        const data = await res.json();
+        if (data.status === "error") return null;
+        if (data.fileUrl && !data.fileUrl.includes("Waiting")) return data.fileUrl;
+        if (data.viewUrl && !data.viewUrl.includes("Waiting")) return data.viewUrl;
+        if (data.status === "completed" && (data.fileUrl || data.viewUrl)) {
+          return data.fileUrl || data.viewUrl;
+        }
+        if (data.status === "processing" || data.status === "waiting" || data.percent === "Waiting...") {
+          await new Promise(r => setTimeout(r, 1500));
+          continue;
+        }
+        if (data.url) return data.url;
+        if (data.downloadUrl) return data.downloadUrl;
+        return null;
+      }
+      return processingUrl;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 export async function downloadYouTube(url: string): Promise<YouTubeResult> {
   try {
     const formData = new URLSearchParams();
@@ -49,25 +85,32 @@ export async function downloadYouTube(url: string): Promise<YouTubeResult> {
     }
 
     const api = data.api;
-    const media: YouTubeMedia[] = [];
     const items = api.mediaItems || api.medias || [];
 
+    const mediaPromises: Promise<YouTubeMedia | null>[] = [];
     if (Array.isArray(items)) {
       for (const m of items) {
         if (m.mediaUrl) {
-          media.push({
-            type: m.type || "Video",
-            quality: m.mediaQuality || "Unknown",
-            resolution: m.mediaRes || undefined,
-            format: m.mediaExtension || "MP4",
-            fileSize: m.mediaFileSize || "Unknown",
-            downloadUrl: m.mediaUrl,
-            duration: m.mediaDuration || undefined,
-          });
+          mediaPromises.push(
+            resolveMediaUrl(m.mediaUrl).then(resolvedUrl => {
+              if (!resolvedUrl) return null;
+              return {
+                type: m.type || "Video",
+                quality: m.mediaQuality || "Unknown",
+                resolution: m.mediaRes || undefined,
+                format: m.mediaExtension || "MP4",
+                fileSize: m.mediaFileSize || "Unknown",
+                downloadUrl: resolvedUrl,
+                duration: m.mediaDuration || undefined,
+              };
+            })
+          );
         }
       }
     }
 
+    const resolvedMedia = await Promise.all(mediaPromises);
+    const media = resolvedMedia.filter((m): m is YouTubeMedia => m !== null);
     const thumbnail = api.imagePreviewUrl || items?.[0]?.mediaThumbnail;
 
     return {

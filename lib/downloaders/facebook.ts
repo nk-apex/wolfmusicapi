@@ -13,10 +13,10 @@ interface FacebookResult {
 
 export async function downloadFacebook(url: string): Promise<FacebookResult> {
   try {
-    const result = await tryFdownApi(url);
+    const result = await tryFdownloader(url);
     if (result.success) return result;
 
-    const result2 = await tryAlternativeApi(url);
+    const result2 = await tryGetmyfb(url);
     if (result2.success) return result2;
 
     return {
@@ -28,53 +28,76 @@ export async function downloadFacebook(url: string): Promise<FacebookResult> {
   }
 }
 
-async function tryFdownApi(url: string): Promise<FacebookResult> {
+async function tryFdownloader(url: string): Promise<FacebookResult> {
   try {
-    const formData = new URLSearchParams();
-    formData.append("URLz", url.trim());
-
-    const res = await fetch("https://fdown.net/download.php", {
+    const res = await fetch("https://v3.fdownloader.net/api/ajaxSearch", {
       method: "POST",
       headers: {
         "User-Agent": USER_AGENT,
-        "Origin": "https://fdown.net",
-        "Referer": "https://fdown.net/",
         "Content-Type": "application/x-www-form-urlencoded",
+        "Origin": "https://fdownloader.net",
+        "Referer": "https://fdownloader.net/",
       },
-      body: formData.toString(),
+      body: new URLSearchParams({ q: url.trim(), lang: "en", country: "en" }).toString(),
     });
 
-    const html = await res.text();
+    const json = await res.json();
 
-    if (!html || html.includes("challenge-platform") || html.length < 100) {
-      return { success: false, error: "Service temporarily unavailable" };
+    if (json.status !== "ok" || !json.data) {
+      return { success: false, error: "fdownloader returned no data" };
     }
 
-    const sdMatch = html.match(/id="sdlink"\s*href="([^"]+)"/i) ||
-                    html.match(/quality_sd[^"]*"[^"]*href="([^"]+)"/i) ||
-                    html.match(/Normal\s*Quality[^"]*href="([^"]+)"/i);
-    const hdMatch = html.match(/id="hdlink"\s*href="([^"]+)"/i) ||
-                    html.match(/quality_hd[^"]*"[^"]*href="([^"]+)"/i) ||
-                    html.match(/HD\s*Quality[^"]*href="([^"]+)"/i);
-    const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+    const html: string = json.data;
 
-    if (!sdMatch && !hdMatch) {
+    const linkMatches: string[] = [];
+    const linkRegex = /href=\\?"(https?:\/\/[^\\"\s]+)\\?"/gi;
+    let lm;
+    while ((lm = linkRegex.exec(html)) !== null) linkMatches.push(lm[1]);
+
+    const downloadLinks = linkMatches.filter(l =>
+      l.includes("snapcdn.app/download") || l.includes("fbcdn.net") || l.includes(".mp4")
+    );
+
+    if (downloadLinks.length === 0) {
       return { success: false, error: "No download links found" };
+    }
+
+    const thumbnailMatch = html.match(/src=\\?"(https?:\/\/[^\\"\s]+\.(?:jpg|png|jpeg)[^\\"\s]*)\\?"/i);
+    const durationMatch = html.match(/<p[^>]*>(\d{1,2}:\d{2}(?::\d{2})?)<\/p>/i);
+    const titleMatch = html.match(/<h3[^>]*>([^<]+)<\/h3>/i);
+
+    let hdUrl: string | undefined;
+    let sdUrl: string | undefined;
+
+    for (const link of downloadLinks) {
+      const decoded = link.replace(/\\"/g, '"');
+      if (decoded.includes("720p") || decoded.includes("(HD)") || decoded.includes("1080p")) {
+        if (!hdUrl) hdUrl = decoded;
+      } else {
+        if (!sdUrl) sdUrl = decoded;
+      }
+    }
+
+    if (!hdUrl && !sdUrl) {
+      sdUrl = downloadLinks[0].replace(/\\"/g, '"');
+      hdUrl = downloadLinks[1]?.replace(/\\"/g, '"');
     }
 
     return {
       success: true,
       creator: "apis by Silent Wolf",
       title: titleMatch?.[1]?.trim() || "Facebook Video",
-      sdUrl: sdMatch?.[1] || undefined,
-      hdUrl: hdMatch?.[1] || undefined,
+      sdUrl: sdUrl || hdUrl,
+      hdUrl: hdUrl || sdUrl,
+      thumbnail: thumbnailMatch?.[1]?.replace(/&amp;/g, "&") || undefined,
+      duration: durationMatch?.[1] || undefined,
     };
   } catch {
-    return { success: false, error: "fdown.net unavailable" };
+    return { success: false, error: "fdownloader.net unavailable" };
   }
 }
 
-async function tryAlternativeApi(url: string): Promise<FacebookResult> {
+async function tryGetmyfb(url: string): Promise<FacebookResult> {
   try {
     const res = await fetch("https://getmyfb.com/process", {
       method: "POST",
