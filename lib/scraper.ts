@@ -1,12 +1,20 @@
 const RINODEPOT_BASE = "https://rinodepot.fr";
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
+const Y2MATE_HEADERS = {
+  "User-Agent": USER_AGENT,
+  "Referer": "https://v1.y2mate.nu/",
+  "Origin": "https://v1.y2mate.nu",
+};
+
 function extractVideoId(url: string): string | null {
   const patterns = [
     /[?&]v=([a-zA-Z0-9_-]{11})/,
     /youtu\.be\/([a-zA-Z0-9_-]{11})/,
     /\/embed\/([a-zA-Z0-9_-]{11})/,
     /\/v\/([a-zA-Z0-9_-]{11})/,
+    /\/shorts\/([a-zA-Z0-9_-]{11})/,
+    /\/live\/([a-zA-Z0-9_-]{11})/,
   ];
 
   for (const pattern of patterns) {
@@ -19,6 +27,95 @@ function extractVideoId(url: string): string | null {
   }
 
   return null;
+}
+
+async function fetchY2MateAuth(): Promise<{ auth: string; paramChar: string; json: any }> {
+  const pageRes = await fetch("https://v1.y2mate.nu/", {
+    headers: { "User-Agent": USER_AGENT },
+  });
+  const html = await pageRes.text();
+
+  const jsonMatch = html.match(/var json\s*=\s*JSON\.parse\('([^']+)'\)/);
+  if (!jsonMatch) throw new Error("Failed to extract y2mate auth config");
+
+  const json = JSON.parse(jsonMatch[1]);
+
+  let auth = "";
+  for (let t = 0; t < json[0].length; t++) {
+    auth += String.fromCharCode(json[0][t] - json[2][json[2].length - (t + 1)]);
+  }
+  if (json[1]) auth = auth.split("").reverse().join("");
+  if (auth.length > 32) auth = auth.substring(0, 32);
+
+  const paramChar = String.fromCharCode(json[6]);
+
+  return { auth, paramChar, json };
+}
+
+async function y2mateConvert(videoId: string, format: "mp3" | "mp4"): Promise<{
+  downloadUrl: string;
+  title: string;
+}> {
+  const { auth, paramChar } = await fetchY2MateAuth();
+  const ts = () => Math.floor(Date.now() / 1000);
+
+  const initRes = await fetch(
+    `https://eta.etacloud.org/api/v1/init?${paramChar}=${encodeURIComponent(auth)}&t=${ts()}`,
+    { headers: Y2MATE_HEADERS }
+  );
+  const initData = await initRes.json();
+
+  if (initData.error !== "0" && initData.error !== 0) {
+    throw new Error("y2mate init failed: " + (initData.error || "unknown"));
+  }
+
+  let convertUrl = initData.convertURL;
+  if (convertUrl.includes("&v=")) convertUrl = convertUrl.split("&v=")[0];
+  convertUrl += `&v=${videoId}&f=${format}&t=${ts()}`;
+
+  const convertRes = await fetch(convertUrl, { headers: Y2MATE_HEADERS });
+  let data = await convertRes.json();
+
+  if (data.redirect === 1 && data.redirectURL) {
+    let rUrl = data.redirectURL;
+    if (rUrl.includes("&v=")) rUrl = rUrl.split("&v=")[0];
+    rUrl += `&v=${videoId}&f=${format}&t=${ts()}`;
+    const rRes = await fetch(rUrl, { headers: Y2MATE_HEADERS });
+    data = await rRes.json();
+  }
+
+  if (data.error && data.error !== "0" && data.error !== 0) {
+    throw new Error("y2mate convert error: " + data.error);
+  }
+
+  let title = data.title || "";
+
+  if (data.progressURL) {
+    for (let i = 0; i < 20; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const pRes = await fetch(data.progressURL + "&t=" + ts(), { headers: Y2MATE_HEADERS });
+      const p = await pRes.json();
+      if (p.title) title = p.title;
+      if (p.error && p.error !== 0 && p.error !== "0") {
+        throw new Error("Conversion error: " + p.error);
+      }
+      if (p.progress >= 3 || p.progress === "completed") {
+        if (p.url) {
+          return { downloadUrl: p.url + `&s=3&v=${videoId}&f=${format}`, title };
+        }
+        break;
+      }
+    }
+  }
+
+  if (data.downloadURL) {
+    return {
+      downloadUrl: data.downloadURL + `&s=3&v=${videoId}&f=${format}`,
+      title,
+    };
+  }
+
+  throw new Error("Conversion timed out or no download URL received.");
 }
 
 export async function searchSongs(query: string) {
@@ -57,61 +154,6 @@ export async function checkVideo(videoId: string) {
   return await res.json();
 }
 
-async function fetchYtdownMedia(url: string): Promise<any> {
-  const formData = new URLSearchParams();
-  formData.append("url", url.trim());
-
-  const res = await fetch("https://app.ytdown.to/proxy.php", {
-    method: "POST",
-    headers: {
-      "User-Agent": USER_AGENT,
-      "Origin": "https://app.ytdown.to",
-      "Referer": "https://app.ytdown.to/en2/",
-      "Accept": "*/*",
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: formData.toString(),
-  });
-
-  return await res.json();
-}
-
-async function resolveDirectUrl(processingUrl: string): Promise<string | null> {
-  const maxRetries = 5;
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      const res = await fetch(processingUrl, {
-        headers: {
-          "User-Agent": USER_AGENT,
-          "Accept": "application/json",
-        },
-      });
-      if (!res.ok) return null;
-      const contentType = res.headers.get("content-type") || "";
-      if (contentType.includes("json")) {
-        const data = await res.json();
-        if (data.status === "error") return null;
-        if (data.fileUrl && !data.fileUrl.includes("Waiting")) return data.fileUrl;
-        if (data.viewUrl && !data.viewUrl.includes("Waiting")) return data.viewUrl;
-        if (data.status === "completed" && (data.fileUrl || data.viewUrl)) {
-          return data.fileUrl || data.viewUrl;
-        }
-        if (data.status === "processing" || data.status === "waiting" || data.percent === "Waiting...") {
-          await new Promise(r => setTimeout(r, 1500));
-          continue;
-        }
-        if (data.url) return data.url;
-        if (data.downloadUrl) return data.downloadUrl;
-        return null;
-      }
-      return processingUrl;
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-
 export async function getDownloadInfo(url: string, format: "mp3" | "mp4" = "mp3") {
   const videoId = extractVideoId(url);
   if (!videoId) {
@@ -124,67 +166,16 @@ export async function getDownloadInfo(url: string, format: "mp3" | "mp4" = "mp3"
   const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
   try {
-    const data = await fetchYtdownMedia(youtubeUrl);
-
-    if (!data.api || data.api.status?.toLowerCase() === "error") {
-      return {
-        success: false,
-        error: data.api?.message || "Failed to process video.",
-        videoId,
-      };
-    }
-
-    const api = data.api;
-    const items = api.mediaItems || api.medias || [];
-    const title = api.title || "Unknown";
-
-    let processingUrl: string | null = null;
-    let fileSize: string | null = null;
-    let quality: string | null = null;
-
-    if (Array.isArray(items)) {
-      if (format === "mp3") {
-        const sorted = items
-          .filter((m: any) => m.type === "Audio" && m.mediaUrl)
-          .sort((a: any, b: any) => {
-            const qa = parseInt(a.mediaQuality) || 0;
-            const qb = parseInt(b.mediaQuality) || 0;
-            return qb - qa;
-          });
-        const audioItem = sorted[0];
-        if (audioItem) {
-          processingUrl = audioItem.mediaUrl;
-          fileSize = audioItem.mediaFileSize || null;
-          quality = audioItem.mediaQuality || "128K";
-        }
-      } else {
-        const videoItem = items.find((m: any) =>
-          m.type === "Video" && m.mediaUrl && (m.mediaQuality === "HD" || m.mediaRes?.includes("720"))
-        ) || items.find((m: any) => m.type === "Video" && m.mediaUrl);
-        if (videoItem) {
-          processingUrl = videoItem.mediaUrl;
-          fileSize = videoItem.mediaFileSize || null;
-          quality = videoItem.mediaQuality || "SD";
-        }
-      }
-    }
-
-    let downloadUrl: string | null = null;
-    if (processingUrl) {
-      downloadUrl = await resolveDirectUrl(processingUrl);
-    }
-
-    const thumbnail = api.imagePreviewUrl || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    const result = await y2mateConvert(videoId, format);
 
     return {
       success: true,
-      title,
+      title: result.title || "Unknown",
       videoId,
       format,
-      quality,
-      fileSize,
-      downloadUrl,
-      thumbnail,
+      quality: format === "mp3" ? "192kbps" : "360p",
+      downloadUrl: result.downloadUrl,
+      thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
       thumbnailMq: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
       youtubeUrl,
     };

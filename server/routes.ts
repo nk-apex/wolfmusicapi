@@ -1,6 +1,5 @@
 import type { Express } from "express";
 import { type Server } from "http";
-import { spawn } from "child_process";
 import { searchSongs, getDownloadInfo } from "./scraper";
 import { registerAIRoutes } from "./ai-routes";
 import { downloadTikTok } from "../lib/downloaders/tiktok";
@@ -106,7 +105,7 @@ export async function registerRoutes(
   app.get("/download/yta3", downloadHandler("mp3"));
   app.get("/download/mp4", downloadHandler("mp4"));
 
-  app.get("/download/stream/mp3", async (req, res) => {
+  const streamHandler = (format: "mp3" | "mp4") => async (req: any, res: any) => {
     try {
       let url = (req.query.url as string) || (req.query.q as string) || (req.query.name as string);
       if (!url || url.trim().length === 0) {
@@ -127,96 +126,32 @@ export async function registerRoutes(
         url = `https://www.youtube.com/watch?v=${searchResults.items[0].id}`;
       }
 
-      const result = await getDownloadInfo(url, "mp3");
+      const result = await getDownloadInfo(url, format);
       if (!result.success || !result.downloadUrl) {
-        return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: "Failed to get audio download URL." });
+        return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: `Failed to get ${format} download URL.` });
       }
 
-      const safeTitle = (result.title || "audio").replace(/[^a-zA-Z0-9_\- ]/g, "").substring(0, 80);
-      res.setHeader("Content-Type", "audio/mpeg");
-      res.setHeader("Content-Disposition", `attachment; filename="${safeTitle}.mp3"`);
-      res.setHeader("Transfer-Encoding", "chunked");
-      res.setHeader("X-Creator", "apis by Silent Wolf");
-
-      const ffmpeg = spawn("ffmpeg", [
-        "-i", result.downloadUrl,
-        "-vn",
-        "-acodec", "libmp3lame",
-        "-ab", "128k",
-        "-f", "mp3",
-        "-y",
-        "pipe:1",
-      ], { stdio: ["ignore", "pipe", "pipe"] });
-
-      ffmpeg.stdout.pipe(res);
-
-      ffmpeg.on("error", () => {
-        if (!res.headersSent) {
-          res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: "Audio conversion failed." });
-        } else {
-          res.end();
-        }
-      });
-
-      ffmpeg.on("close", (code) => {
-        if (code !== 0 && !res.writableEnded) {
-          res.end();
-        }
-      });
-
-      res.on("close", () => {
-        ffmpeg.kill("SIGTERM");
-      });
-    } catch (error: any) {
-      if (!res.headersSent) {
-        return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Stream failed" });
-      }
-    }
-  });
-
-  app.get("/download/stream/mp4", async (req, res) => {
-    try {
-      let url = (req.query.url as string) || (req.query.q as string) || (req.query.name as string);
-      if (!url || url.trim().length === 0) {
-        return res.status(400).json({
-          success: false,
-          error: "Provide 'url' (YouTube link) or 'q'/'name' (song name) as a query parameter.",
-        });
-      }
-
-      url = url.trim();
-
-      if (!isYouTubeUrl(url)) {
-        const searchResults = await searchSongs(url);
-        if (!searchResults.items || searchResults.items.length === 0) {
-          return res.status(404).json({ success: false, error: `No results found for "${url}".` });
-        }
-        url = `https://www.youtube.com/watch?v=${searchResults.items[0].id}`;
-      }
-
-      const result = await getDownloadInfo(url, "mp4");
-      if (!result.success || !result.downloadUrl) {
-        return res.status(500).json({ success: false, error: "Failed to get video download URL." });
-      }
-
-      const videoRes = await fetch(result.downloadUrl, {
+      const fileRes = await fetch(result.downloadUrl, {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+          "Referer": "https://v1.y2mate.nu/",
         },
       });
 
-      if (!videoRes.ok || !videoRes.body) {
-        return res.status(502).json({ success: false, error: "Failed to fetch video file from source." });
+      if (!fileRes.ok || !fileRes.body) {
+        return res.status(502).json({ success: false, creator: "apis by Silent Wolf", error: `Failed to fetch ${format} file from source.` });
       }
 
-      const safeTitle = (result.title || "video").replace(/[^a-zA-Z0-9_\- ]/g, "").substring(0, 80);
-      res.setHeader("Content-Type", "video/mp4");
-      res.setHeader("Content-Disposition", `attachment; filename="${safeTitle}.mp4"`);
-      if (videoRes.headers.get("content-length")) {
-        res.setHeader("Content-Length", videoRes.headers.get("content-length")!);
+      const safeTitle = (result.title || (format === "mp3" ? "audio" : "video")).replace(/[^a-zA-Z0-9_\- ]/g, "").substring(0, 80);
+      const contentType = format === "mp3" ? "audio/mpeg" : "video/mp4";
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Content-Disposition", `attachment; filename="${safeTitle}.${format}"`);
+      res.setHeader("X-Creator", "apis by Silent Wolf");
+      if (fileRes.headers.get("content-length")) {
+        res.setHeader("Content-Length", fileRes.headers.get("content-length")!);
       }
 
-      const reader = videoRes.body.getReader();
+      const reader = fileRes.body.getReader();
       const pump = async () => {
         while (true) {
           const { done, value } = await reader.read();
@@ -230,10 +165,13 @@ export async function registerRoutes(
       pump().catch(() => res.end());
     } catch (error: any) {
       if (!res.headersSent) {
-        return res.status(500).json({ success: false, error: error.message || "Stream failed" });
+        return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Stream failed" });
       }
     }
-  });
+  };
+
+  app.get("/download/stream/mp3", streamHandler("mp3"));
+  app.get("/download/stream/mp4", streamHandler("mp4"));
 
   app.get("/api/download/tiktok", async (req, res) => {
     try {

@@ -7,8 +7,8 @@ A multi-provider API hub (branded as WOLFAPIS) that provides unified access to A
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui components
 - **Backend**: Express.js server in `server/`
 - **AI Proxy**: `server/ai-routes.ts` - routes that proxy AI chat/image through chateverywhere.app (free, no API keys)
-- **Music Scraping**: `lib/scraper.ts` - shared scraping module for YouTube music search/download via rinodepot.fr
-- **Data Sources**: chateverywhere.app (AI chat + image), rinodepot.fr (music search/download)
+- **Music Scraping**: `lib/scraper.ts` - shared scraping module for YouTube music search via rinodepot.fr, download via y2mate.nu/etacloud.org
+- **Data Sources**: chateverywhere.app (AI chat + image), rinodepot.fr (music search), y2mate.nu/etacloud.org (MP3/MP4 download)
 
 ## Key Files
 - `shared/schema.ts` - All endpoint definitions, categories, and TypeScript types
@@ -33,12 +33,13 @@ A multi-provider API hub (branded as WOLFAPIS) that provides unified access to A
 ### AI Image (powered by chateverywhere.app Unsplash proxy)
 - `POST /api/ai/image/dall-e` - Image search by prompt
 
-### Music & Media (scraped from rinodepot.fr - no API keys needed)
+### Music & Media (search via rinodepot.fr, download via y2mate.nu - no API keys needed)
 - `GET /api/search?q=...` - Search songs
-- `GET /download/mp3?url=...` - MP3 download
-- `GET /download/mp4?url=...` - MP4 download
-- `GET /download/audio?url=...` - Audio extraction
-- Plus more download variants (ytmp3, dlmp3, yta, yta2, yta3)
+- `GET /download/mp3?url=...` - MP3 download (real MP3, 192kbps)
+- `GET /download/mp4?url=...` - MP4 download (360p)
+- `GET /download/stream/mp3?q=...` - Stream MP3 directly (best for bots)
+- `GET /download/stream/mp4?q=...` - Stream MP4 directly (best for bots)
+- Plus more download variants (audio, ytmp3, dlmp3, yta, yta2, yta3)
 
 ## No API Keys Required
 All endpoints work through web scraping - no API keys or environment secrets needed for any functionality.
@@ -50,6 +51,9 @@ All endpoints work through web scraping - no API keys or environment secrets nee
 - Wolf logo image as favicon and header icon
 
 ## Recent Changes
+- 2026-02-15: Switched MP3/MP4 downloads from ytdown.to (returned M4A) to y2mate.nu/etacloud.org (returns real MP3 at 192kbps)
+- 2026-02-15: Added /download/stream/mp3 and /download/stream/mp4 endpoints for direct bot playback
+- 2026-02-15: Simplified YouTube full downloader to return MP3 + MP4 via y2mate
 - 2026-02-13: Switched AI endpoints from direct API keys to scraping chateverywhere.app (free, no keys needed)
 - 2026-02-13: Major pivot from music-only (WolfMusicApi) to multi-provider API hub (WolfApis)
 - 2026-02-13: Added AI chat endpoints for 8 providers + image search endpoint

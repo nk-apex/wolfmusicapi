@@ -348,7 +348,7 @@ export const allEndpoints: ApiEndpoint[] = [
     ],
     format: "json",
     category: "youtube-dl",
-    provider: "ytdown.to",
+    provider: "y2mate.nu",
   },
   {
     path: "/api/download/facebook",
@@ -359,7 +359,7 @@ export const allEndpoints: ApiEndpoint[] = [
     ],
     format: "json",
     category: "facebook",
-    provider: "fdown.net",
+    provider: "fdownloader.net",
   },
 ];
 
