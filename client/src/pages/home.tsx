@@ -17,6 +17,9 @@ import {
   Terminal,
   MessageSquare,
   Image,
+  Camera,
+  Youtube,
+  Facebook,
 } from "lucide-react";
 import { allEndpoints, apiCategories, type ApiEndpoint, type SearchResult } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
@@ -25,6 +28,10 @@ const categoryIcons: Record<string, typeof MessageSquare> = {
   "ai-chat": MessageSquare,
   "ai-image": Image,
   music: Music,
+  tiktok: Video,
+  instagram: Camera,
+  "youtube-dl": Youtube,
+  facebook: Facebook,
 };
 
 function CopyButton({ text }: { text: string }) {
@@ -197,7 +204,11 @@ export default function Home() {
     if (!playgroundEndpoint) return "Input";
     if (playgroundEndpoint.category === "ai-chat" || playgroundEndpoint.category === "ai-image") return "Prompt";
     if (playgroundEndpoint.path === "/api/search") return "Search Query";
-    return "YouTube URL";
+    if (playgroundEndpoint.category === "tiktok") return "TikTok URL";
+    if (playgroundEndpoint.category === "instagram") return "Instagram URL";
+    if (playgroundEndpoint.category === "facebook") return "Facebook URL";
+    if (playgroundEndpoint.category === "youtube-dl" || playgroundEndpoint.category === "music") return "URL or Song Name";
+    return "URL or Name";
   };
 
   const getInputPlaceholder = () => {
@@ -205,6 +216,11 @@ export default function Home() {
     if (playgroundEndpoint.category === "ai-chat") return "e.g. Explain quantum computing in simple terms...";
     if (playgroundEndpoint.category === "ai-image") return "e.g. A futuristic city at sunset, cyberpunk style...";
     if (playgroundEndpoint.path === "/api/search") return "e.g. Alan Walker Faded, Home by NF...";
+    if (playgroundEndpoint.category === "tiktok") return "e.g. https://www.tiktok.com/@user/video/123456";
+    if (playgroundEndpoint.category === "instagram") return "e.g. https://www.instagram.com/reel/ABC123/";
+    if (playgroundEndpoint.category === "facebook") return "e.g. https://www.facebook.com/watch?v=123456";
+    if (playgroundEndpoint.category === "youtube-dl") return "e.g. https://youtube.com/watch?v=60ItHLz5WEA or Alan Walker Faded";
+    if (playgroundEndpoint.category === "music") return "e.g. Alan Walker Faded or https://youtube.com/watch?v=60ItHLz5WEA";
     return "e.g. https://youtube.com/watch?v=60ItHLz5WEA";
   };
 
@@ -268,7 +284,7 @@ export default function Home() {
 
           <p className="max-w-xl mx-auto text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
             GPT, Claude, Mistral, Gemini, DeepSeek, Venice, Groq, Cohere
-            and more. Plus YouTube music downloads. All through a single unified API.
+            and more. Plus downloaders for YouTube, TikTok, Instagram, and Facebook. All through a single unified API.
           </p>
 
           <div className="flex items-center justify-center gap-6 pt-2">
