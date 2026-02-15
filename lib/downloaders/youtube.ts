@@ -12,6 +12,7 @@ interface YouTubeMedia {
 
 interface YouTubeResult {
   success: boolean;
+  creator?: string;
   title?: string;
   description?: string;
   thumbnail?: string;
@@ -71,6 +72,7 @@ export async function downloadYouTube(url: string): Promise<YouTubeResult> {
 
     return {
       success: true,
+      creator: "apis by Silent Wolf",
       title: api.title || "YouTube Video",
       description: api.description?.substring(0, 300) || undefined,
       thumbnail,

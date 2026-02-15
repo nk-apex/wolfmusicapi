@@ -26,7 +26,12 @@ export async function registerRoutes(
       }
 
       const results = await searchSongs(q.trim());
-      return res.json(results.items);
+      return res.json({
+        success: true,
+        creator: "apis by Silent Wolf",
+        query: results.query,
+        items: results.items,
+      });
     } catch (error: any) {
       return res.status(500).json({ error: error.message || "Search failed" });
     }
@@ -59,6 +64,7 @@ export async function registerRoutes(
 
         return res.json({
           ...result,
+          creator: "apis by Silent Wolf",
           searchQuery: url,
           searchResult: {
             title: firstResult.title,
@@ -69,7 +75,7 @@ export async function registerRoutes(
       }
 
       const result = await getDownloadInfo(url, format);
-      return res.json(result);
+      return res.json({ ...result, creator: "apis by Silent Wolf" });
     } catch (error: any) {
       return res.status(500).json({
         success: false,

@@ -8,6 +8,7 @@ interface InstagramMedia {
 
 interface InstagramResult {
   success: boolean;
+  creator?: string;
   title?: string;
   username?: string;
   media?: InstagramMedia[];
@@ -98,6 +99,7 @@ function parseInstagramResponse(data: any): InstagramResult {
 
   return {
     success: true,
+    creator: "apis by Silent Wolf",
     title: data.meta?.title || data.title || "Instagram Media",
     username: data.meta?.source_url?.match(/@?([a-zA-Z0-9_.]+)/)?.[1] || data.username,
     media,

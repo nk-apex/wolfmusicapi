@@ -2,6 +2,7 @@ const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 
 interface FacebookResult {
   success: boolean;
+  creator?: string;
   title?: string;
   sdUrl?: string;
   hdUrl?: string;
@@ -63,6 +64,7 @@ async function tryFdownApi(url: string): Promise<FacebookResult> {
 
     return {
       success: true,
+      creator: "apis by Silent Wolf",
       title: titleMatch?.[1]?.trim() || "Facebook Video",
       sdUrl: sdMatch?.[1] || undefined,
       hdUrl: hdMatch?.[1] || undefined,
@@ -103,6 +105,7 @@ async function tryAlternativeApi(url: string): Promise<FacebookResult> {
       }
       return {
         success: true,
+        creator: "apis by Silent Wolf",
         title: "Facebook Video",
         sdUrl: anyLinks[0],
         hdUrl: anyLinks[1] || undefined,
@@ -111,6 +114,7 @@ async function tryAlternativeApi(url: string): Promise<FacebookResult> {
 
     return {
       success: true,
+      creator: "apis by Silent Wolf",
       title: "Facebook Video",
       sdUrl: allLinks[0],
       hdUrl: allLinks[1] || undefined,

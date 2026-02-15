@@ -2,6 +2,7 @@ const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 
 interface TikTokResult {
   success: boolean;
+  creator?: string;
   title?: string;
   author?: string;
   videoUrl?: string;
@@ -80,6 +81,7 @@ export async function downloadTikTok(url: string): Promise<TikTokResult> {
 
     return {
       success: true,
+      creator: "apis by Silent Wolf",
       title: titleMatch?.[1]?.trim() || "TikTok Video",
       author: authorMatch?.[1] || undefined,
       videoUrl,
