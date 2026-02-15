@@ -295,6 +295,28 @@ export const allEndpoints: ApiEndpoint[] = [
     category: "music",
   },
   {
+    path: "/download/stream/mp3",
+    method: "GET",
+    description: "Stream MP3 audio directly (best for bots) - plays instantly without redirect",
+    params: [
+      { name: "url", type: "string", required: false, description: "YouTube video URL" },
+      { name: "q", type: "string", required: false, description: "Song name to search (e.g. Alan Walker Faded)" },
+    ],
+    format: "audio stream",
+    category: "music",
+  },
+  {
+    path: "/download/stream/mp4",
+    method: "GET",
+    description: "Stream MP4 video directly (best for bots) - plays instantly without redirect",
+    params: [
+      { name: "url", type: "string", required: false, description: "YouTube video URL" },
+      { name: "q", type: "string", required: false, description: "Song name to search (e.g. Alan Walker Faded)" },
+    ],
+    format: "video stream",
+    category: "music",
+  },
+  {
     path: "/api/download/tiktok",
     method: "GET",
     description: "Download TikTok video without watermark in MP4 or extract audio",
