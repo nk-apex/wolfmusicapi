@@ -326,10 +326,17 @@ export async function registerRoutes(
       const contentType = req.headers["content-type"] || "";
       let audioBuffer: Buffer;
 
-      if (contentType.includes("application/json")) {
-        const { audio, url: audioUrl } = req.body;
+      if (contentType.includes("octet-stream") || contentType.includes("audio/")) {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        }
+        audioBuffer = Buffer.concat(chunks);
+      } else {
+        const { audio, url: audioUrl } = req.body || {};
 
         if (audioUrl) {
+          console.log(`[shazam] Downloading audio from URL: ${audioUrl}`);
           const audioRes = await fetch(audioUrl, {
             headers: { "User-Agent": "Mozilla/5.0" },
           });
@@ -347,21 +354,9 @@ export async function registerRoutes(
           return res.status(400).json({
             success: false,
             creator: "apis by Silent Wolf",
-            error: "Provide 'audio' (base64-encoded raw PCM s16LE) or 'url' (link to audio file) in the request body.",
+            error: "Provide 'audio' (base64-encoded raw PCM s16LE) or 'url' (link to audio file) in the request body. Example: {\"url\": \"https://example.com/audio.mp3\"} or {\"audio\": \"<base64 PCM data>\"}",
           });
         }
-      } else if (contentType.includes("octet-stream") || contentType.includes("audio/")) {
-        const chunks: Buffer[] = [];
-        for await (const chunk of req) {
-          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-        }
-        audioBuffer = Buffer.concat(chunks);
-      } else {
-        return res.status(400).json({
-          success: false,
-          creator: "apis by Silent Wolf",
-          error: "Send raw PCM audio (s16LE, mono, 16kHz) as: JSON with base64 'audio' field, JSON with 'url' field, or raw binary with Content-Type: application/octet-stream.",
-        });
       }
 
       if (audioBuffer.length < 1000) {
@@ -372,6 +367,7 @@ export async function registerRoutes(
         });
       }
 
+      console.log(`[shazam] Recognizing audio: ${audioBuffer.length} bytes`);
       const result = await recognizeShazamFull(audioBuffer);
       return res.json(result);
     } catch (error: any) {

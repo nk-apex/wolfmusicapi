@@ -259,6 +259,46 @@ async function getDownloadViaYouTube(title: string, artist: string, baseUrl: str
   }
 }
 
+async function getDownloadViaYouTubeDirect(query: string, baseUrl: string): Promise<{ url: string; title: string; artist: string } | null> {
+  try {
+    const searchRes = await fetchWithTimeout(`${baseUrl}/api/search?q=${encodeURIComponent(query)}`);
+    if (!searchRes.ok) return null;
+
+    const searchText = await searchRes.text();
+    let searchData: any;
+    try {
+      searchData = JSON.parse(searchText);
+    } catch {
+      return null;
+    }
+    if (!searchData.items?.length) return null;
+
+    const firstResult = searchData.items[0];
+    const videoId = firstResult.id;
+    const videoTitle = firstResult.title || query;
+
+    const dlRes = await fetchWithTimeout(`${baseUrl}/download/mp3?url=https://www.youtube.com/watch?v=${videoId}`);
+    if (!dlRes.ok) return null;
+
+    const dlText = await dlRes.text();
+    let dlData: any;
+    try {
+      dlData = JSON.parse(dlText);
+    } catch {
+      return null;
+    }
+    if (!dlData.success || !dlData.downloadUrl) return null;
+
+    const titleParts = videoTitle.split(" - ");
+    const artist = titleParts.length > 1 ? titleParts[0].trim() : "Unknown";
+    const title = titleParts.length > 1 ? titleParts.slice(1).join(" - ").trim() : videoTitle;
+
+    return { url: dlData.downloadUrl, title, artist };
+  } catch {
+    return null;
+  }
+}
+
 export async function searchSpotify(query: string): Promise<SpotifySearchResult> {
   if (!query || query.trim().length === 0) {
     return { success: false, creator: "apis by Silent Wolf", error: "Search query is required." };
@@ -312,38 +352,52 @@ export async function downloadSpotify(
     }
   }
 
-  if (!trackInfo) {
+  if (trackInfo) {
+    console.log(`[spotify] Found track: ${trackInfo.title} by ${trackInfo.artist}`);
+
+    const ytResult = await getDownloadViaYouTube(trackInfo.title, trackInfo.artist, baseUrl);
+    if (ytResult) {
+      return {
+        success: true,
+        creator: "apis by Silent Wolf",
+        title: trackInfo.title,
+        artist: trackInfo.artist,
+        album: trackInfo.album,
+        albumArt: trackInfo.albumArt,
+        downloadUrl: ytResult.url,
+        format: "mp3",
+        source: ytResult.source,
+        spotifyUrl: trackInfo.spotifyUrl,
+      };
+    }
+
     return {
       success: false,
       creator: "apis by Silent Wolf",
-      error: `Could not find track for "${input}". Try a Spotify URL or different search term.`,
+      title: trackInfo.title,
+      artist: trackInfo.artist,
+      spotifyUrl: trackInfo.spotifyUrl,
+      error: "Download temporarily unavailable. Try again later.",
     };
   }
 
-  console.log(`[spotify] Found track: ${trackInfo.title} by ${trackInfo.artist}`);
-
-  const ytResult = await getDownloadViaYouTube(trackInfo.title, trackInfo.artist, baseUrl);
-  if (ytResult) {
+  console.log(`[spotify] Spotify search unavailable, falling back to YouTube for: ${input}`);
+  const ytDirect = await getDownloadViaYouTubeDirect(input, baseUrl);
+  if (ytDirect) {
     return {
       success: true,
       creator: "apis by Silent Wolf",
-      title: trackInfo.title,
-      artist: trackInfo.artist,
-      album: trackInfo.album,
-      albumArt: trackInfo.albumArt,
-      downloadUrl: ytResult.url,
+      title: ytDirect.title,
+      artist: ytDirect.artist,
+      downloadUrl: ytDirect.url,
       format: "mp3",
-      source: ytResult.source,
-      spotifyUrl: trackInfo.spotifyUrl,
+      source: "youtube",
     };
   }
 
   return {
     success: false,
     creator: "apis by Silent Wolf",
-    title: trackInfo.title,
-    artist: trackInfo.artist,
-    spotifyUrl: trackInfo.spotifyUrl,
-    error: "Download temporarily unavailable. Try again later or use the YouTube download endpoint with the song name.",
+    error: `Could not find track for "${input}". Try a Spotify URL or different search term.`,
   };
 }
