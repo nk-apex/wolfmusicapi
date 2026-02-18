@@ -22,6 +22,23 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
+app.use((req: Request, res: Response, next: NextFunction) => {
+  try {
+    decodeURIComponent(req.path);
+    if (req.query) {
+      for (const key of Object.keys(req.query)) {
+        const val = req.query[key];
+        if (typeof val === "string") {
+          decodeURIComponent(val);
+        }
+      }
+    }
+  } catch (e) {
+    return res.status(400).json({ error: "Malformed URL encoding" });
+  }
+  next();
+});
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",

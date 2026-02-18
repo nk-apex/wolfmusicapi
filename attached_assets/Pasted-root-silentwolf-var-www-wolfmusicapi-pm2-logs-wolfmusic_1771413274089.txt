@@ -1,0 +1,92 @@
+root@silentwolf:/var/www/wolfmusicapi# pm2 logs wolfmusicapi --l
+ines 20
+[TAILING] Tailing last 20 lines for [wolfmusicapi] process (chan
+ge the value with --lines option)
+/root/.pm2/logs/wolfmusicapi-error.log last 20 lines:
+13|wolfmus |     at Zu (/var/www/wolfmusicapi/dist/index.cjs:43:
+2021)
+13|wolfmus |     at Array.map (<anonymous>)
+13|wolfmus |     at /var/www/wolfmusicapi/dist/index.cjs:39:2126
+5
+13|wolfmus |     at Array.<anonymous> (/var/www/wolfmusicapi/dis
+t/index.cjs:39:21442)
+13|wolfmus |     at sa.match (/var/www/wolfmusicapi/dist/index.c
+js:43:1816)
+13|wolfmus |     at Lb (/var/www/wolfmusicapi/dist/index.cjs:43:
+7738)
+13|wolfmus |     at h (/var/www/wolfmusicapi/dist/index.cjs:43:5
+723)
+13|wolfmus |     at I.<anonymous> (/var/www/wolfmusicapi/dist/in
+dex.cjs:57:10062)
+13|wolfmus |     at I.emit (node:events:519:28)
+13|wolfmus | URIError: Failed to decode param '%c0'
+13|wolfmus |     at decodeURIComponent (<anonymous>)
+13|wolfmus |     at Zu (/var/www/wolfmusicapi/dist/index.cjs:43:
+2021)
+13|wolfmus |     at Array.map (<anonymous>)
+13|wolfmus |     at /var/www/wolfmusicapi/dist/index.cjs:39:2126
+5
+13|wolfmus |     at Array.<anonymous> (/var/www/wolfmusicapi/dis
+t/index.cjs:39:21442)
+13|wolfmus |     at sa.match (/var/www/wolfmusicapi/dist/index.c
+js:43:1816)
+13|wolfmus |     at Lb (/var/www/wolfmusicapi/dist/index.cjs:43:
+7738)
+13|wolfmus |     at h (/var/www/wolfmusicapi/dist/index.cjs:43:5
+723)
+13|wolfmus |     at I.<anonymous> (/var/www/wolfmusicapi/dist/in
+dex.cjs:57:10062)
+13|wolfmus |     at I.emit (node:events:519:28)
+
+/root/.pm2/logs/wolfmusicapi-out.log last 20 lines:
+13|wolfmus | 7:56:48 PM [express] GET /api/transactions/totals 3
+04 in 1ms
+13|wolfmus | 7:57:48 PM [express] GET /api/notifications 304 in
+1ms
+13|wolfmus | 7:57:48 PM [express] GET /api/transactions/totals 3
+04 in 3ms
+13|wolfmus | 7:58:48 PM [express] GET /api/notifications 304 in
+2ms
+13|wolfmus | 7:58:48 PM [express] GET /api/transactions/totals 3
+04 in 4ms
+13|wolfmus | 7:59:48 PM [express] GET /api/notifications 304 in
+0ms
+13|wolfmus | 7:59:48 PM [express] GET /api/transactions/totals 3
+04 in 0ms
+13|wolfmus | 8:00:48 PM [express] GET /api/notifications 304 in
+1ms
+13|wolfmus | 8:00:48 PM [express] GET /api/transactions/totals 3
+04 in 2ms
+13|wolfmus | 8:01:48 PM [express] GET /api/notifications 304 in
+2ms
+13|wolfmus | 8:01:48 PM [express] GET /api/transactions/totals 3
+04 in 3ms
+13|wolfmus | 8:35:51 PM [express] POST /api/ai/gemini 200 in 148
+4ms :: {"success":true,"creator":"apis by Silent Wolf","provider
+":"ChatEverywhere","model":"gpt-3.5-turbo","response":"Hello! I'
+m here to help you. What’s on your mind?"}
+13|wolfmus | 8:36:02 PM [express] POST /api/ai/gemini 200 in 222
+2ms :: {"success":true,"creator":"apis by Silent Wolf","provider
+":"ChatEverywhere","model":"gpt-3.5-turbo","response":"I am base
+d on OpenAI's GPT-3.5 architecture, designed to assist with a wi
+de range of questions and tasks. I can provide information, answ
+er questions, generate text, and help with problem-solving acros
+s various topics. If you have a specific question or need assist
+ance with something, feel free to ask!"}
+13|wolfmus | 8:36:15 PM [express] POST /api/ai/gemini 200 in 206
+5ms :: {"success":true,"creator":"apis by Silent Wolf","provider
+":"ChatEverywhere","model":"gpt-3.5-turbo","response":"It seems
+like you might be asking about a specific program or capability
+related to modifications, but your request is a bit unclear. Cou
+ld you please provide more details about what you mean by \"modi
+fication program\"? Are you referring to software modifications,
+ game modifications, or something else entirely? This will help
+me assist you better!"}
+13|wolfmus | 9:08:34 PM [express] HEAD /api/application/servers
+200 in 3ms
+13|wolfmus | 10:29:26 PM [express] serving on port 3005
+13|wolfmus | 9:49:56 AM [express] POST /api 200 in 4ms
+13|wolfmus | 9:50:09 AM [express] POST /api/route 200 in 2ms
+13|wolfmus | 12:13:32 PM [express] serving on port 3005
+13|wolfmus | 12:14:09 PM [express] serving on port 3005
+
