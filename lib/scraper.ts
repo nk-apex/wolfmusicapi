@@ -7,6 +7,29 @@ const Y2MATE_HEADERS = {
   "Origin": "https://v1.y2mate.nu",
 };
 
+async function safeJsonParse(res: Response, label: string): Promise<any> {
+  const text = await res.text();
+  if (!text || text.trim().length === 0) {
+    throw new Error(`${label}: Empty response (status ${res.status})`);
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`${label}: Invalid JSON response (status ${res.status})`);
+  }
+}
+
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 15000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function extractVideoId(url: string): string | null {
   const patterns = [
     /[?&]v=([a-zA-Z0-9_-]{11})/,
@@ -30,7 +53,7 @@ function extractVideoId(url: string): string | null {
 }
 
 async function fetchY2MateAuth(): Promise<{ auth: string; paramChar: string; json: any }> {
-  const pageRes = await fetch("https://v1.y2mate.nu/", {
+  const pageRes = await fetchWithTimeout("https://v1.y2mate.nu/", {
     headers: { "User-Agent": USER_AGENT },
   });
   const html = await pageRes.text();
@@ -59,11 +82,11 @@ async function y2mateConvert(videoId: string, format: "mp3" | "mp4"): Promise<{
   const { auth, paramChar } = await fetchY2MateAuth();
   const ts = () => Math.floor(Date.now() / 1000);
 
-  const initRes = await fetch(
+  const initRes = await fetchWithTimeout(
     `https://eta.etacloud.org/api/v1/init?${paramChar}=${encodeURIComponent(auth)}&t=${ts()}`,
     { headers: Y2MATE_HEADERS }
   );
-  const initData = await initRes.json();
+  const initData = await safeJsonParse(initRes, "y2mate init");
 
   if (initData.error !== "0" && initData.error !== 0) {
     throw new Error("y2mate init failed: " + (initData.error || "unknown"));
@@ -73,15 +96,15 @@ async function y2mateConvert(videoId: string, format: "mp3" | "mp4"): Promise<{
   if (convertUrl.includes("&v=")) convertUrl = convertUrl.split("&v=")[0];
   convertUrl += `&v=${videoId}&f=${format}&t=${ts()}`;
 
-  const convertRes = await fetch(convertUrl, { headers: Y2MATE_HEADERS });
-  let data = await convertRes.json();
+  const convertRes = await fetchWithTimeout(convertUrl, { headers: Y2MATE_HEADERS });
+  let data = await safeJsonParse(convertRes, "y2mate convert");
 
   if (data.redirect === 1 && data.redirectURL) {
     let rUrl = data.redirectURL;
     if (rUrl.includes("&v=")) rUrl = rUrl.split("&v=")[0];
     rUrl += `&v=${videoId}&f=${format}&t=${ts()}`;
-    const rRes = await fetch(rUrl, { headers: Y2MATE_HEADERS });
-    data = await rRes.json();
+    const rRes = await fetchWithTimeout(rUrl, { headers: Y2MATE_HEADERS });
+    data = await safeJsonParse(rRes, "y2mate redirect");
   }
 
   if (data.error && data.error !== "0" && data.error !== 0) {
@@ -93,8 +116,8 @@ async function y2mateConvert(videoId: string, format: "mp3" | "mp4"): Promise<{
   if (data.progressURL) {
     for (let i = 0; i < 20; i++) {
       await new Promise((r) => setTimeout(r, 3000));
-      const pRes = await fetch(data.progressURL + "&t=" + ts(), { headers: Y2MATE_HEADERS });
-      const p = await pRes.json();
+      const pRes = await fetchWithTimeout(data.progressURL + "&t=" + ts(), { headers: Y2MATE_HEADERS });
+      const p = await safeJsonParse(pRes, "y2mate progress");
       if (p.title) title = p.title;
       if (p.error && p.error !== 0 && p.error !== "0") {
         throw new Error("Conversion error: " + p.error);
@@ -118,8 +141,101 @@ async function y2mateConvert(videoId: string, format: "mp3" | "mp4"): Promise<{
   throw new Error("Conversion timed out or no download URL received.");
 }
 
+const COBALT_INSTANCES = [
+  "https://cobalt-api.ayo.tf",
+  "https://cobalt.api.timelessnesses.me",
+  "https://api.cobalt.tools",
+];
+
+async function cobaltConvert(videoId: string, format: "mp3" | "mp4"): Promise<{
+  downloadUrl: string;
+  title: string;
+}> {
+  const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  const errors: string[] = [];
+
+  for (const instance of COBALT_INSTANCES) {
+    try {
+      const body: any = {
+        url: youtubeUrl,
+      };
+      if (format === "mp3") {
+        body.downloadMode = "audio";
+        body.audioFormat = "mp3";
+      } else {
+        body.downloadMode = "auto";
+      }
+
+      const res = await fetchWithTimeout(instance, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "User-Agent": USER_AGENT,
+        },
+        body: JSON.stringify(body),
+      }, 20000);
+
+      const data = await safeJsonParse(res, `cobalt (${instance})`);
+
+      if (data.status === "error" || data.status === "rate-limit") {
+        errors.push(`${instance}: ${data.error?.code || data.text || "error"}`);
+        continue;
+      }
+
+      const dlUrl = data.url || data.audio;
+      if (dlUrl) {
+        return {
+          downloadUrl: dlUrl,
+          title: data.filename || `video_${videoId}`,
+        };
+      }
+
+      errors.push(`${instance}: No download URL in response`);
+    } catch (e: any) {
+      errors.push(`${instance}: ${e.message}`);
+    }
+  }
+
+  throw new Error(`All Cobalt instances failed: ${errors.join("; ")}`);
+}
+
+async function veviozConvert(videoId: string, format: "mp3" | "mp4"): Promise<{
+  downloadUrl: string;
+  title: string;
+}> {
+  const endpoint = format === "mp3"
+    ? `https://api.vevioz.com/api/button/mp3/${videoId}`
+    : `https://api.vevioz.com/api/button/mp4/${videoId}`;
+
+  const res = await fetchWithTimeout(endpoint, {
+    headers: {
+      "User-Agent": USER_AGENT,
+      "Accept": "text/html",
+    },
+  }, 15000);
+
+  const html = await res.text();
+
+  const urlMatch = html.match(/href="(https?:\/\/[^"]+\.(?:mp3|mp4|m4a)[^"]*)"/i)
+    || html.match(/href="(https?:\/\/dl[^"]+)"/i)
+    || html.match(/href="(https?:\/\/[^"]*download[^"]*)"/i);
+
+  if (!urlMatch) {
+    throw new Error("Vevioz: Could not extract download URL from response");
+  }
+
+  const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+  const title = titleMatch ? titleMatch[1].replace(/\s*-\s*vevioz.*$/i, "").trim() : `video_${videoId}`;
+
+  return {
+    downloadUrl: urlMatch[1],
+    title,
+  };
+}
+
 export async function searchSongs(query: string) {
-  const res = await fetch(`${RINODEPOT_BASE}/search?q=${encodeURIComponent(query)}`, {
+  const res = await fetchWithTimeout(`${RINODEPOT_BASE}/search?q=${encodeURIComponent(query)}`, {
     headers: {
       "User-Agent": USER_AGENT,
       Accept: "application/json",
@@ -131,7 +247,7 @@ export async function searchSongs(query: string) {
     throw new Error(`Search failed with status ${res.status}`);
   }
 
-  const data = await res.json();
+  const data = await safeJsonParse(res, "search");
   return {
     query: data.query || query,
     items: data.items || [],
@@ -139,7 +255,7 @@ export async function searchSongs(query: string) {
 }
 
 export async function checkVideo(videoId: string) {
-  const res = await fetch(`${RINODEPOT_BASE}/check?q=${videoId}`, {
+  const res = await fetchWithTimeout(`${RINODEPOT_BASE}/check?q=${videoId}`, {
     headers: {
       "User-Agent": USER_AGENT,
       Accept: "application/json",
@@ -151,8 +267,19 @@ export async function checkVideo(videoId: string) {
     throw new Error(`Check failed with status ${res.status}`);
   }
 
-  return await res.json();
+  return await safeJsonParse(res, "checkVideo");
 }
+
+type ConvertProvider = {
+  name: string;
+  fn: (videoId: string, format: "mp3" | "mp4") => Promise<{ downloadUrl: string; title: string }>;
+};
+
+const providers: ConvertProvider[] = [
+  { name: "y2mate", fn: y2mateConvert },
+  { name: "cobalt", fn: cobaltConvert },
+  { name: "vevioz", fn: veviozConvert },
+];
 
 export async function getDownloadInfo(url: string, format: "mp3" | "mp4" = "mp3") {
   const videoId = extractVideoId(url);
@@ -164,28 +291,36 @@ export async function getDownloadInfo(url: string, format: "mp3" | "mp4" = "mp3"
   }
 
   const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  const errors: string[] = [];
 
-  try {
-    const result = await y2mateConvert(videoId, format);
+  for (const provider of providers) {
+    try {
+      console.log(`[scraper] Trying provider: ${provider.name} for ${videoId} (${format})`);
+      const result = await provider.fn(videoId, format);
 
-    return {
-      success: true,
-      title: result.title || "Unknown",
-      videoId,
-      format,
-      quality: format === "mp3" ? "192kbps" : "360p",
-      downloadUrl: result.downloadUrl,
-      thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-      thumbnailMq: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
-      youtubeUrl,
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      error: `Failed to fetch download info: ${error.message}`,
-      videoId,
-    };
+      return {
+        success: true,
+        title: result.title || "Unknown",
+        videoId,
+        format,
+        quality: format === "mp3" ? "192kbps" : "360p",
+        downloadUrl: result.downloadUrl,
+        thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+        thumbnailMq: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+        youtubeUrl,
+        provider: provider.name,
+      };
+    } catch (error: any) {
+      console.log(`[scraper] Provider ${provider.name} failed: ${error.message}`);
+      errors.push(`${provider.name}: ${error.message}`);
+    }
   }
+
+  return {
+    success: false,
+    error: `All download providers failed. ${errors.join(" | ")}`,
+    videoId,
+  };
 }
 
 export { extractVideoId };
