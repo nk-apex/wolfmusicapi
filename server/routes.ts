@@ -6,6 +6,8 @@ import { downloadTikTok } from "../lib/downloaders/tiktok";
 import { downloadInstagram } from "../lib/downloaders/instagram";
 import { downloadYouTube } from "../lib/downloaders/youtube";
 import { downloadFacebook } from "../lib/downloaders/facebook";
+import { searchSpotify, downloadSpotify } from "../lib/downloaders/spotify";
+import { searchShazam, recognizeShazam, recognizeShazamFull, getTrackDetails } from "../lib/downloaders/shazam";
 
 function isYouTubeUrl(input: string): boolean {
   return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|m\.youtube\.com)\//i.test(input) ||
@@ -249,6 +251,131 @@ export async function registerRoutes(
       return res.json(result);
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message || "Facebook download failed" });
+    }
+  });
+
+  app.get("/api/spotify/search", async (req, res) => {
+    try {
+      const q = (req.query.q as string) || (req.query.query as string);
+      if (!q || q.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Query parameter 'q' is required. Example: /api/spotify/search?q=Blinding Lights",
+        });
+      }
+      const result = await searchSpotify(q.trim());
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Spotify search failed" });
+    }
+  });
+
+  app.get("/api/spotify/download", async (req, res) => {
+    try {
+      const input = (req.query.url as string) || (req.query.q as string) || (req.query.name as string);
+      if (!input || input.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Provide 'url' (Spotify track link) or 'q'/'name' (song name). Example: /api/spotify/download?q=Blinding Lights",
+        });
+      }
+      const host = req.get("host") || "";
+      const protocol = req.protocol || "https";
+      const baseUrl = `${protocol}://${host}`;
+      const result = await downloadSpotify(input.trim(), baseUrl);
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Spotify download failed" });
+    }
+  });
+
+  app.get("/api/shazam/search", async (req, res) => {
+    try {
+      const q = (req.query.q as string) || (req.query.query as string);
+      if (!q || q.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Query parameter 'q' is required. Example: /api/shazam/search?q=Shape of You",
+        });
+      }
+      const result = await searchShazam(q.trim());
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Shazam search failed" });
+    }
+  });
+
+  app.get("/api/shazam/track/:id", async (req, res) => {
+    try {
+      const trackId = req.params.id;
+      if (!trackId) {
+        return res.status(400).json({
+          success: false,
+          error: "Track ID is required. Example: /api/shazam/track/552406075",
+        });
+      }
+      const result = await getTrackDetails(trackId);
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Shazam track lookup failed" });
+    }
+  });
+
+  app.post("/api/shazam/recognize", async (req, res) => {
+    try {
+      const contentType = req.headers["content-type"] || "";
+      let audioBuffer: Buffer;
+
+      if (contentType.includes("application/json")) {
+        const { audio, url: audioUrl } = req.body;
+
+        if (audioUrl) {
+          const audioRes = await fetch(audioUrl, {
+            headers: { "User-Agent": "Mozilla/5.0" },
+          });
+          if (!audioRes.ok) {
+            return res.status(400).json({
+              success: false,
+              creator: "apis by Silent Wolf",
+              error: "Failed to download audio from the provided URL.",
+            });
+          }
+          audioBuffer = Buffer.from(await audioRes.arrayBuffer());
+        } else if (audio) {
+          audioBuffer = Buffer.from(audio, "base64");
+        } else {
+          return res.status(400).json({
+            success: false,
+            creator: "apis by Silent Wolf",
+            error: "Provide 'audio' (base64-encoded raw PCM s16LE) or 'url' (link to audio file) in the request body.",
+          });
+        }
+      } else if (contentType.includes("octet-stream") || contentType.includes("audio/")) {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        }
+        audioBuffer = Buffer.concat(chunks);
+      } else {
+        return res.status(400).json({
+          success: false,
+          creator: "apis by Silent Wolf",
+          error: "Send raw PCM audio (s16LE, mono, 16kHz) as: JSON with base64 'audio' field, JSON with 'url' field, or raw binary with Content-Type: application/octet-stream.",
+        });
+      }
+
+      if (audioBuffer.length < 1000) {
+        return res.status(400).json({
+          success: false,
+          creator: "apis by Silent Wolf",
+          error: "Audio data too short. Provide at least a few seconds of audio.",
+        });
+      }
+
+      const result = await recognizeShazamFull(audioBuffer);
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Shazam recognition failed" });
     }
   });
 

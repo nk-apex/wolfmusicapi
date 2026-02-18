@@ -88,6 +88,18 @@ export const apiCategories = [
     description: "Download Facebook videos in SD and HD quality",
     icon: "Facebook",
   },
+  {
+    id: "spotify",
+    name: "Spotify",
+    description: "Search and download Spotify tracks as MP3 (no API key needed)",
+    icon: "Music2",
+  },
+  {
+    id: "shazam",
+    name: "Shazam",
+    description: "Search songs and recognize music from audio (no API key needed)",
+    icon: "AudioLines",
+  },
 ];
 
 export const allEndpoints: ApiEndpoint[] = [
@@ -360,6 +372,63 @@ export const allEndpoints: ApiEndpoint[] = [
     format: "json",
     category: "facebook",
     provider: "fdownloader.net",
+  },
+  {
+    path: "/api/spotify/search",
+    method: "GET",
+    description: "Search for songs on Spotify - returns track info, album art, and Spotify links",
+    params: [
+      { name: "q", type: "string", required: true, description: "Search query (song name, artist, etc.)" },
+    ],
+    format: "json",
+    category: "spotify",
+    provider: "spotifydown.com",
+  },
+  {
+    path: "/api/spotify/download",
+    method: "GET",
+    description: "Download a Spotify track as MP3 - supports Spotify URL or song name",
+    params: [
+      { name: "url", type: "string", required: false, description: "Spotify track URL" },
+      { name: "q", type: "string", required: false, description: "Song name to search (e.g. Blinding Lights)" },
+    ],
+    format: "json",
+    category: "spotify",
+    provider: "spotifydown.com",
+  },
+  {
+    path: "/api/shazam/search",
+    method: "GET",
+    description: "Search for songs on Shazam - returns track info, album art, and streaming links",
+    params: [
+      { name: "q", type: "string", required: true, description: "Search query (song name, artist, etc.)" },
+    ],
+    format: "json",
+    category: "shazam",
+    provider: "Shazam",
+  },
+  {
+    path: "/api/shazam/recognize",
+    method: "POST",
+    description: "Identify a song from audio - send raw PCM audio (s16LE) or a URL to an audio file",
+    params: [
+      { name: "audio", type: "string", required: false, description: "Base64-encoded raw PCM audio (s16LE, mono, 16kHz)" },
+      { name: "url", type: "string", required: false, description: "URL to an audio file to identify" },
+    ],
+    format: "json",
+    category: "shazam",
+    provider: "Shazam",
+  },
+  {
+    path: "/api/shazam/track/:id",
+    method: "GET",
+    description: "Get detailed information about a Shazam track by its ID",
+    params: [
+      { name: "id", type: "string", required: true, description: "Shazam track ID (from search or recognize results)" },
+    ],
+    format: "json",
+    category: "shazam",
+    provider: "Shazam",
   },
 ];
 

@@ -1,0 +1,349 @@
+const USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+interface SpotifyTrack {
+  title: string;
+  artist: string;
+  album?: string;
+  albumArt?: string;
+  duration?: number;
+  releaseDate?: string;
+  spotifyUrl?: string;
+  previewUrl?: string;
+  trackId?: string;
+}
+
+interface SpotifySearchResult {
+  success: boolean;
+  creator: string;
+  query?: string;
+  tracks?: SpotifyTrack[];
+  error?: string;
+}
+
+interface SpotifyDownloadResult {
+  success: boolean;
+  creator: string;
+  title?: string;
+  artist?: string;
+  album?: string;
+  albumArt?: string;
+  downloadUrl?: string;
+  format?: string;
+  source?: string;
+  spotifyUrl?: string;
+  error?: string;
+}
+
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 15000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+let cachedToken: { token: string; expiresAt: number } | null = null;
+
+async function getSpotifyToken(): Promise<string | null> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) {
+    return cachedToken.token;
+  }
+
+  try {
+    const embedRes = await fetchWithTimeout(
+      "https://open.spotify.com/embed/track/0VjIjW4GlUZAMYd2vXMi3b",
+      { headers: { "User-Agent": USER_AGENT } }
+    );
+    if (!embedRes.ok) return null;
+    const html = await embedRes.text();
+
+    const tokenMatch = html.match(/"accessToken":"([^"]+)"/);
+    if (!tokenMatch) return null;
+
+    cachedToken = {
+      token: tokenMatch[1],
+      expiresAt: Date.now() + 50 * 60 * 1000,
+    };
+
+    console.log("[spotify] Obtained fresh access token");
+    return cachedToken.token;
+  } catch {
+    return null;
+  }
+}
+
+function extractSpotifyId(url: string): { type: string; id: string } | null {
+  const match = url.match(/spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/);
+  if (match) return { type: match[1], id: match[2] };
+  const uriMatch = url.match(/spotify:(track|album|playlist):([a-zA-Z0-9]+)/);
+  if (uriMatch) return { type: uriMatch[1], id: uriMatch[2] };
+  return null;
+}
+
+function parseSpotifyApiTrack(item: any): SpotifyTrack {
+  return {
+    title: item.name || "Unknown",
+    artist: item.artists?.map((a: any) => a.name).join(", ") || "Unknown",
+    album: item.album?.name || undefined,
+    albumArt: item.album?.images?.[0]?.url || undefined,
+    duration: item.duration_ms ? Math.round(item.duration_ms / 1000) : undefined,
+    releaseDate: item.album?.release_date || undefined,
+    spotifyUrl: item.external_urls?.spotify || `https://open.spotify.com/track/${item.id}`,
+    previewUrl: item.preview_url || undefined,
+    trackId: item.id,
+  };
+}
+
+async function searchViaSpotifyApi(query: string, retryCount = 0): Promise<SpotifyTrack[]> {
+  const token = await getSpotifyToken();
+  if (!token) return [];
+
+  try {
+    const res = await fetchWithTimeout(
+      `https://api.spotify.com/v1/search?type=track&q=${encodeURIComponent(query)}&limit=10`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "User-Agent": USER_AGENT,
+        },
+      }
+    );
+
+    if (res.status === 401) {
+      cachedToken = null;
+      if (retryCount < 1) {
+        return searchViaSpotifyApi(query, retryCount + 1);
+      }
+      return [];
+    }
+
+    if (res.status === 429) {
+      const retryAfter = parseInt(res.headers.get("retry-after") || "5");
+      console.log(`[spotify] Rate limited, retry after ${retryAfter}s`);
+      if (retryCount < 1) {
+        await new Promise(r => setTimeout(r, Math.min(retryAfter, 10) * 1000));
+        cachedToken = null;
+        return searchViaSpotifyApi(query, retryCount + 1);
+      }
+      return [];
+    }
+
+    if (!res.ok) return [];
+
+    const text = await res.text();
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return [];
+    }
+
+    if (!data.tracks?.items?.length) return [];
+
+    return data.tracks.items.map(parseSpotifyApiTrack);
+  } catch {
+    return [];
+  }
+}
+
+async function getTrackViaSpotifyApi(trackId: string): Promise<SpotifyTrack | null> {
+  const token = await getSpotifyToken();
+  if (!token) return null;
+
+  try {
+    const res = await fetchWithTimeout(
+      `https://api.spotify.com/v1/tracks/${trackId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "User-Agent": USER_AGENT,
+        },
+      }
+    );
+
+    if (res.status === 429 || res.status === 401) {
+      cachedToken = null;
+      return null;
+    }
+
+    if (!res.ok) return null;
+
+    const text = await res.text();
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return null;
+    }
+
+    return parseSpotifyApiTrack(data);
+  } catch {
+    return null;
+  }
+}
+
+async function getSpotifyEmbed(trackId: string): Promise<SpotifyTrack | null> {
+  try {
+    const res = await fetchWithTimeout(
+      `https://open.spotify.com/embed/track/${trackId}`,
+      { headers: { "User-Agent": USER_AGENT } }
+    );
+    if (!res.ok) return null;
+    const html = await res.text();
+
+    const titleMatch = html.match(/"title":"([^"]+)"/);
+    const artistsMatch = html.match(/"artists":\[([^\]]+)\]/);
+
+    let title = "Unknown";
+    let artist = "Unknown";
+    let albumArt: string | undefined;
+
+    if (titleMatch) title = titleMatch[1];
+
+    if (artistsMatch) {
+      const names = artistsMatch[1].match(/"name":"([^"]+)"/g);
+      if (names) {
+        artist = names.map(n => n.replace(/"name":"/, "").replace(/"$/, "")).join(", ");
+      }
+    }
+
+    const artMatch = html.match(/"coverArt":\{"sources":\[.*?"url":"([^"]+)"/);
+    if (artMatch) albumArt = artMatch[1];
+
+    return {
+      title,
+      artist,
+      albumArt,
+      spotifyUrl: `https://open.spotify.com/track/${trackId}`,
+      trackId,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function getDownloadViaYouTube(title: string, artist: string, baseUrl: string): Promise<{ url: string; source: string } | null> {
+  try {
+    const query = `${title} ${artist}`;
+    const searchRes = await fetchWithTimeout(`${baseUrl}/api/search?q=${encodeURIComponent(query)}`);
+    if (!searchRes.ok) return null;
+
+    const searchText = await searchRes.text();
+    let searchData: any;
+    try {
+      searchData = JSON.parse(searchText);
+    } catch {
+      return null;
+    }
+    if (!searchData.items?.length) return null;
+
+    const videoId = searchData.items[0].id;
+    const dlRes = await fetchWithTimeout(`${baseUrl}/download/mp3?url=https://www.youtube.com/watch?v=${videoId}`);
+    if (!dlRes.ok) return null;
+
+    const dlText = await dlRes.text();
+    let dlData: any;
+    try {
+      dlData = JSON.parse(dlText);
+    } catch {
+      return null;
+    }
+    if (!dlData.success || !dlData.downloadUrl) return null;
+
+    return { url: dlData.downloadUrl, source: "youtube" };
+  } catch {
+    return null;
+  }
+}
+
+export async function searchSpotify(query: string): Promise<SpotifySearchResult> {
+  if (!query || query.trim().length === 0) {
+    return { success: false, creator: "apis by Silent Wolf", error: "Search query is required." };
+  }
+
+  console.log(`[spotify] Searching: ${query}`);
+
+  const tracks = await searchViaSpotifyApi(query);
+
+  if (tracks.length === 0) {
+    return {
+      success: false,
+      creator: "apis by Silent Wolf",
+      query,
+      error: "No results found. Try a different search term.",
+    };
+  }
+
+  return {
+    success: true,
+    creator: "apis by Silent Wolf",
+    query,
+    tracks,
+  };
+}
+
+export async function downloadSpotify(
+  input: string,
+  baseUrl: string
+): Promise<SpotifyDownloadResult> {
+  if (!input || input.trim().length === 0) {
+    return { success: false, creator: "apis by Silent Wolf", error: "Provide a Spotify URL or song name." };
+  }
+
+  input = input.trim();
+  let trackInfo: SpotifyTrack | null = null;
+
+  const spotifyParsed = extractSpotifyId(input);
+  if (spotifyParsed && spotifyParsed.type === "track") {
+    trackInfo = await getTrackViaSpotifyApi(spotifyParsed.id);
+    if (!trackInfo) {
+      trackInfo = await getSpotifyEmbed(spotifyParsed.id);
+    }
+  }
+
+  if (!trackInfo) {
+    console.log(`[spotify] Input is not a Spotify URL or track not found, searching: ${input}`);
+    const searchResult = await searchSpotify(input);
+    if (searchResult.success && searchResult.tracks && searchResult.tracks.length > 0) {
+      trackInfo = searchResult.tracks[0];
+    }
+  }
+
+  if (!trackInfo) {
+    return {
+      success: false,
+      creator: "apis by Silent Wolf",
+      error: `Could not find track for "${input}". Try a Spotify URL or different search term.`,
+    };
+  }
+
+  console.log(`[spotify] Found track: ${trackInfo.title} by ${trackInfo.artist}`);
+
+  const ytResult = await getDownloadViaYouTube(trackInfo.title, trackInfo.artist, baseUrl);
+  if (ytResult) {
+    return {
+      success: true,
+      creator: "apis by Silent Wolf",
+      title: trackInfo.title,
+      artist: trackInfo.artist,
+      album: trackInfo.album,
+      albumArt: trackInfo.albumArt,
+      downloadUrl: ytResult.url,
+      format: "mp3",
+      source: ytResult.source,
+      spotifyUrl: trackInfo.spotifyUrl,
+    };
+  }
+
+  return {
+    success: false,
+    creator: "apis by Silent Wolf",
+    title: trackInfo.title,
+    artist: trackInfo.artist,
+    spotifyUrl: trackInfo.spotifyUrl,
+    error: "Download temporarily unavailable. Try again later or use the YouTube download endpoint with the song name.",
+  };
+}

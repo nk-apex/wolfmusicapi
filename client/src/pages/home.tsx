@@ -24,6 +24,8 @@ import {
   Facebook,
   Volume2,
   X,
+  Music2,
+  AudioLines,
 } from "lucide-react";
 import { allEndpoints, apiCategories, type ApiEndpoint, type SearchResult } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
@@ -36,6 +38,8 @@ const categoryIcons: Record<string, typeof MessageSquare> = {
   instagram: Camera,
   "youtube-dl": Youtube,
   facebook: Facebook,
+  spotify: Music2,
+  shazam: AudioLines,
 };
 
 function CopyButton({ text }: { text: string }) {
