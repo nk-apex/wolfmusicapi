@@ -1,4 +1,7 @@
 const USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+const MOBILE_UA =
   "Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36";
 
 interface InstagramMedia {
@@ -16,6 +19,17 @@ interface InstagramResult {
   media?: InstagramMedia[];
   duration?: number;
   error?: string;
+  provider?: string;
+}
+
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 15000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function extractShortcode(url: string): string | null {
@@ -70,10 +84,10 @@ function buildGraphQLBody(shortcode: string): string {
 
 async function tryGraphQLApi(shortcode: string): Promise<InstagramResult> {
   try {
-    const res = await fetch("https://www.instagram.com/graphql/query", {
+    const res = await fetchWithTimeout("https://www.instagram.com/graphql/query", {
       method: "POST",
       headers: {
-        "User-Agent": USER_AGENT,
+        "User-Agent": MOBILE_UA,
         Accept: "*/*",
         "Accept-Language": "en-US,en;q=0.5",
         "Content-Type": "application/x-www-form-urlencoded",
@@ -84,7 +98,6 @@ async function tryGraphQLApi(shortcode: string): Promise<InstagramResult> {
         "X-IG-App-ID": "1217981644879628",
         "X-FB-LSD": "AVrqPT0gJDo",
         "X-ASBD-ID": "359341",
-        "Sec-GPC": "1",
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
@@ -94,7 +107,7 @@ async function tryGraphQLApi(shortcode: string): Promise<InstagramResult> {
     });
 
     if (res.status === 429 || res.status === 401) {
-      return { success: false, error: "Rate limited by Instagram. Try again later." };
+      return { success: false, error: "Rate limited by Instagram" };
     }
 
     if (!res.ok) {
@@ -103,7 +116,7 @@ async function tryGraphQLApi(shortcode: string): Promise<InstagramResult> {
 
     const contentType = res.headers.get("content-type") || "";
     if (!contentType.includes("json")) {
-      return { success: false, error: "Instagram returned non-JSON response (possible block)" };
+      return { success: false, error: "Instagram returned non-JSON response" };
     }
 
     const data = await res.json();
@@ -160,6 +173,7 @@ async function tryGraphQLApi(shortcode: string): Promise<InstagramResult> {
     return {
       success: true,
       creator: "apis by Silent Wolf",
+      provider: "graphql",
       title: mediaData.title || mediaData.edge_media_to_caption?.edges?.[0]?.node?.text?.substring(0, 100) || "Instagram Media",
       username: mediaData.owner?.username,
       media,
@@ -170,111 +184,13 @@ async function tryGraphQLApi(shortcode: string): Promise<InstagramResult> {
   }
 }
 
-async function tryFastDlApi(url: string): Promise<InstagramResult> {
-  try {
-    const res = await fetch("https://api-wh.fastdl.app/api/convert", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-        Origin: "https://fastdl.app",
-        Referer: "https://fastdl.app/en2",
-        Accept: "application/json",
-      },
-      body: new URLSearchParams({ sf_url: url.trim() }).toString(),
-    });
-
-    const data = await res.json();
-
-    if (!data || data.success === false) {
-      return { success: false, error: data?.message || "FastDL failed" };
-    }
-
-    const info = data?.info;
-    if (typeof info === "string" && info.includes("error")) {
-      return { success: false, error: "FastDL returned error" };
-    }
-
-    return parseFastDlResponse(data);
-  } catch {
-    return { success: false, error: "FastDL unavailable" };
-  }
-}
-
-function parseFastDlResponse(data: any): InstagramResult {
-  const media: InstagramMedia[] = [];
-
-  if (data.url_list && Array.isArray(data.url_list)) {
-    for (const item of data.url_list) {
-      if (typeof item === "string") {
-        const isVideo = item.includes(".mp4") || item.includes("video");
-        media.push({ type: isVideo ? "video" : "image", url: item });
-      } else if (item?.url) {
-        media.push({
-          type: item.type || (item.url.includes(".mp4") ? "video" : "image"),
-          url: item.url,
-          thumbnail: item.thumbnail,
-        });
-      }
-    }
-  }
-
-  if (media.length === 0 && data.url) {
-    media.push({
-      type: data.url.includes(".mp4") ? "video" : "image",
-      url: data.url,
-    });
-  }
-
-  if (media.length === 0) {
-    return { success: false, error: "No downloadable media found" };
-  }
-
-  return {
-    success: true,
-    creator: "apis by Silent Wolf",
-    title: data.meta?.title || data.title || "Instagram Media",
-    username: data.meta?.source_url?.match(/@?([a-zA-Z0-9_.]+)/)?.[1] || data.username,
-    media,
-  };
-}
-
-async function tryFastDlJsonApi(url: string): Promise<InstagramResult> {
-  try {
-    const res = await fetch("https://fastdl.app/api/convert", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-        Origin: "https://fastdl.app",
-        Referer: "https://fastdl.app/en2",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ url: url.trim() }),
-    });
-
-    const data = await res.json();
-
-    if (data.success === false || (!data.url_list && !data.url)) {
-      return { success: false, error: data.message || "FastDL JSON API failed" };
-    }
-
-    return parseFastDlResponse(data);
-  } catch {
-    return { success: false, error: "FastDL JSON API unavailable" };
-  }
-}
-
 async function trySnapSaveApi(url: string): Promise<InstagramResult> {
   try {
-    const res = await fetch("https://snapsave.app/action.php?lang=en", {
+    const res = await fetchWithTimeout("https://snapsave.app/action.php?lang=en", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "User-Agent": USER_AGENT,
         Origin: "https://snapsave.app",
         Referer: "https://snapsave.app/",
       },
@@ -329,7 +245,7 @@ async function trySnapSaveApi(url: string): Promise<InstagramResult> {
       decoded = decodeURIComponent(escape(decoded));
     } catch {}
 
-    if (decoded.includes("error_api_get_instagram") || decoded.includes("Error:")) {
+    if (decoded.includes("error_api_get_instagram") || decoded.includes("Error:") || decoded.includes("Unable to connect")) {
       return { success: false, error: "SnapSave could not connect to Instagram" };
     }
 
@@ -353,11 +269,202 @@ async function trySnapSaveApi(url: string): Promise<InstagramResult> {
     return {
       success: true,
       creator: "apis by Silent Wolf",
+      provider: "snapsave",
       title: "Instagram Media",
       media,
     };
   } catch {
     return { success: false, error: "SnapSave unavailable" };
+  }
+}
+
+async function tryFastDlApi(url: string): Promise<InstagramResult> {
+  try {
+    const res = await fetchWithTimeout("https://api-wh.fastdl.app/api/convert", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": USER_AGENT,
+        Origin: "https://fastdl.app",
+        Referer: "https://fastdl.app/en2",
+        Accept: "application/json",
+      },
+      body: new URLSearchParams({ sf_url: url.trim() }).toString(),
+    });
+
+    const text = await res.text();
+    if (!text || text.trim().length === 0) {
+      return { success: false, error: "FastDL returned empty response" };
+    }
+
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return { success: false, error: "FastDL returned invalid response" };
+    }
+
+    if (!data || data.success === false) {
+      return { success: false, error: data?.message || "FastDL failed" };
+    }
+
+    const info = data?.info;
+    if (typeof info === "string" && (info.includes("error") || info.includes("invalid_request"))) {
+      return { success: false, error: "FastDL returned error" };
+    }
+
+    return parseFastDlResponse(data, "fastdl");
+  } catch {
+    return { success: false, error: "FastDL unavailable" };
+  }
+}
+
+function parseFastDlResponse(data: any, provider: string): InstagramResult {
+  const media: InstagramMedia[] = [];
+
+  if (data.url_list && Array.isArray(data.url_list)) {
+    for (const item of data.url_list) {
+      if (typeof item === "string") {
+        const isVideo = item.includes(".mp4") || item.includes("video");
+        media.push({ type: isVideo ? "video" : "image", url: item });
+      } else if (item?.url) {
+        media.push({
+          type: item.type || (item.url.includes(".mp4") ? "video" : "image"),
+          url: item.url,
+          thumbnail: item.thumbnail,
+        });
+      }
+    }
+  }
+
+  if (media.length === 0 && data.url) {
+    media.push({
+      type: data.url.includes(".mp4") ? "video" : "image",
+      url: data.url,
+    });
+  }
+
+  if (media.length === 0) {
+    return { success: false, error: "No downloadable media found" };
+  }
+
+  return {
+    success: true,
+    creator: "apis by Silent Wolf",
+    provider,
+    title: data.meta?.title || data.title || "Instagram Media",
+    username: data.meta?.source_url?.match(/@?([a-zA-Z0-9_.]+)/)?.[1] || data.username,
+    media,
+  };
+}
+
+async function tryFastDlJsonApi(url: string): Promise<InstagramResult> {
+  try {
+    const res = await fetchWithTimeout("https://fastdl.app/api/convert", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": USER_AGENT,
+        Origin: "https://fastdl.app",
+        Referer: "https://fastdl.app/en2",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ url: url.trim() }),
+    });
+
+    const text = await res.text();
+    if (!text || text.trim().length === 0) {
+      return { success: false, error: "FastDL JSON API returned empty response" };
+    }
+
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return { success: false, error: "FastDL JSON API returned invalid response" };
+    }
+
+    if (data.success === false || (!data.url_list && !data.url)) {
+      return { success: false, error: data.message || "FastDL JSON API failed" };
+    }
+
+    return parseFastDlResponse(data, "fastdl-json");
+  } catch {
+    return { success: false, error: "FastDL JSON API unavailable" };
+  }
+}
+
+async function trySaveFromApi(url: string): Promise<InstagramResult> {
+  try {
+    const headers: Record<string, string> = {
+      "User-Agent": USER_AGENT,
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json, text/javascript, */*; q=0.01",
+      Origin: "https://en.savefrom.net",
+      Referer: "https://en.savefrom.net/",
+    };
+
+    const res = await fetchWithTimeout("https://worker.sf-tools.com/savefrom.php", {
+      method: "POST",
+      headers,
+      body: new URLSearchParams({
+        sf_url: url.trim(),
+        sf_submit: "",
+        new: "2",
+        lang: "en",
+        app: "",
+        country: "en",
+        os: "Windows",
+        browser: "Chrome",
+        channel: "main",
+        sf_page: "https://en.savefrom.net/",
+      }).toString(),
+    });
+
+    const text = await res.text();
+    if (!text || text.trim().length === 0) {
+      return { success: false, error: "SaveFrom returned empty response" };
+    }
+
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return { success: false, error: "SaveFrom returned invalid response" };
+    }
+
+    const media: InstagramMedia[] = [];
+
+    if (Array.isArray(data)) {
+      for (const item of data) {
+        if (item.url && (item.url.includes("instagram") || item.url.includes("cdninstagram") || item.url.includes("fbcdn"))) {
+          media.push({
+            type: item.type === "video" || item.url.includes(".mp4") ? "video" : "image",
+            url: item.url,
+            quality: item.quality,
+          });
+        }
+      }
+    } else if (data.url) {
+      media.push({
+        type: data.url.includes(".mp4") ? "video" : "image",
+        url: data.url,
+      });
+    }
+
+    if (media.length === 0) {
+      return { success: false, error: "SaveFrom returned no download links" };
+    }
+
+    return {
+      success: true,
+      creator: "apis by Silent Wolf",
+      provider: "savefrom",
+      title: data.meta?.title || "Instagram Media",
+      media,
+    };
+  } catch {
+    return { success: false, error: "SaveFrom unavailable" };
   }
 }
 
@@ -371,21 +478,37 @@ export async function downloadInstagram(url: string): Promise<InstagramResult> {
     };
   }
 
-  const graphqlResult = await tryGraphQLApi(shortcode);
-  if (graphqlResult.success) return graphqlResult;
+  const providers: Array<{ name: string; fn: () => Promise<InstagramResult> }> = [
+    { name: "graphql", fn: () => tryGraphQLApi(shortcode) },
+    { name: "snapsave", fn: () => trySnapSaveApi(url) },
+    { name: "fastdl", fn: () => tryFastDlApi(url) },
+    { name: "fastdl-json", fn: () => tryFastDlJsonApi(url) },
+    { name: "savefrom", fn: () => trySaveFromApi(url) },
+  ];
 
-  const fastdlResult = await tryFastDlApi(url);
-  if (fastdlResult.success) return fastdlResult;
+  const errors: string[] = [];
 
-  const fastdlJsonResult = await tryFastDlJsonApi(url);
-  if (fastdlJsonResult.success) return fastdlJsonResult;
-
-  const snapSaveResult = await trySnapSaveApi(url);
-  if (snapSaveResult.success) return snapSaveResult;
+  for (const provider of providers) {
+    try {
+      console.log(`[instagram] Trying provider: ${provider.name}`);
+      const result = await provider.fn();
+      if (result.success) {
+        console.log(`[instagram] Provider ${provider.name} succeeded`);
+        return result;
+      }
+      errors.push(`${provider.name}: ${result.error}`);
+      console.log(`[instagram] Provider ${provider.name} failed: ${result.error}`);
+    } catch (err: any) {
+      errors.push(`${provider.name}: ${err.message}`);
+      console.log(`[instagram] Provider ${provider.name} crashed: ${err.message}`);
+    }
+  }
 
   return {
     success: false,
+    creator: "apis by Silent Wolf",
     error:
-      "Could not download from Instagram. The post may be private, or Instagram is temporarily blocking requests. Please try again later.",
-  };
+      "Instagram is currently blocking all download services. This is a known issue — Instagram has recently tightened their anti-scraping protections. Please try again later.",
+    details: errors.join(" | "),
+  } as any;
 }
