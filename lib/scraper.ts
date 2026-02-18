@@ -1,3 +1,8 @@
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
 const RINODEPOT_BASE = "https://rinodepot.fr";
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
@@ -270,6 +275,41 @@ export async function checkVideo(videoId: string) {
   return await safeJsonParse(res, "checkVideo");
 }
 
+async function ytdlpConvert(videoId: string, format: "mp3" | "mp4"): Promise<{
+  downloadUrl: string;
+  title: string;
+}> {
+  if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+    throw new Error("yt-dlp: Invalid video ID");
+  }
+
+  const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+  const formatArg = format === "mp3"
+    ? `"bestaudio[ext=m4a]/bestaudio"`
+    : `"best[height<=480][ext=mp4]/best[ext=mp4]/best"`;
+
+  const { stdout } = await execAsync(
+    `yt-dlp --no-warnings --print title -f ${formatArg} -g "${youtubeUrl}" 2>/dev/null`,
+    { timeout: 20000 }
+  );
+
+  const lines = stdout.trim().split("\n").filter(l => l.trim());
+
+  if (lines.length < 2) {
+    throw new Error("yt-dlp: Could not extract download URL");
+  }
+
+  const title = lines[0] || `video_${videoId}`;
+  const downloadUrl = lines[1];
+
+  if (!downloadUrl || !downloadUrl.startsWith("http")) {
+    throw new Error("yt-dlp: No valid download URL returned");
+  }
+
+  return { downloadUrl, title };
+}
+
 type ConvertProvider = {
   name: string;
   fn: (videoId: string, format: "mp3" | "mp4") => Promise<{ downloadUrl: string; title: string }>;
@@ -279,6 +319,7 @@ const providers: ConvertProvider[] = [
   { name: "y2mate", fn: y2mateConvert },
   { name: "cobalt", fn: cobaltConvert },
   { name: "vevioz", fn: veviozConvert },
+  { name: "ytdlp", fn: ytdlpConvert },
 ];
 
 export async function getDownloadInfo(url: string, format: "mp3" | "mp4" = "mp3") {

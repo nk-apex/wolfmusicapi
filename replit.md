@@ -7,11 +7,11 @@ A multi-provider API hub (branded as WOLFAPIS) that provides unified access to A
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui components
 - **Backend**: Express.js server in `server/`
 - **AI Proxy**: `server/ai-routes.ts` - routes that proxy AI chat/image through chateverywhere.app (free, no API keys)
-- **Music Scraping**: `lib/scraper.ts` - shared scraping module for YouTube music search via rinodepot.fr, download via y2mate.nu/etacloud.org
+- **Music Scraping**: `lib/scraper.ts` - shared scraping module for YouTube music search via rinodepot.fr, download via y2mate.nu/etacloud.org with yt-dlp fallback
 - **Social Media Downloaders**: `lib/downloaders/` - TikTok, Instagram, YouTube, Facebook video downloaders
 - **Spotify**: `lib/downloaders/spotify.ts` - Spotify search via embed token + download via YouTube matching
 - **Shazam**: `lib/downloaders/shazam.ts` - Shazam search + song recognition via reverse-engineered API (shazam-api npm)
-- **Data Sources**: chateverywhere.app (AI chat + image), rinodepot.fr (music search), y2mate.nu/etacloud.org (MP3/MP4 download), Spotify embed (search), Shazam API (search + recognition)
+- **Data Sources**: chateverywhere.app (AI chat + image), rinodepot.fr (music search), y2mate.nu/etacloud.org + yt-dlp (MP3/MP4 download), Spotify embed (search), Shazam/iTunes (track lookup), Shazam API (search + recognition)
 
 ## Key Files
 - `shared/schema.ts` - All endpoint definitions, categories, and TypeScript types
@@ -77,6 +77,7 @@ All endpoints work through web scraping and reverse-engineered APIs - no API key
 ## Recent Changes
 - 2026-02-18: Added Spotify search + download endpoints (search via embed token, download via YouTube matching)
 - 2026-02-18: Added Shazam search + song recognition + track details endpoints (via shazam-api npm package)
+- 2026-02-18: Added yt-dlp as 4th fallback download provider for MP3/MP4 (local, no rate limits)
 - 2026-02-18: Improved Instagram downloader with 5 fallback providers and better error handling
 - 2026-02-15: Switched MP3/MP4 downloads from ytdown.to (returned M4A) to y2mate.nu/etacloud.org (returns real MP3 at 192kbps)
 - 2026-02-15: Added /download/stream/mp3 and /download/stream/mp4 endpoints for direct bot playback
