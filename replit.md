@@ -75,6 +75,7 @@ All endpoints work through web scraping and reverse-engineered APIs - no API key
 - Wolf logo image as favicon and header icon
 
 ## Recent Changes
+- 2026-02-19: Fixed all download providers - installed yt-dlp + ffmpeg, made yt-dlp primary provider, added SaveFrom + CnvMP3 fallbacks, updated Cobalt to community instances, added y2mate auth caching + rate-limit handling, improved Vevioz with multiple endpoints. Provider chain: ytdlp → y2mate → cobalt → vevioz → savefrom → cnvmp3
 - 2026-02-18: Added Spotify search + download endpoints (search via embed token, download via YouTube matching)
 - 2026-02-18: Added Shazam search + song recognition + track details endpoints (via shazam-api npm package)
 - 2026-02-18: Added yt-dlp as 4th fallback download provider for MP3/MP4 (local, no rate limits)
