@@ -1,7 +1,37 @@
 import { exec } from "child_process";
 import { promisify } from "util";
+import { existsSync } from "fs";
+import path from "path";
 
 const execAsync = promisify(exec);
+
+const COOKIES_PATHS = [
+  path.join(process.cwd(), "cookies.txt"),
+  "/var/www/wolfmusicapi/cookies.txt",
+  path.join(process.env.HOME || "", "cookies.txt"),
+];
+
+function getCookiesArg(): string {
+  for (const p of COOKIES_PATHS) {
+    if (existsSync(p)) {
+      console.log(`[yt-dlp] Using cookies from: ${p}`);
+      return `--cookies '${p}'`;
+    }
+  }
+  return "";
+}
+
+let _cookiesArg: string | null = null;
+function ytdlpCookies(): string {
+  if (_cookiesArg === null) {
+    _cookiesArg = getCookiesArg();
+  }
+  return _cookiesArg;
+}
+
+export function reloadCookies(): void {
+  _cookiesArg = null;
+}
 
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
@@ -98,8 +128,9 @@ function recordProviderSuccess(name: string): void {
 async function ytdlpSearch(query: string): Promise<{ query: string; items: any[] }> {
   try {
     const sanitized = query.replace(/[^a-zA-Z0-9\s\-_.,'&!?()]/g, "").substring(0, 200);
+    const cookies = ytdlpCookies();
     const { stdout } = await execAsync(
-      `yt-dlp --no-warnings --flat-playlist --dump-json 'ytsearch10:${sanitized.replace(/'/g, "'\\''")}' 2>/dev/null`,
+      `yt-dlp ${cookies} --no-warnings --flat-playlist --dump-json 'ytsearch10:${sanitized.replace(/'/g, "'\\''")}' 2>/dev/null`,
       { timeout: 20000, maxBuffer: 1024 * 1024 }
     );
 
@@ -228,7 +259,7 @@ export async function checkVideo(videoId: string) {
 
   try {
     const { stdout } = await execAsync(
-      `yt-dlp --no-warnings --dump-json --skip-download "https://www.youtube.com/watch?v=${videoId}" 2>/dev/null`,
+      `yt-dlp ${ytdlpCookies()} --no-warnings --dump-json --skip-download "https://www.youtube.com/watch?v=${videoId}" 2>/dev/null`,
       { timeout: 15000, maxBuffer: 1024 * 1024 }
     );
 
@@ -260,7 +291,7 @@ async function ytdlpConvert(videoId: string, format: "mp3" | "mp4"): Promise<{
     : "best[height<=480][ext=mp4]/best[ext=mp4]/best";
 
   const { stdout } = await execAsync(
-    `yt-dlp --no-warnings --print title -f "${formatArg}" -g "${youtubeUrl}" 2>/dev/null`,
+    `yt-dlp ${ytdlpCookies()} --no-warnings --print title -f "${formatArg}" -g "${youtubeUrl}" 2>/dev/null`,
     { timeout: 30000 }
   );
 

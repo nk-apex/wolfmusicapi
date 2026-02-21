@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { spawn } from "child_process";
 import { searchSongs, getDownloadInfo, extractVideoId } from "./scraper";
+import { existsSync } from "fs";
+import path from "path";
 import { registerAIRoutes } from "./ai-routes";
 import { downloadTikTok } from "../lib/downloaders/tiktok";
 import { downloadInstagram } from "../lib/downloaders/instagram";
@@ -9,6 +11,18 @@ import { downloadYouTube } from "../lib/downloaders/youtube";
 import { downloadFacebook } from "../lib/downloaders/facebook";
 import { searchSpotify, downloadSpotify } from "../lib/downloaders/spotify";
 import { searchShazam, recognizeShazam, recognizeShazamFull, getTrackDetails } from "../lib/downloaders/shazam";
+
+function getCookiesPath(): string | null {
+  const paths = [
+    path.join(process.cwd(), "cookies.txt"),
+    "/var/www/wolfmusicapi/cookies.txt",
+    path.join(process.env.HOME || "", "cookies.txt"),
+  ];
+  for (const p of paths) {
+    if (existsSync(p)) return p;
+  }
+  return null;
+}
 
 function isYouTubeUrl(input: string): boolean {
   return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|m\.youtube\.com)\//i.test(input) ||
@@ -147,12 +161,15 @@ export async function registerRoutes(
         ? "bestaudio[ext=m4a]/bestaudio"
         : "best[height<=480][ext=mp4]/best[ext=mp4]/best";
 
-      const ytdlp = spawn("yt-dlp", [
+      const cookiesPath = getCookiesPath();
+      const ytdlpArgs = [
+        ...(cookiesPath ? ["--cookies", cookiesPath] : []),
         "--no-warnings",
         "-f", formatArg,
         "-o", "-",
         youtubeUrl,
-      ]);
+      ];
+      const ytdlp = spawn("yt-dlp", ytdlpArgs);
 
       let hasData = false;
 
