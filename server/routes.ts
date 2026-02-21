@@ -31,7 +31,7 @@ export async function registerRoutes(
       const results = await searchSongs(q.trim());
       return res.json({
         success: true,
-        creator: "apis by Silent Wolf",
+        creator: "APIs by Silent Wolf | A tech explorer",
         query: results.query,
         items: results.items,
       });
@@ -71,7 +71,7 @@ export async function registerRoutes(
         const streamParam = `url=${encodeURIComponent(videoUrl)}`;
         return res.json({
           ...result,
-          creator: "apis by Silent Wolf",
+          creator: "APIs by Silent Wolf | A tech explorer",
           streamUrl: `${baseUrl}/download/stream/${format}?${streamParam}`,
           note: "Use streamUrl for direct playback in bots (streams audio/video directly).",
           searchQuery: url,
@@ -87,7 +87,7 @@ export async function registerRoutes(
       const streamParam = `url=${encodeURIComponent(url)}`;
       return res.json({
         ...result,
-        creator: "apis by Silent Wolf",
+        creator: "APIs by Silent Wolf | A tech explorer",
         streamUrl: `${baseUrl}/download/stream/${format}?${streamParam}`,
         note: "Use streamUrl for direct playback in bots (streams audio/video directly).",
       });
@@ -114,7 +114,7 @@ export async function registerRoutes(
       if (!url || url.trim().length === 0) {
         return res.status(400).json({
           success: false,
-          creator: "apis by Silent Wolf",
+          creator: "APIs by Silent Wolf | A tech explorer",
           error: "Provide 'url' (YouTube link) or 'q'/'name' (song name) as a query parameter.",
         });
       }
@@ -124,14 +124,14 @@ export async function registerRoutes(
       if (!isYouTubeUrl(url)) {
         const searchResults = await searchSongs(url);
         if (!searchResults.items || searchResults.items.length === 0) {
-          return res.status(404).json({ success: false, creator: "apis by Silent Wolf", error: `No results found for "${url}".` });
+          return res.status(404).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: `No results found for "${url}".` });
         }
         url = `https://www.youtube.com/watch?v=${searchResults.items[0].id}`;
       }
 
       const videoId = extractVideoId(url);
       if (!videoId) {
-        return res.status(400).json({ success: false, creator: "apis by Silent Wolf", error: "Invalid YouTube URL." });
+        return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Invalid YouTube URL." });
       }
 
       const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
@@ -140,7 +140,7 @@ export async function registerRoutes(
       const safeTitle = `audio_${videoId}`;
       res.setHeader("Content-Type", contentType);
       res.setHeader("Content-Disposition", `attachment; filename="${safeTitle}.${format}"`);
-      res.setHeader("X-Creator", "apis by Silent Wolf");
+      res.setHeader("X-Creator", "APIs by Silent Wolf | A tech explorer");
       res.setHeader("Transfer-Encoding", "chunked");
 
       const formatArg = format === "mp3"
@@ -169,7 +169,7 @@ export async function registerRoutes(
 
       ytdlp.on("close", (code) => {
         if (!hasData && !res.headersSent) {
-          return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: `Stream failed (yt-dlp exit code ${code})` });
+          return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: `Stream failed (yt-dlp exit code ${code})` });
         }
         if (!res.writableEnded) {
           res.end();
@@ -178,7 +178,7 @@ export async function registerRoutes(
 
       ytdlp.on("error", (err) => {
         if (!res.headersSent) {
-          return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: `Stream error: ${err.message}` });
+          return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: `Stream error: ${err.message}` });
         }
         if (!res.writableEnded) {
           res.end();
@@ -190,7 +190,7 @@ export async function registerRoutes(
       });
     } catch (error: any) {
       if (!res.headersSent) {
-        return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Stream failed" });
+        return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message || "Stream failed" });
       }
     }
   };
@@ -289,7 +289,7 @@ export async function registerRoutes(
       const result = await searchSpotify(q.trim());
       return res.json(result);
     } catch (error: any) {
-      return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Spotify search failed" });
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message || "Spotify search failed" });
     }
   });
 
@@ -308,7 +308,7 @@ export async function registerRoutes(
       const result = await downloadSpotify(input.trim(), baseUrl);
       return res.json(result);
     } catch (error: any) {
-      return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Spotify download failed" });
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message || "Spotify download failed" });
     }
   });
 
@@ -324,7 +324,7 @@ export async function registerRoutes(
       const result = await searchShazam(q.trim());
       return res.json(result);
     } catch (error: any) {
-      return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Shazam search failed" });
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message || "Shazam search failed" });
     }
   });
 
@@ -340,7 +340,7 @@ export async function registerRoutes(
       const result = await getTrackDetails(trackId);
       return res.json(result);
     } catch (error: any) {
-      return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Shazam track lookup failed" });
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message || "Shazam track lookup failed" });
     }
   });
 
@@ -366,7 +366,7 @@ export async function registerRoutes(
           if (!audioRes.ok) {
             return res.status(400).json({
               success: false,
-              creator: "apis by Silent Wolf",
+              creator: "APIs by Silent Wolf | A tech explorer",
               error: "Failed to download audio from the provided URL.",
             });
           }
@@ -376,7 +376,7 @@ export async function registerRoutes(
         } else {
           return res.status(400).json({
             success: false,
-            creator: "apis by Silent Wolf",
+            creator: "APIs by Silent Wolf | A tech explorer",
             error: "Provide 'audio' (base64-encoded raw PCM s16LE) or 'url' (link to audio file) in the request body. Example: {\"url\": \"https://example.com/audio.mp3\"} or {\"audio\": \"<base64 PCM data>\"}",
           });
         }
@@ -385,7 +385,7 @@ export async function registerRoutes(
       if (audioBuffer.length < 1000) {
         return res.status(400).json({
           success: false,
-          creator: "apis by Silent Wolf",
+          creator: "APIs by Silent Wolf | A tech explorer",
           error: "Audio data too short. Provide at least a few seconds of audio.",
         });
       }
@@ -394,7 +394,7 @@ export async function registerRoutes(
       const result = await recognizeShazamFull(audioBuffer);
       return res.json(result);
     } catch (error: any) {
-      return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Shazam recognition failed" });
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message || "Shazam recognition failed" });
     }
   });
 

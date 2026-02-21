@@ -172,7 +172,7 @@ async function tryGraphQLApi(shortcode: string): Promise<InstagramResult> {
 
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       provider: "graphql",
       title: mediaData.title || mediaData.edge_media_to_caption?.edges?.[0]?.node?.text?.substring(0, 100) || "Instagram Media",
       username: mediaData.owner?.username,
@@ -268,7 +268,7 @@ async function trySnapSaveApi(url: string): Promise<InstagramResult> {
 
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       provider: "snapsave",
       title: "Instagram Media",
       media,
@@ -350,7 +350,7 @@ function parseFastDlResponse(data: any, provider: string): InstagramResult {
 
   return {
     success: true,
-    creator: "apis by Silent Wolf",
+    creator: "APIs by Silent Wolf | A tech explorer",
     provider,
     title: data.meta?.title || data.title || "Instagram Media",
     username: data.meta?.source_url?.match(/@?([a-zA-Z0-9_.]+)/)?.[1] || data.username,
@@ -458,7 +458,7 @@ async function trySaveFromApi(url: string): Promise<InstagramResult> {
 
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       provider: "savefrom",
       title: data.meta?.title || "Instagram Media",
       media,
@@ -506,7 +506,7 @@ export async function downloadInstagram(url: string): Promise<InstagramResult> {
 
   return {
     success: false,
-    creator: "apis by Silent Wolf",
+    creator: "APIs by Silent Wolf | A tech explorer",
     error:
       "Instagram is currently blocking all download services. This is a known issue — Instagram has recently tightened their anti-scraping protections. Please try again later.",
     details: errors.join(" | "),

@@ -112,7 +112,7 @@ export function registerAIRoutes(app: Express): void {
         const text = await chatEverywhereProxy(prompt, systemPrompt);
         return res.json({
           success: true,
-          creator: "apis by Silent Wolf",
+          creator: "APIs by Silent Wolf | A tech explorer",
           provider: "ChatEverywhere",
           model: ep.model,
           response: text,
@@ -155,7 +155,7 @@ export function registerAIRoutes(app: Express): void {
 
       return res.json({
         success: true,
-        creator: "apis by Silent Wolf",
+        creator: "APIs by Silent Wolf | A tech explorer",
         provider: "ChatEverywhere",
         model: "unsplash",
         url: finalUrl,

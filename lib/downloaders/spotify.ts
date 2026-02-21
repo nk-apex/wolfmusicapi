@@ -375,7 +375,7 @@ async function searchViaItunes(query: string): Promise<SpotifyTrack[]> {
 
 export async function searchSpotify(query: string): Promise<SpotifySearchResult> {
   if (!query || query.trim().length === 0) {
-    return { success: false, creator: "apis by Silent Wolf", error: "Search query is required." };
+    return { success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Search query is required." };
   }
 
   console.log(`[spotify] Searching: ${query}`);
@@ -390,7 +390,7 @@ export async function searchSpotify(query: string): Promise<SpotifySearchResult>
   if (tracks.length === 0) {
     return {
       success: false,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       query,
       error: "No results found. Try a different search term.",
     };
@@ -398,7 +398,7 @@ export async function searchSpotify(query: string): Promise<SpotifySearchResult>
 
   return {
     success: true,
-    creator: "apis by Silent Wolf",
+    creator: "APIs by Silent Wolf | A tech explorer",
     query,
     tracks,
   };
@@ -409,7 +409,7 @@ export async function downloadSpotify(
   baseUrl: string
 ): Promise<SpotifyDownloadResult> {
   if (!input || input.trim().length === 0) {
-    return { success: false, creator: "apis by Silent Wolf", error: "Provide a Spotify URL or song name." };
+    return { success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Provide a Spotify URL or song name." };
   }
 
   input = input.trim();
@@ -438,7 +438,7 @@ export async function downloadSpotify(
     if (ytResult) {
       return {
         success: true,
-        creator: "apis by Silent Wolf",
+        creator: "APIs by Silent Wolf | A tech explorer",
         title: trackInfo.title,
         artist: trackInfo.artist,
         album: trackInfo.album,
@@ -452,7 +452,7 @@ export async function downloadSpotify(
 
     return {
       success: false,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       title: trackInfo.title,
       artist: trackInfo.artist,
       spotifyUrl: trackInfo.spotifyUrl,
@@ -465,7 +465,7 @@ export async function downloadSpotify(
   if (ytDirect) {
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       title: ytDirect.title,
       artist: ytDirect.artist,
       downloadUrl: ytDirect.url,
@@ -476,7 +476,7 @@ export async function downloadSpotify(
 
   return {
     success: false,
-    creator: "apis by Silent Wolf",
+    creator: "APIs by Silent Wolf | A tech explorer",
     error: `Could not find track for "${input}". Try a Spotify URL or different search term.`,
   };
 }

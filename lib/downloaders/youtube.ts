@@ -58,7 +58,7 @@ export async function downloadYouTube(url: string): Promise<YouTubeResult> {
 
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       title,
       thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
       videoId,

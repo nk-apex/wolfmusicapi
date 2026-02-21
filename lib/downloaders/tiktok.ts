@@ -81,7 +81,7 @@ export async function downloadTikTok(url: string): Promise<TikTokResult> {
 
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       title: titleMatch?.[1]?.trim() || "TikTok Video",
       author: authorMatch?.[1] || undefined,
       videoUrl,

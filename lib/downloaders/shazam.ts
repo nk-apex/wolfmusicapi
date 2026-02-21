@@ -211,7 +211,7 @@ async function searchViaShazamV1(query: string): Promise<ShazamTrack[]> {
 
 export async function searchShazam(query: string): Promise<ShazamSearchResult> {
   if (!query || query.trim().length === 0) {
-    return { success: false, creator: "apis by Silent Wolf", error: "Search query is required." };
+    return { success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Search query is required." };
   }
 
   console.log(`[shazam] Searching: ${query}`);
@@ -229,7 +229,7 @@ export async function searchShazam(query: string): Promise<ShazamSearchResult> {
   if (tracks.length === 0) {
     return {
       success: false,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       query,
       error: "No results found. Try a different search term.",
     };
@@ -237,7 +237,7 @@ export async function searchShazam(query: string): Promise<ShazamSearchResult> {
 
   return {
     success: true,
-    creator: "apis by Silent Wolf",
+    creator: "APIs by Silent Wolf | A tech explorer",
     query,
     tracks,
   };
@@ -291,14 +291,14 @@ export async function recognizeShazam(audioBuffer: Buffer): Promise<ShazamRecogn
     if (!result) {
       return {
         success: false,
-        creator: "apis by Silent Wolf",
+        creator: "APIs by Silent Wolf | A tech explorer",
         error: "Could not identify the song. Try a longer or clearer audio sample.",
       };
     }
 
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       title: result.title,
       artist: result.artist,
       album: result.album,
@@ -308,7 +308,7 @@ export async function recognizeShazam(audioBuffer: Buffer): Promise<ShazamRecogn
     console.error(`[shazam] Recognition error:`, err.message);
     return {
       success: false,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       error: `Recognition failed: ${err.message || "Unknown error"}. Ensure audio is raw PCM (s16LE, mono, 16kHz).`,
     };
   }
@@ -333,7 +333,7 @@ export async function recognizeShazamFull(audioBuffer: Buffer): Promise<ShazamRe
     if (!result || !result.track) {
       return {
         success: false,
-        creator: "apis by Silent Wolf",
+        creator: "APIs by Silent Wolf | A tech explorer",
         error: "Could not identify the song. Try a longer or clearer audio sample.",
       };
     }
@@ -341,7 +341,7 @@ export async function recognizeShazamFull(audioBuffer: Buffer): Promise<ShazamRe
     const track = result.track;
     const response: ShazamRecognizeResult = {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       title: track.title || track.heading?.title,
       artist: track.subtitle || track.heading?.subtitle,
       trackId: track.key,
@@ -380,7 +380,7 @@ export async function recognizeShazamFull(audioBuffer: Buffer): Promise<ShazamRe
     console.error(`[shazam] Full recognition error:`, err.message);
     return {
       success: false,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       error: `Recognition failed: ${err.message || "Unknown error"}. Ensure audio is raw PCM (s16LE, mono, 16kHz).`,
     };
   }
@@ -398,7 +398,7 @@ async function getTrackViaShazamDiscovery(trackId: string): Promise<ShazamRecogn
 
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       title: track.title || track.heading?.title,
       artist: track.subtitle || track.heading?.subtitle,
       albumArt: track.images?.coverarthq || track.images?.coverart,
@@ -431,7 +431,7 @@ async function getTrackViaAppleMusic(trackId: string): Promise<ShazamRecognizeRe
 
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       title: attrs.title || attrs.name,
       artist: attrs.artistName,
       album: attrs.albumName,
@@ -461,7 +461,7 @@ async function getTrackViaItunes(trackId: string): Promise<ShazamRecognizeResult
 
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       title: track.trackName,
       artist: track.artistName,
       album: track.collectionName,
@@ -488,5 +488,5 @@ export async function getTrackDetails(trackId: string): Promise<ShazamRecognizeR
   result = await getTrackViaAppleMusic(trackId);
   if (result) return result;
 
-  return { success: false, creator: "apis by Silent Wolf", error: `Track not found for ID: ${trackId}. Try a different track ID.` };
+  return { success: false, creator: "APIs by Silent Wolf | A tech explorer", error: `Track not found for ID: ${trackId}. Try a different track ID.` };
 }

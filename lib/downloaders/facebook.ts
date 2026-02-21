@@ -85,7 +85,7 @@ async function tryFdownloader(url: string): Promise<FacebookResult> {
 
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       title: titleMatch?.[1]?.trim() || "Facebook Video",
       sdUrl: sdUrl || hdUrl,
       hdUrl: hdUrl || sdUrl,
@@ -128,7 +128,7 @@ async function tryGetmyfb(url: string): Promise<FacebookResult> {
       }
       return {
         success: true,
-        creator: "apis by Silent Wolf",
+        creator: "APIs by Silent Wolf | A tech explorer",
         title: "Facebook Video",
         sdUrl: anyLinks[0],
         hdUrl: anyLinks[1] || undefined,
@@ -137,7 +137,7 @@ async function tryGetmyfb(url: string): Promise<FacebookResult> {
 
     return {
       success: true,
-      creator: "apis by Silent Wolf",
+      creator: "APIs by Silent Wolf | A tech explorer",
       title: "Facebook Video",
       sdUrl: allLinks[0],
       hdUrl: allLinks[1] || undefined,
