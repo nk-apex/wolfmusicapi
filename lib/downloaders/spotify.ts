@@ -47,32 +47,80 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
+async function getSpotifyTokenViaAnonymous(): Promise<string | null> {
+  try {
+    const res = await fetchWithTimeout("https://open.spotify.com/get_access_token?reason=transport&productType=web_player", {
+      headers: {
+        "User-Agent": USER_AGENT,
+        "Accept": "application/json",
+        "Origin": "https://open.spotify.com",
+        "Referer": "https://open.spotify.com/",
+      },
+    }, 10000);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.accessToken) {
+      console.log("[spotify] Got token via anonymous endpoint");
+      return data.accessToken;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function getSpotifyTokenViaEmbed(): Promise<string | null> {
+  const embedTracks = [
+    "0VjIjW4GlUZAMYd2vXMi3b",
+    "7qiZfU4dY1lWllzX7mPBI3",
+    "4cOdK2wGLETKBW3PvgPWqT",
+  ];
+
+  for (const trackId of embedTracks) {
+    try {
+      const embedRes = await fetchWithTimeout(
+        `https://open.spotify.com/embed/track/${trackId}`,
+        { headers: { "User-Agent": USER_AGENT } },
+        8000
+      );
+      if (!embedRes.ok) continue;
+      const html = await embedRes.text();
+
+      const tokenMatch = html.match(/"accessToken":"([^"]+)"/);
+      if (tokenMatch) {
+        console.log("[spotify] Got token via embed");
+        return tokenMatch[1];
+      }
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 async function getSpotifyToken(): Promise<string | null> {
   if (cachedToken && Date.now() < cachedToken.expiresAt) {
     return cachedToken.token;
   }
 
-  try {
-    const embedRes = await fetchWithTimeout(
-      "https://open.spotify.com/embed/track/0VjIjW4GlUZAMYd2vXMi3b",
-      { headers: { "User-Agent": USER_AGENT } }
-    );
-    if (!embedRes.ok) return null;
-    const html = await embedRes.text();
+  const tokenGetters = [
+    getSpotifyTokenViaAnonymous,
+    getSpotifyTokenViaEmbed,
+  ];
 
-    const tokenMatch = html.match(/"accessToken":"([^"]+)"/);
-    if (!tokenMatch) return null;
-
-    cachedToken = {
-      token: tokenMatch[1],
-      expiresAt: Date.now() + 50 * 60 * 1000,
-    };
-
-    console.log("[spotify] Obtained fresh access token");
-    return cachedToken.token;
-  } catch {
-    return null;
+  for (const getter of tokenGetters) {
+    const token = await getter();
+    if (token) {
+      cachedToken = {
+        token,
+        expiresAt: Date.now() + 30 * 60 * 1000,
+      };
+      return token;
+    }
   }
+
+  console.log("[spotify] All token methods failed");
+  return null;
 }
 
 function extractSpotifyId(url: string): { type: string; id: string } | null {
@@ -123,9 +171,9 @@ async function searchViaSpotifyApi(query: string, retryCount = 0): Promise<Spoti
     if (res.status === 429) {
       const retryAfter = parseInt(res.headers.get("retry-after") || "5");
       console.log(`[spotify] Rate limited, retry after ${retryAfter}s`);
-      if (retryCount < 1) {
-        await new Promise(r => setTimeout(r, Math.min(retryAfter, 10) * 1000));
-        cachedToken = null;
+      cachedToken = null;
+      if (retryCount < 1 && retryAfter <= 30) {
+        await new Promise(r => setTimeout(r, Math.min(retryAfter, 5) * 1000));
         return searchViaSpotifyApi(query, retryCount + 1);
       }
       return [];
@@ -299,6 +347,32 @@ async function getDownloadViaYouTubeDirect(query: string, baseUrl: string): Prom
   }
 }
 
+async function searchViaItunes(query: string): Promise<SpotifyTrack[]> {
+  try {
+    const res = await fetchWithTimeout(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=10`,
+      { headers: { "User-Agent": USER_AGENT } }
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data.results?.length) return [];
+
+    return data.results.map((item: any) => ({
+      title: item.trackName || "Unknown",
+      artist: item.artistName || "Unknown",
+      album: item.collectionName || undefined,
+      albumArt: item.artworkUrl100?.replace("100x100", "400x400") || undefined,
+      duration: item.trackTimeMillis ? Math.round(item.trackTimeMillis / 1000) : undefined,
+      releaseDate: item.releaseDate?.substring(0, 10) || undefined,
+      spotifyUrl: undefined,
+      previewUrl: item.previewUrl || undefined,
+      trackId: String(item.trackId || ""),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function searchSpotify(query: string): Promise<SpotifySearchResult> {
   if (!query || query.trim().length === 0) {
     return { success: false, creator: "apis by Silent Wolf", error: "Search query is required." };
@@ -306,7 +380,12 @@ export async function searchSpotify(query: string): Promise<SpotifySearchResult>
 
   console.log(`[spotify] Searching: ${query}`);
 
-  const tracks = await searchViaSpotifyApi(query);
+  let tracks = await searchViaSpotifyApi(query);
+
+  if (tracks.length === 0) {
+    console.log(`[spotify] Spotify API failed, trying iTunes fallback`);
+    tracks = await searchViaItunes(query);
+  }
 
   if (tracks.length === 0) {
     return {

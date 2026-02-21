@@ -3,7 +3,6 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
-const RINODEPOT_BASE = "https://rinodepot.fr";
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
 const Y2MATE_HEADERS = {
@@ -55,6 +54,195 @@ function extractVideoId(url: string): string | null {
   }
 
   return null;
+}
+
+const providerHealth: Map<string, { failures: number; lastFailure: number; cooldownUntil: number }> = new Map();
+
+const HEALTH_CONFIG = {
+  maxFailures: 3,
+  cooldownMs: 5 * 60 * 1000,
+  resetAfterMs: 15 * 60 * 1000,
+};
+
+function isProviderHealthy(name: string): boolean {
+  const health = providerHealth.get(name);
+  if (!health) return true;
+
+  if (Date.now() > health.cooldownUntil) {
+    if (Date.now() - health.lastFailure > HEALTH_CONFIG.resetAfterMs) {
+      providerHealth.delete(name);
+    }
+    return true;
+  }
+
+  return false;
+}
+
+function recordProviderFailure(name: string): void {
+  const health = providerHealth.get(name) || { failures: 0, lastFailure: 0, cooldownUntil: 0 };
+  health.failures++;
+  health.lastFailure = Date.now();
+
+  if (health.failures >= HEALTH_CONFIG.maxFailures) {
+    health.cooldownUntil = Date.now() + HEALTH_CONFIG.cooldownMs;
+    console.log(`[health] Provider ${name} disabled for ${HEALTH_CONFIG.cooldownMs / 1000}s after ${health.failures} failures`);
+  }
+
+  providerHealth.set(name, health);
+}
+
+function recordProviderSuccess(name: string): void {
+  providerHealth.delete(name);
+}
+
+async function ytdlpSearch(query: string): Promise<{ query: string; items: any[] }> {
+  try {
+    const sanitized = query.replace(/[^a-zA-Z0-9\s\-_.,'&!?()]/g, "").substring(0, 200);
+    const { stdout } = await execAsync(
+      `yt-dlp --no-warnings --flat-playlist --dump-json 'ytsearch10:${sanitized.replace(/'/g, "'\\''")}' 2>/dev/null`,
+      { timeout: 20000, maxBuffer: 1024 * 1024 }
+    );
+
+    const lines = stdout.trim().split("\n").filter(l => l.trim());
+    const items: any[] = [];
+
+    for (const line of lines) {
+      try {
+        const data = JSON.parse(line);
+        if (data.id) {
+          const durationSec = data.duration || 0;
+          const minutes = Math.floor(durationSec / 60);
+          const seconds = durationSec % 60;
+          const durationStr = `${minutes}:${String(seconds).padStart(2, "0")}`;
+
+          const fileSizeMb = durationSec > 0 ? ((durationSec * 128 * 1000) / 8 / 1024 / 1024).toFixed(2) : "0";
+
+          items.push({
+            title: data.title || "Unknown",
+            id: data.id,
+            size: `${fileSizeMb} MB`,
+            duration: durationStr,
+            channelTitle: data.channel || data.uploader || "Unknown",
+            source: "yt",
+          });
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return { query, items };
+  } catch (err: any) {
+    throw new Error(`yt-dlp search failed: ${err.message}`);
+  }
+}
+
+async function youtubeHtmlSearch(query: string): Promise<{ query: string; items: any[] }> {
+  const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+  const res = await fetchWithTimeout(searchUrl, {
+    headers: {
+      "User-Agent": USER_AGENT,
+      "Accept-Language": "en-US,en;q=0.9",
+      Accept: "text/html",
+    },
+  }, 10000);
+
+  if (!res.ok) throw new Error(`YouTube HTML search failed: status ${res.status}`);
+  const html = await res.text();
+
+  const dataMatch = html.match(/var ytInitialData\s*=\s*({[\s\S]+?});/);
+  if (!dataMatch) throw new Error("YouTube HTML search: Could not parse response");
+
+  let ytData: any;
+  try {
+    ytData = JSON.parse(dataMatch[1]);
+  } catch {
+    throw new Error("YouTube HTML search: Invalid JSON");
+  }
+
+  const items: any[] = [];
+  const contents = ytData?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents;
+
+  if (!contents) return { query, items };
+
+  for (const section of contents) {
+    const renderers = section?.itemSectionRenderer?.contents || [];
+    for (const renderer of renderers) {
+      const video = renderer?.videoRenderer;
+      if (!video?.videoId) continue;
+
+      items.push({
+        title: video.title?.runs?.[0]?.text || "Unknown",
+        id: video.videoId,
+        size: "",
+        duration: video.lengthText?.simpleText || "",
+        channelTitle: video.ownerText?.runs?.[0]?.text || "Unknown",
+        source: "yt",
+      });
+
+      if (items.length >= 10) break;
+    }
+    if (items.length >= 10) break;
+  }
+
+  return { query, items };
+}
+
+export async function searchSongs(query: string) {
+  const errors: string[] = [];
+
+  try {
+    console.log(`[search] Trying yt-dlp search for: ${query}`);
+    const result = await ytdlpSearch(query);
+    if (result.items.length > 0) {
+      console.log(`[search] yt-dlp returned ${result.items.length} results`);
+      return result;
+    }
+    errors.push("yt-dlp: no results");
+  } catch (err: any) {
+    console.log(`[search] yt-dlp search failed: ${err.message}`);
+    errors.push(`yt-dlp: ${err.message}`);
+  }
+
+  try {
+    console.log(`[search] Trying YouTube HTML search for: ${query}`);
+    const result = await youtubeHtmlSearch(query);
+    if (result.items.length > 0) {
+      console.log(`[search] YouTube HTML returned ${result.items.length} results`);
+      return result;
+    }
+    errors.push("YouTube HTML: no results");
+  } catch (err: any) {
+    console.log(`[search] YouTube HTML search failed: ${err.message}`);
+    errors.push(`YouTube HTML: ${err.message}`);
+  }
+
+  console.log(`[search] All search methods failed: ${errors.join(" | ")}`);
+  return { query, items: [] };
+}
+
+export async function checkVideo(videoId: string) {
+  if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+    throw new Error("Invalid video ID");
+  }
+
+  try {
+    const { stdout } = await execAsync(
+      `yt-dlp --no-warnings --dump-json --skip-download "https://www.youtube.com/watch?v=${videoId}" 2>/dev/null`,
+      { timeout: 15000, maxBuffer: 1024 * 1024 }
+    );
+
+    const data = JSON.parse(stdout.trim());
+    return {
+      id: data.id,
+      title: data.title,
+      duration: data.duration,
+      channel: data.channel || data.uploader,
+      available: true,
+    };
+  } catch {
+    return { id: videoId, available: false };
+  }
 }
 
 async function ytdlpConvert(videoId: string, format: "mp3" | "mp4"): Promise<{
@@ -441,42 +629,6 @@ async function cnvmp3Convert(videoId: string, format: "mp3" | "mp4"): Promise<{
   throw new Error("cnvmp3: no download URL in response");
 }
 
-export async function searchSongs(query: string) {
-  const res = await fetchWithTimeout(`${RINODEPOT_BASE}/search?q=${encodeURIComponent(query)}`, {
-    headers: {
-      "User-Agent": USER_AGENT,
-      Accept: "application/json",
-      Referer: RINODEPOT_BASE,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Search failed with status ${res.status}`);
-  }
-
-  const data = await safeJsonParse(res, "search");
-  return {
-    query: data.query || query,
-    items: data.items || [],
-  };
-}
-
-export async function checkVideo(videoId: string) {
-  const res = await fetchWithTimeout(`${RINODEPOT_BASE}/check?q=${videoId}`, {
-    headers: {
-      "User-Agent": USER_AGENT,
-      Accept: "application/json",
-      Referer: RINODEPOT_BASE,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Check failed with status ${res.status}`);
-  }
-
-  return await safeJsonParse(res, "checkVideo");
-}
-
 type ConvertProvider = {
   name: string;
   fn: (videoId: string, format: "mp3" | "mp4") => Promise<{ downloadUrl: string; title: string }>;
@@ -503,13 +655,24 @@ export async function getDownloadInfo(url: string, format: "mp3" | "mp4" = "mp3"
   const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
   const errors: string[] = [];
 
-  for (const provider of providers) {
+  const healthyProviders = providers.filter(p => isProviderHealthy(p.name));
+  const unhealthyProviders = providers.filter(p => !isProviderHealthy(p.name));
+
+  if (unhealthyProviders.length > 0) {
+    console.log(`[scraper] Skipping unhealthy providers: ${unhealthyProviders.map(p => p.name).join(", ")}`);
+  }
+
+  const orderedProviders = healthyProviders.length > 0 ? healthyProviders : providers;
+
+  for (const provider of orderedProviders) {
     try {
       console.log(`[scraper] Trying provider: ${provider.name} for ${videoId} (${format})`);
       const result = await provider.fn(videoId, format);
 
       const isHlsOrM4a = result.downloadUrl.includes(".m3u8") || result.downloadUrl.includes("manifest");
       const audioQuality = isHlsOrM4a ? "128kbps (HLS stream)" : "192kbps";
+
+      recordProviderSuccess(provider.name);
 
       return {
         success: true,
@@ -525,6 +688,7 @@ export async function getDownloadInfo(url: string, format: "mp3" | "mp4" = "mp3"
       };
     } catch (error: any) {
       console.log(`[scraper] Provider ${provider.name} failed: ${error.message}`);
+      recordProviderFailure(provider.name);
       errors.push(`${provider.name}: ${error.message}`);
     }
   }

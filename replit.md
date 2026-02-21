@@ -7,11 +7,12 @@ A multi-provider API hub (branded as WOLFAPIS) that provides unified access to A
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui components
 - **Backend**: Express.js server in `server/`
 - **AI Proxy**: `server/ai-routes.ts` - routes that proxy AI chat/image through chateverywhere.app (free, no API keys)
-- **Music Scraping**: `lib/scraper.ts` - shared scraping module for YouTube music search via rinodepot.fr, download via y2mate.nu/etacloud.org with yt-dlp fallback
+- **Music Scraping**: `lib/scraper.ts` - shared scraping module for YouTube music search via yt-dlp (self-contained, no external API dependency), download via yt-dlp primary + y2mate/cobalt/vevioz/savefrom/cnvmp3 fallbacks with provider health tracking
 - **Social Media Downloaders**: `lib/downloaders/` - TikTok, Instagram, YouTube, Facebook video downloaders
-- **Spotify**: `lib/downloaders/spotify.ts` - Spotify search via embed token + download via YouTube matching
+- **Spotify**: `lib/downloaders/spotify.ts` - Spotify search via multiple token sources (anonymous endpoint + embed) with iTunes/Apple Music fallback + download via YouTube matching
 - **Shazam**: `lib/downloaders/shazam.ts` - Shazam search + song recognition via reverse-engineered API (shazam-api npm)
-- **Data Sources**: chateverywhere.app (AI chat + image), rinodepot.fr (music search), y2mate.nu/etacloud.org + yt-dlp (MP3/MP4 download), Spotify embed (search), Shazam/iTunes (track lookup), Shazam API (search + recognition)
+- **Data Sources**: chateverywhere.app (AI chat + image), yt-dlp (music search + download, self-contained), y2mate/cobalt/vevioz/savefrom/cnvmp3 (download fallbacks), Spotify anonymous token + iTunes (search), Shazam/iTunes (track lookup), Shazam API (search + recognition)
+- **Provider Health System**: Automatic tracking of provider failures with cooldown periods (5 min cooldown after 3 failures, auto-reset after 15 min). Broken providers are temporarily skipped to speed up responses.
 
 ## Key Files
 - `shared/schema.ts` - All endpoint definitions, categories, and TypeScript types
@@ -42,7 +43,7 @@ A multi-provider API hub (branded as WOLFAPIS) that provides unified access to A
 ### AI Image (powered by chateverywhere.app Unsplash proxy)
 - `POST /api/ai/image/dall-e` - Image search by prompt
 
-### Music & Media (search via rinodepot.fr, download via y2mate.nu - no API keys needed)
+### Music & Media (search via yt-dlp, download via yt-dlp + fallbacks - no API keys needed)
 - `GET /api/search?q=...` - Search songs
 - `GET /download/mp3?url=...` - MP3 download (real MP3, 192kbps)
 - `GET /download/mp4?url=...` - MP4 download (360p)
@@ -50,7 +51,7 @@ A multi-provider API hub (branded as WOLFAPIS) that provides unified access to A
 - `GET /download/stream/mp4?q=...` - Stream MP4 directly (best for bots)
 - Plus more download variants (audio, ytmp3, dlmp3, yta, yta2, yta3)
 
-### Spotify (no API keys needed - uses embed token)
+### Spotify (no API keys needed - uses anonymous token + iTunes fallback)
 - `GET /api/spotify/search?q=...` - Search tracks on Spotify (returns title, artist, album, art, duration, Spotify URL)
 - `GET /api/spotify/download?url=...` or `?q=...` - Download Spotify track as MP3 (via YouTube matching)
 
@@ -75,6 +76,7 @@ All endpoints work through web scraping and reverse-engineered APIs - no API key
 - Wolf logo image as favicon and header icon
 
 ## Recent Changes
+- 2026-02-21: Major stability overhaul - replaced rinodepot.fr search with self-contained yt-dlp search (no external API dependency), added YouTube HTML scraping as search fallback, added provider health tracking system (auto-disables broken providers for 5 min after 3 failures), improved stream handler to pipe directly via yt-dlp (fixes HLS/manifest URL issues), added iTunes/Apple Music as Spotify search fallback, added multiple Spotify token sources (anonymous endpoint + embed), fixed rate-limit handling to avoid long waits
 - 2026-02-19: Fixed all download providers - installed yt-dlp + ffmpeg, made yt-dlp primary provider, added SaveFrom + CnvMP3 fallbacks, updated Cobalt to community instances, added y2mate auth caching + rate-limit handling, improved Vevioz with multiple endpoints. Provider chain: ytdlp → y2mate → cobalt → vevioz → savefrom → cnvmp3
 - 2026-02-18: Added Spotify search + download endpoints (search via embed token, download via YouTube matching)
 - 2026-02-18: Added Shazam search + song recognition + track details endpoints (via shazam-api npm package)

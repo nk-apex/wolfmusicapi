@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { type Server } from "http";
-import { searchSongs, getDownloadInfo } from "./scraper";
+import { spawn } from "child_process";
+import { searchSongs, getDownloadInfo, extractVideoId } from "./scraper";
 import { registerAIRoutes } from "./ai-routes";
 import { downloadTikTok } from "../lib/downloaders/tiktok";
 import { downloadInstagram } from "../lib/downloaders/instagram";
@@ -128,43 +129,65 @@ export async function registerRoutes(
         url = `https://www.youtube.com/watch?v=${searchResults.items[0].id}`;
       }
 
-      const result = await getDownloadInfo(url, format);
-      if (!result.success || !result.downloadUrl) {
-        return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: `Failed to get ${format} download URL.` });
+      const videoId = extractVideoId(url);
+      if (!videoId) {
+        return res.status(400).json({ success: false, creator: "apis by Silent Wolf", error: "Invalid YouTube URL." });
       }
 
-      const fileRes = await fetch(result.downloadUrl, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-          "Referer": "https://v1.y2mate.nu/",
-        },
-      });
+      const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-      if (!fileRes.ok || !fileRes.body) {
-        return res.status(502).json({ success: false, creator: "apis by Silent Wolf", error: `Failed to fetch ${format} file from source.` });
-      }
-
-      const safeTitle = (result.title || (format === "mp3" ? "audio" : "video")).replace(/[^a-zA-Z0-9_\- ]/g, "").substring(0, 80);
       const contentType = format === "mp3" ? "audio/mpeg" : "video/mp4";
+      const safeTitle = `audio_${videoId}`;
       res.setHeader("Content-Type", contentType);
       res.setHeader("Content-Disposition", `attachment; filename="${safeTitle}.${format}"`);
       res.setHeader("X-Creator", "apis by Silent Wolf");
-      if (fileRes.headers.get("content-length")) {
-        res.setHeader("Content-Length", fileRes.headers.get("content-length")!);
-      }
+      res.setHeader("Transfer-Encoding", "chunked");
 
-      const reader = fileRes.body.getReader();
-      const pump = async () => {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          if (!res.writableEnded) {
-            res.write(Buffer.from(value));
-          }
+      const formatArg = format === "mp3"
+        ? "bestaudio[ext=m4a]/bestaudio"
+        : "best[height<=480][ext=mp4]/best[ext=mp4]/best";
+
+      const ytdlp = spawn("yt-dlp", [
+        "--no-warnings",
+        "-f", formatArg,
+        "-o", "-",
+        youtubeUrl,
+      ]);
+
+      let hasData = false;
+
+      ytdlp.stdout.on("data", (chunk: Buffer) => {
+        hasData = true;
+        if (!res.writableEnded) {
+          res.write(chunk);
         }
-        res.end();
-      };
-      pump().catch(() => res.end());
+      });
+
+      ytdlp.stderr.on("data", (data: Buffer) => {
+        console.log(`[stream] yt-dlp stderr: ${data.toString().trim()}`);
+      });
+
+      ytdlp.on("close", (code) => {
+        if (!hasData && !res.headersSent) {
+          return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: `Stream failed (yt-dlp exit code ${code})` });
+        }
+        if (!res.writableEnded) {
+          res.end();
+        }
+      });
+
+      ytdlp.on("error", (err) => {
+        if (!res.headersSent) {
+          return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: `Stream error: ${err.message}` });
+        }
+        if (!res.writableEnded) {
+          res.end();
+        }
+      });
+
+      req.on("close", () => {
+        ytdlp.kill("SIGTERM");
+      });
     } catch (error: any) {
       if (!res.headersSent) {
         return res.status(500).json({ success: false, creator: "apis by Silent Wolf", error: error.message || "Stream failed" });
