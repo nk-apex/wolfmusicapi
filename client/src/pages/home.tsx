@@ -445,10 +445,12 @@ export default function Home() {
           </div>
 
           <h2 className="text-3xl sm:text-4xl font-bold leading-tight" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            <span style={{ color: "#ffffff" }}>All Your </span>
-            <span style={{ color: "#00ff00" }}>AI APIs</span>
-            <span style={{ color: "#ffffff" }}> in One Place</span>
+            <span style={{ color: "#00ff00" }}>APIs</span>
+            <span style={{ color: "#ffffff" }}> by Silent Wolf</span>
           </h2>
+          <p className="text-lg tracking-wide" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Orbitron', sans-serif" }}>
+            A tech explorer
+          </p>
 
           <p className="max-w-xl mx-auto text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
             GPT, Claude, Mistral, Gemini, DeepSeek, Venice, Groq, Cohere
