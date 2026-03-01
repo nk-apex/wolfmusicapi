@@ -137,7 +137,7 @@ export function registerAIRoutes(app: Express): void {
           success: true,
           creator: "APIs by Silent Wolf | A tech explorer",
           provider: ep.provider,
-          model: ep.model,
+          model: ep.label,
           response: text,
         });
       } catch (error: any) {

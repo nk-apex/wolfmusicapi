@@ -57,6 +57,7 @@ export const apiCategories = [
   { id: "spotify", name: "Spotify", description: "Search and download Spotify tracks as MP3", icon: "Music2" },
   { id: "shazam", name: "Shazam", description: "Search songs and recognize music from audio", icon: "AudioLines" },
   { id: "ephoto", name: "Ephoto360", description: "Generate text effects and artistic images", icon: "Sparkles" },
+  { id: "photofunia", name: "PhotoFunia", description: "100+ photo effects, frames, filters and text art", icon: "ImagePlus" },
 ];
 
 const aiChatEndpoints: ApiEndpoint[] = [
@@ -155,6 +156,11 @@ const ephotoEndpoints: ApiEndpoint[] = [
   { path: "/api/ephoto/generate", method: "POST", description: "Generate a text effect image", params: [{ name: "effect", type: "string", required: true, description: "Effect slug or ID (from /api/ephoto/list)" }, { name: "text", type: "string", required: true, description: "Text to render in the effect" }], format: "json", category: "ephoto", provider: "Ephoto360" },
 ];
 
+const photofuniaEndpoints: ApiEndpoint[] = [
+  { path: "/api/photofunia/list", method: "GET", description: "List all 100+ PhotoFunia effects", params: [], format: "json", category: "photofunia", provider: "PhotoFunia" },
+  { path: "/api/photofunia/generate", method: "POST", description: "Generate a PhotoFunia effect image", params: [{ name: "effect", type: "string", required: true, description: "Effect ID or slug (from /api/photofunia/list)" }, { name: "text", type: "string", required: false, description: "Text input for text-based effects" }, { name: "imageUrl", type: "string", required: false, description: "Image URL for image-based effects" }], format: "json", category: "photofunia", provider: "PhotoFunia" },
+];
+
 export const allEndpoints: ApiEndpoint[] = [
   ...aiChatEndpoints,
   ...aiToolEndpoints,
@@ -167,6 +173,7 @@ export const allEndpoints: ApiEndpoint[] = [
   ...spotifyEndpoints,
   ...shazamEndpoints,
   ...ephotoEndpoints,
+  ...photofuniaEndpoints,
 ];
 
 export const endpointInfo = allEndpoints.filter(e => e.category === "music");

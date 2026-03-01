@@ -29,6 +29,7 @@ import {
   Sparkles,
   Wand2,
   Send,
+  ImagePlus,
 } from "lucide-react";
 import { allEndpoints, apiCategories, type ApiEndpoint, type ApiCategory } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
@@ -45,6 +46,7 @@ const categoryIcons: Record<string, typeof MessageSquare> = {
   spotify: Music2,
   shazam: AudioLines,
   ephoto: Sparkles,
+  photofunia: ImagePlus,
 };
 
 function CopyButton({ text }: { text: string }) {
@@ -425,7 +427,7 @@ export default function Home() {
               <span style={{ color: "#ffffff" }}>APIS</span>
             </h1>
             <p className="text-[9px] tracking-[0.12em] mt-0.5" style={{ color: "rgba(0,255,0,0.35)" }}>
-              v3.0 • {allEndpoints.length} ENDPOINTS
+              v4.0 • {allEndpoints.length} ENDPOINTS
             </p>
           </div>
           <button

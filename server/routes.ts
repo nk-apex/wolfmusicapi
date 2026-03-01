@@ -9,6 +9,7 @@ import { downloadFacebook } from "../lib/downloaders/facebook";
 import { searchSpotify, downloadSpotify } from "../lib/downloaders/spotify";
 import { searchShazam, recognizeShazamFull, getTrackDetails } from "../lib/downloaders/shazam";
 import { generateEphoto, listEphotoEffects } from "../lib/downloaders/ephoto360";
+import { generatePhotofunia, listPhotofuniaEffects } from "../lib/downloaders/photofunia";
 import { allEndpoints as schemaEndpoints, apiCategories as schemaCategories } from "../shared/schema";
 
 function isYouTubeUrl(input: string): boolean {
@@ -114,36 +115,25 @@ export async function registerRoutes(
       }
 
       const searchTerm = q.trim();
-      const response = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(searchTerm.split(" - ")[0] || searchTerm)}/${encodeURIComponent(searchTerm.split(" - ")[1] || searchTerm)}`, {
+
+      const lrclibRes = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(searchTerm)}`, {
         headers: { "User-Agent": "Mozilla/5.0" },
       });
 
-      if (response.ok) {
-        const data = await response.json() as any;
-        if (data.lyrics) {
+      if (lrclibRes.ok) {
+        const lrcData = await lrclibRes.json() as any[];
+        if (lrcData && lrcData.length > 0) {
+          const track = lrcData[0];
           return res.json({
             success: true,
             creator: "APIs by Silent Wolf | A tech explorer",
             query: searchTerm,
-            lyrics: data.lyrics.trim(),
-          });
-        }
-      }
-
-      const geniusRes = await fetch(`https://some-random-api.com/lyrics?title=${encodeURIComponent(searchTerm)}`, {
-        headers: { "User-Agent": "Mozilla/5.0" },
-      });
-      if (geniusRes.ok) {
-        const gData = await geniusRes.json() as any;
-        if (gData.lyrics) {
-          return res.json({
-            success: true,
-            creator: "APIs by Silent Wolf | A tech explorer",
-            query: searchTerm,
-            title: gData.title,
-            author: gData.author,
-            thumbnail: gData.thumbnail?.genius,
-            lyrics: gData.lyrics,
+            title: track.trackName || track.name,
+            author: track.artistName,
+            album: track.albumName,
+            duration: track.duration,
+            lyrics: track.plainLyrics || track.syncedLyrics || "No lyrics text available",
+            syncedLyrics: track.syncedLyrics || null,
           });
         }
       }
@@ -151,7 +141,7 @@ export async function registerRoutes(
       return res.status(404).json({
         success: false,
         creator: "APIs by Silent Wolf | A tech explorer",
-        error: `No lyrics found for "${searchTerm}". Try "Artist - Song Title" format.`,
+        error: `No lyrics found for "${searchTerm}". Try "Artist - Song Title" format or just the song name.`,
       });
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message || "Lyrics fetch failed" });
@@ -419,11 +409,43 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/photofunia/list", (_req, res) => {
+    return res.json({
+      success: true,
+      creator: "APIs by Silent Wolf | A tech explorer",
+      totalEffects: listPhotofuniaEffects().length,
+      effects: listPhotofuniaEffects(),
+    });
+  });
+
+  app.post("/api/photofunia/generate", async (req, res) => {
+    try {
+      const { effect, text, imageUrl, ...otherParams } = req.body;
+      if (!effect) {
+        return res.status(400).json({
+          success: false,
+          error: "Parameter 'effect' (effect ID or slug) is required. Use /api/photofunia/list to see available effects.",
+        });
+      }
+
+      const textInputs: Record<string, string> = {};
+      if (text) textInputs["text"] = text;
+      for (const [key, value] of Object.entries(otherParams)) {
+        if (typeof value === "string") textInputs[key] = value;
+      }
+
+      const result = await generatePhotofunia(effect, textInputs, imageUrl);
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message || "PhotoFunia generation failed" });
+    }
+  });
+
   app.get("/api/endpoints", (_req, res) => {
     return res.json({
       success: true,
       creator: "APIs by Silent Wolf | A tech explorer",
-      version: "3.0",
+      version: "4.0",
       totalEndpoints: schemaEndpoints.length,
       categories: schemaCategories,
       endpoints: schemaEndpoints,

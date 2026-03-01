@@ -1,0 +1,257 @@
+╭─⊷ 🎃 HALLOWEEN (6)
+│
+│  • [img] smokeflare
+│  • [txt] nightmarewriting
+│  • [img] lightning
+│  • [txt] cemeterygates
+│  • [img] summoningspirits
+│  • [img] ghostwood
+│
+╰─⊷
+
+╭─⊷ 🎨 FILTERS (6)
+│
+│  • [img] autumn
+│  • [img] jade
+│  • [img] romantic
+│  • [img] mystical
+│  • [img] lomography
+│  • [img] sepia
+│
+╰─⊷
+
+╭─⊷ 🔬 LAB (27)
+│
+│  • [txt] watercolourtext
+│  • [txt] denimemdroidery
+│  • [txt] cinematicket
+│  • [txt] arrowsigns
+│  • [txt] yacht
+│  • [img] cloudyfilter
+│  • [txt] lightgraffiti
+│  • [txt] chalkboard
+│  • [txt] rustywriting
+│  • [txt] streetsign
+│  • [img] floralwreath
+│  • [txt] retrowave
+│  • [img] youaremyuniverse
+│  • [txt] einstein
+│  • [txt] rugbyball
+│  • [img] redandblue
+│  • [img] vhs
+│  • [txt] typewriter
+│  • [img] diptych
+│  • [both] badges
+│  • [both] wanted
+│  • [img] crown
+│  • [img] anime
+│  • [img] popart
+│  • [img] puzzle
+│  • [img] glass
+│  • [img] animator
+│
+╰─⊷
+
+╭─⊷ 📌 POSTERS (16)
+│
+│  • [img] postersonthewall
+│  • [img] posterwall
+│  • [img] trainstationposter
+│  • [img] rainynight
+│  • [img] nightmotion
+│  • [img] campaign
+│  • [img] bicycle
+│  • [img] citylight
+│  • [both] affiche
+│  • [img] sidewalk
+│  • [img] cyclist
+│  • [img] tulips
+│  • [img] cafe
+│  • [img] underground
+│  • [img] reconstruction
+│  • [img] posters
+│
+╰─⊷
+
+╭─⊷ 🏛️ GALLERIES (9)
+│
+│  • [img] melbournegallery
+│  • [img] artadmirer
+│  • [img] nationalgalleryinlondon
+│  • [img] blackwhitegallery
+│  • [img] galleryvisitor
+│  • [img] paintingandsketches
+│  • [img] passingbythepainting
+│  • [img] silhouettes
+│  • [both] rijskmuseum
+│
+╰─⊷
+
+╭─⊷ 📸 PHOTOGRAPHY (3)
+│
+│  • [img] oldcamera
+│  • [img] kittyandframe
+│  • [img] frame
+│
+╰─⊷
+
+╭─⊷ 🎭 FACES (15)
+│
+│  • [img] mirror
+│  • [img] formulaoneracer
+│  • [img] warrior
+│  • [img] knight
+│  • [img] biker
+│  • [img] surfer
+│  • [img] snowboard
+│  • [img] dj
+│  • [img] bodybuilder
+│  • [img] lulu
+│  • [img] hockey
+│  • [img] ethanol
+│  • [img] godfather
+│  • [img] pirates
+│  • [both] miss
+│
+╰─⊷
+
+╭─⊷ 🏙️ BILLBOARDS (12)
+│
+│  • [img] concretejungle
+│  • [img] broadwayatnight
+│  • [img] newyorkatnight
+│  • [img] shoppingarcade
+│  • [img] oldtram
+│  • [img] workerbythebillboard
+│  • [img] eveningbillboard
+│  • [img] pedestriancrossing
+│  • [img] cube
+│  • [img] nyc
+│  • [img] city
+│  • [img] ax
+│
+╰─⊷
+
+╭─⊷ ⭐ CELEBRITIES (4)
+│
+│  • [both] trump
+│  • [img] obama
+│  • [img] madonna
+│  • [img] putin
+│
+╰─⊷
+
+╭─⊷ 🖼️ FRAMES (5)
+│
+│  • [img] theframe
+│  • [img] atthebeach
+│  • [img] lavander
+│  • [img] reproduction
+│  • [both] daffodils
+│
+╰─⊷
+
+╭─⊷ ✏️ DRAWINGS (8)
+│
+│  • [img] painter
+│  • [img] explorerdrawing
+│  • [img] artistinahat
+│  • [img] drawinglesson
+│  • [img] brugge
+│  • [img] watercolours
+│  • [img] truck
+│  • [img] portrait
+│
+╰─⊷
+
+╭─⊷ 📜 VINTAGE (2)
+│
+│  • [both] quill
+│  • [img] stamps
+│
+╰─⊷
+
+╭─⊷ 🎲 MISC (16)
+│
+│  • [img] magiccard
+│  • [img] postagestamp
+│  • [img] truckadvert
+│  • [img] tablet
+│  • [img] artonthebrickwall
+│  • [img] toasts
+│  • [img] photowall
+│  • [img] lego
+│  • [img] wall
+│  • [img] eye
+│  • [both] morningmug
+│  • [both] topsecret
+│  • [both] breakingnews
+│  • [both] vinylrecord
+│  • [both] beer
+│  • [both] coin
+│
+╰─⊷
+
+╭─⊷ 📰 MAGAZINES (6)
+│
+│  • [both] readingmagazine
+│  • [img] rosesandmarshmallows
+│  • [both] interview
+│  • [img] reading
+│  • [img] esquire
+│  • [img] vogue
+│
+╰─⊷
+
+╭─⊷ 📺 TV (1)
+│
+│  • [img] analoguetv
+│
+╰─⊷
+
+╭─⊷ 📚 BOOKS (3)
+│
+│  • [both] festivereading
+│  • [both] thebook
+│  • [both] veryoldbook
+│
+╰─⊷
+
+╭─⊷ ❤️ VALENTINE (6)
+│
+│  • [both] rosevine
+│  • [img] loveletter
+│  • [txt] lovelock
+│  • [img] weddingday
+│  • [img] brooches
+│  • [both] valentine
+│
+╰─⊷
+
+╭─⊷ 🐣 EASTER (2)
+│
+│  • [both] eastercard
+│  • [img] bunnies
+│
+╰─⊷
+
+╭─⊷ 🎄 CHRISTMAS (7)
+│
+│  • [txt] snowsign
+│  • [txt] christmaswriting
+│  • [both] snowglobe
+│  • [txt] frostywindowwriting
+│  • [img] santasnowangel
+│  • [both] santasparcelpicture
+│  • [img] newyearframes
+│
+╰─⊷
+
+
+╭─⊷ 📋 EXAMPLES
+│
+│  .smokeflare (reply to img)
+│  .einstein Hello World
+│  .breakingnews CNN | Title | Info
+│
+╰─⊷
