@@ -1,7 +1,7 @@
 # WolfApis
 
 ## Overview
-A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 33+ AI chat models, AI tools (translate, summarize, code), image search, music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook), Spotify search/download, Shazam music recognition, Ephoto360 text effect generation (60 effects), PhotoFunia image effects (154 effects), anime images (30 types), fun text content (37 categories), URL shortener (7 services), developer tools (21 utilities), and security/ethical hacking tools (38 endpoints). 414+ total endpoints across 18 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing.
+A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 33+ AI chat models, AI tools (translate, summarize, code), image search, music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook), Spotify search/download, Shazam music recognition, Ephoto360 text effect generation (60 effects), PhotoFunia image effects (154 effects), anime images (30 types), fun text content (37 categories), URL shortener (7 services), developer tools (21 utilities), security/ethical hacking tools (38 endpoints), and sports data (24 endpoints via TheSportsDB). 438+ total endpoints across 19 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing and a documentation page with community links.
 
 ## Architecture
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui components
@@ -21,9 +21,10 @@ A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access
 - **Lyrics**: Uses lrclib.net API for song lyrics (with synced lyrics support)
 - **Provider Health System**: Automatic tracking of provider failures with cooldown periods
 - **Stalker**: `lib/downloaders/stalker.ts` - OSINT profile lookup tools (GitHub, IP, NPM, TikTok, Instagram, Twitter, WhatsApp)
+- **Sports**: `lib/downloaders/sports.ts` - 24 sports data endpoints via TheSportsDB free API (live scores, team/player/league search, fixtures, standings, highlights)
 
 ## Key Files
-- `shared/schema.ts` - All 414+ endpoint definitions, 18 categories, and TypeScript types
+- `shared/schema.ts` - All 438+ endpoint definitions, 19 categories, and TypeScript types
 - `server/ai-routes.ts` - AI proxy endpoints (33 chat + 3 tools + 1 image)
 - `server/routes.ts` - Express API endpoint definitions (all categories + registers AI routes)
 - `lib/scraper.ts` - Shared scraping logic (search, check, download info)

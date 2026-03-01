@@ -38,6 +38,9 @@ import {
   Link,
   Wrench,
   ShieldCheck,
+  Trophy,
+  BookOpen,
+  ExternalLink,
 } from "lucide-react";
 import { allEndpoints, apiCategories, ephotoEffectsList, photofuniaEffectsList, type ApiEndpoint } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
@@ -61,6 +64,7 @@ const categoryIcons: Record<string, typeof MessageSquare> = {
   urlshortener: Link,
   tools: Wrench,
   security: ShieldCheck,
+  sports: Trophy,
 };
 
 const heroData: Record<string, { tagline: string; title: string; description: string }> = {
@@ -153,6 +157,11 @@ const heroData: Record<string, { tagline: string; title: string; description: st
     tagline: "ETHICAL HACKING & SECURITY",
     title: "38 Security Endpoints",
     description: "DNS, WHOIS, port scanning, SSL checks, WAF detection, vulnerability scans, and OSINT tools.",
+  },
+  sports: {
+    tagline: "LIVE SPORTS DATA API",
+    title: "24 Sports Endpoints",
+    description: "Live scores, fixtures, standings, team & player info, event stats, lineups, and highlights via TheSportsDB.",
   },
 };
 
@@ -728,6 +737,197 @@ function HeroSection({ categoryId }: { categoryId: string }) {
   );
 }
 
+function DocumentationPage() {
+  const links = [
+    {
+      title: "WhatsApp Group",
+      description: "Join our community group for support, updates, and discussions",
+      url: "https://chat.whatsapp.com/HjFc3pud3IA0R0WGr1V2Xu",
+      icon: MessageSquare,
+      color: "#25D366",
+    },
+    {
+      title: "WhatsApp Channel",
+      description: "Follow our channel for announcements and API updates",
+      url: "https://whatsapp.com/channel/0029Vb6dn9nEQIaqEMNclK3Y",
+      icon: Bell,
+      color: "#25D366",
+    },
+    {
+      title: "GitHub",
+      description: "View source code, report issues, and contribute",
+      url: "https://github.com/7silent-wolf",
+      icon: Code2,
+      color: "#ffffff",
+    },
+  ];
+
+  return (
+    <div className="px-6 py-8 max-w-4xl mx-auto">
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-2">
+          <Zap className="w-4 h-4" style={{ color: "#00ff00" }} />
+          <span
+            className="text-[10px] font-bold tracking-[0.2em]"
+            style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif" }}
+          >
+            DOCUMENTATION & COMMUNITY
+          </span>
+        </div>
+        <h2
+          className="text-2xl font-bold mb-3"
+          style={{ color: "#ffffff", fontFamily: "'Orbitron', sans-serif", fontStyle: "italic" }}
+          data-testid="text-docs-title"
+        >
+          WolfAPIs Documentation
+        </h2>
+        <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
+          Everything you need to get started with the WolfAPIs platform. Join our community, explore the API, and build amazing things.
+        </p>
+      </div>
+
+      <div className="mb-10">
+        <h3
+          className="text-sm font-bold tracking-wider mb-4"
+          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif", fontStyle: "italic" }}
+        >
+          Community & Links
+        </h3>
+        <div className="grid gap-3 sm:grid-cols-1">
+          {links.map((link) => (
+            <a
+              key={link.title}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 px-5 py-4 rounded-xl transition-all"
+              style={{
+                background: "#0c0c0c",
+                border: "1px solid rgba(0,255,0,0.1)",
+              }}
+              data-testid={`link-${link.title.toLowerCase().replace(/\s+/g, "-")}`}
+            >
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: `${link.color}15`, border: `1px solid ${link.color}30` }}
+              >
+                <link.icon className="w-5 h-5" style={{ color: link.color }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-semibold" style={{ color: "#ffffff" }}>{link.title}</h4>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>{link.description}</p>
+              </div>
+              <ExternalLink className="w-4 h-4 flex-shrink-0" style={{ color: "rgba(255,255,255,0.2)" }} />
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-10">
+        <h3
+          className="text-sm font-bold tracking-wider mb-4"
+          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif", fontStyle: "italic" }}
+        >
+          Quick Start
+        </h3>
+        <div className="rounded-xl p-5 space-y-4" style={{ background: "#0c0c0c", border: "1px solid rgba(0,255,0,0.1)" }}>
+          <div>
+            <h4 className="text-xs font-bold mb-2" style={{ color: "rgba(255,255,255,0.6)" }}>Base URL</h4>
+            <div className="flex items-center gap-2">
+              <code
+                className="text-xs px-3 py-2 rounded-lg flex-1 font-mono"
+                style={{ background: "rgba(0,255,0,0.05)", color: "#00ff00", border: "1px solid rgba(0,255,0,0.1)" }}
+              >
+                {typeof window !== "undefined" ? window.location.origin : ""}
+              </code>
+              <CopyButton text={typeof window !== "undefined" ? window.location.origin : ""} />
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-bold mb-2" style={{ color: "rgba(255,255,255,0.6)" }}>Example Request</h4>
+            <div className="flex items-center gap-2">
+              <code
+                className="text-xs px-3 py-2 rounded-lg flex-1 font-mono overflow-x-auto"
+                style={{ background: "rgba(0,255,0,0.05)", color: "#00ff00", border: "1px solid rgba(0,255,0,0.1)" }}
+              >
+                GET /api/fun/jokes
+              </code>
+              <CopyButton text={`${typeof window !== "undefined" ? window.location.origin : ""}/api/fun/jokes`} />
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-bold mb-2" style={{ color: "rgba(255,255,255,0.6)" }}>Response Format</h4>
+            <pre
+              className="text-xs px-3 py-2 rounded-lg font-mono overflow-x-auto"
+              style={{ background: "rgba(0,255,0,0.05)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(0,255,0,0.1)" }}
+            >
+{`{
+  "success": true,
+  "creator": "APIs by Silent Wolf | A tech explorer",
+  "result": { ... }
+}`}
+            </pre>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-10">
+        <h3
+          className="text-sm font-bold tracking-wider mb-4"
+          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif", fontStyle: "italic" }}
+        >
+          API Categories
+        </h3>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {apiCategories.map((cat) => {
+            const count = allEndpoints.filter(e => e.category === cat.id).length;
+            const Icon = categoryIcons[cat.id] || Code2;
+            return (
+              <div
+                key={cat.id}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg"
+                style={{ background: "#0c0c0c", border: "1px solid rgba(0,255,0,0.08)" }}
+                data-testid={`docs-cat-${cat.id}`}
+              >
+                <Icon className="w-4 h-4 flex-shrink-0" style={{ color: "#00ff00" }} />
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-medium" style={{ color: "#ffffff" }}>{cat.name}</span>
+                </div>
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(0,255,0,0.1)", color: "#00ff00" }}
+                >
+                  {count}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="rounded-xl p-5" style={{ background: "#0c0c0c", border: "1px solid rgba(0,255,0,0.1)" }}>
+        <h3
+          className="text-sm font-bold tracking-wider mb-3"
+          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif", fontStyle: "italic" }}
+        >
+          About
+        </h3>
+        <div className="space-y-2">
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+            WolfAPIs is a multi-provider API hub built by <span style={{ color: "#ffffff" }}>Silent Wolf</span> - a tech explorer.
+            All APIs are free to use with no API key required.
+          </p>
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+            Version <span style={{ color: "#00ff00" }}>4.0</span> | {allEndpoints.length}+ endpoints | {apiCategories.length} categories
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [testEndpoint, setTestEndpoint] = useState<ApiEndpoint | null>(null);
@@ -767,7 +967,7 @@ export default function Home() {
       )}
 
       <aside
-        className={`fixed lg:sticky top-0 left-0 h-screen flex-shrink-0 overflow-y-auto overflow-x-hidden transition-all lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed lg:sticky top-0 left-0 h-screen flex-shrink-0 overflow-y-auto overflow-x-hidden transition-all lg:translate-x-0 hide-scrollbar ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{
           width: sidebarWidth,
           zIndex: 45,
@@ -884,6 +1084,28 @@ export default function Home() {
           })}
         </nav>
 
+        <div className="px-2 py-2" style={{ borderTop: "1px solid rgba(0,255,0,0.06)" }}>
+          <button
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all"
+            style={{
+              color: activeCategory === "docs" ? "#00ff00" : "rgba(255,255,255,0.5)",
+            }}
+            onClick={() => { setActiveCategory("docs" as any); setSidebarOpen(false); }}
+            data-testid="nav-docs"
+            title="Documentation"
+          >
+            <BookOpen className="w-4 h-4 flex-shrink-0" />
+            {!sidebarCollapsed && (
+              <>
+                <span className="text-[13px] font-medium flex-1">Docs</span>
+                {activeCategory === "docs" && (
+                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "#00ff00" }} />
+                )}
+              </>
+            )}
+          </button>
+        </div>
+
         {!sidebarCollapsed && (
           <div className="px-4 py-4 mt-auto" style={{ borderTop: "1px solid rgba(0,255,0,0.08)" }}>
             <div className="space-y-2">
@@ -935,6 +1157,13 @@ export default function Home() {
                     WELCOME
                   </h2>
                 </>
+              ) : activeCategory === "docs" ? (
+                <>
+                  <BookOpen className="w-4 h-4" style={{ color: "#00ff00" }} />
+                  <h2 className="text-sm font-bold tracking-wider" style={{ color: "#ffffff", fontFamily: "'Orbitron', sans-serif" }}>
+                    DOCUMENTATION
+                  </h2>
+                </>
               ) : activeCategoryData ? (
                 <>
                   {(() => {
@@ -976,6 +1205,8 @@ export default function Home() {
 
         {activeCategory === null ? (
           <WelcomePage onCategoryClick={handleCategoryClick} />
+        ) : activeCategory === "docs" ? (
+          <DocumentationPage />
         ) : (
           <>
             <HeroSection categoryId={activeCategory} />

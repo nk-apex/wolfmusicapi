@@ -64,6 +64,7 @@ export const apiCategories = [
   { id: "urlshortener", name: "URL Shortener", description: "Shorten URLs with multiple services", icon: "Link" },
   { id: "tools", name: "Tools", description: "QR codes, dictionary, weather, passwords, and more utilities", icon: "Wrench" },
   { id: "security", name: "Security", description: "Ethical hacking, OSINT, vulnerability scanning tools", icon: "ShieldCheck" },
+  { id: "sports", name: "Sports", description: "Live scores, fixtures, standings, team & player data", icon: "Trophy" },
 ];
 
 const aiChatEndpoints: ApiEndpoint[] = [
@@ -570,6 +571,33 @@ const securityEndpoints: ApiEndpoint[] = [
   { path: "/api/security/metadata", method: "GET", description: "Extract website metadata", params: [{ name: "url", type: "string", required: true, description: "Website URL" }], format: "json", category: "security", provider: "Built-in" },
 ];
 
+const sportsEndpoints: ApiEndpoint[] = [
+  { path: "/api/sports/live", method: "GET", description: "Get live scores across all sports", params: [{ name: "sport", type: "string", required: false, description: "Filter by sport (e.g. Soccer, Basketball)" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/search/team", method: "GET", description: "Search for a team by name", params: [{ name: "q", type: "string", required: true, description: "Team name to search" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/search/player", method: "GET", description: "Search for a player by name", params: [{ name: "q", type: "string", required: true, description: "Player name to search" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/search/league", method: "GET", description: "Search for a league by name", params: [{ name: "q", type: "string", required: true, description: "League name to search" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/leagues", method: "GET", description: "Get list of all leagues", params: [], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/league/details", method: "GET", description: "Get league details by ID", params: [{ name: "id", type: "string", required: true, description: "League ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/league/seasons", method: "GET", description: "Get all seasons for a league", params: [{ name: "id", type: "string", required: true, description: "League ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/league/teams", method: "GET", description: "Get all teams in a league", params: [{ name: "id", type: "string", required: true, description: "League ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/league/table", method: "GET", description: "Get league standings/table", params: [{ name: "id", type: "string", required: true, description: "League ID" }, { name: "season", type: "string", required: true, description: "Season (e.g. 2024-2025)" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/team/details", method: "GET", description: "Get team details by ID", params: [{ name: "id", type: "string", required: true, description: "Team ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/team/players", method: "GET", description: "Get all players in a team", params: [{ name: "id", type: "string", required: true, description: "Team ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/team/next", method: "GET", description: "Get next 5 upcoming events for a team", params: [{ name: "id", type: "string", required: true, description: "Team ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/team/last", method: "GET", description: "Get last 5 results for a team", params: [{ name: "id", type: "string", required: true, description: "Team ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/team/equipment", method: "GET", description: "Get team equipment/kits", params: [{ name: "id", type: "string", required: true, description: "Team ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/player/details", method: "GET", description: "Get player details by ID", params: [{ name: "id", type: "string", required: true, description: "Player ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/event/details", method: "GET", description: "Get event/match details by ID", params: [{ name: "id", type: "string", required: true, description: "Event ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/event/lineup", method: "GET", description: "Get event lineup", params: [{ name: "id", type: "string", required: true, description: "Event ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/event/stats", method: "GET", description: "Get event statistics", params: [{ name: "id", type: "string", required: true, description: "Event ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/event/highlights", method: "GET", description: "Get event highlights/video", params: [{ name: "id", type: "string", required: true, description: "Event ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/events/day", method: "GET", description: "Get all events on a specific date", params: [{ name: "date", type: "string", required: true, description: "Date (YYYY-MM-DD)" }, { name: "sport", type: "string", required: false, description: "Filter by sport" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/events/round", method: "GET", description: "Get events by league round", params: [{ name: "id", type: "string", required: true, description: "League ID" }, { name: "round", type: "string", required: true, description: "Round number" }, { name: "season", type: "string", required: true, description: "Season (e.g. 2024-2025)" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/teams/country", method: "GET", description: "Get teams by country", params: [{ name: "country", type: "string", required: true, description: "Country name" }, { name: "sport", type: "string", required: false, description: "Sport (default: Soccer)" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/leagues/country", method: "GET", description: "Get leagues by country", params: [{ name: "country", type: "string", required: true, description: "Country name" }, { name: "sport", type: "string", required: false, description: "Filter by sport" }], format: "json", category: "sports", provider: "TheSportsDB" },
+  { path: "/api/sports/venue", method: "GET", description: "Get venue details by ID", params: [{ name: "id", type: "string", required: true, description: "Venue ID" }], format: "json", category: "sports", provider: "TheSportsDB" },
+];
+
 export const allEndpoints: ApiEndpoint[] = [
   ...aiChatEndpoints,
   ...aiToolEndpoints,
@@ -589,6 +617,7 @@ export const allEndpoints: ApiEndpoint[] = [
   ...urlShortenerEndpoints,
   ...toolsEndpoints,
   ...securityEndpoints,
+  ...sportsEndpoints,
 ];
 
 export const endpointInfo = allEndpoints.filter(e => e.category === "music");

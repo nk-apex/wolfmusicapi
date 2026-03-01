@@ -16,6 +16,7 @@ import { getFunContent, funTypes } from "../lib/downloaders/fun";
 import { shortenUrl, shortenerServices } from "../lib/downloaders/urlshortener";
 import * as tools from "../lib/downloaders/tools";
 import * as security from "../lib/downloaders/security";
+import * as sports from "../lib/downloaders/sports";
 import { allEndpoints as schemaEndpoints, apiCategories as schemaCategories } from "../shared/schema";
 
 function isYouTubeUrl(input: string): boolean {
@@ -1135,6 +1136,270 @@ export async function registerRoutes(
       return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
     } catch (error: any) {
       return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  // ============== SPORTS ROUTES ==============
+  app.get("/api/sports/live", async (req, res) => {
+    try {
+      const result = await sports.getLiveScores(req.query.sport as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/search/team", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'q' parameter" });
+      const result = await sports.searchTeam(q);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/search/player", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'q' parameter" });
+      const result = await sports.searchPlayer(q);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/search/league", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'q' parameter" });
+      const result = await sports.searchLeague(q);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/leagues", async (_req, res) => {
+    try {
+      const result = await sports.getAllLeagues();
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/league/details", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getLeagueDetails(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/league/seasons", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getLeagueSeasons(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/league/teams", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getTeamsByLeague(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/league/table", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      const season = req.query.season as string;
+      if (!id || !season) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' and/or 'season' parameter" });
+      const result = await sports.getLeagueTable(id, season);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/team/details", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getTeamDetails(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/team/players", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getTeamPlayers(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/team/next", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getNextEvents(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/team/last", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getLastEvents(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/team/equipment", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getTeamEquipment(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/player/details", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getPlayerDetails(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/event/details", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getEventDetails(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/event/lineup", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getEventLineup(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/event/stats", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getEventStats(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/event/highlights", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getEventHighlights(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/events/day", async (req, res) => {
+    try {
+      const date = req.query.date as string;
+      if (!date) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'date' parameter (YYYY-MM-DD)" });
+      const result = await sports.getEventsByDay(date, req.query.sport as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/events/round", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      const round = req.query.round as string;
+      const season = req.query.season as string;
+      if (!id || !round || !season) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id', 'round', and/or 'season' parameter" });
+      const result = await sports.getEventsByRound(id, round, season);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/teams/country", async (req, res) => {
+    try {
+      const country = req.query.country as string;
+      if (!country) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'country' parameter" });
+      const result = await sports.getTeamsByCountry(country, req.query.sport as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/leagues/country", async (req, res) => {
+    try {
+      const country = req.query.country as string;
+      if (!country) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'country' parameter" });
+      const result = await sports.getLeaguesByCountry(country, req.query.sport as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/sports/venue", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await sports.getVenue(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
     }
   });
 
