@@ -50,10 +50,7 @@ export const apiCategories = [
   { id: "ai-tools", name: "AI Tools", description: "AI-powered utility tools (translate, summarize, code)", icon: "Wand2" },
   { id: "ai-image", name: "AI Image", description: "Image search APIs", icon: "Image" },
   { id: "music", name: "Music & Media", description: "YouTube search, MP3, and MP4 download endpoints", icon: "Music" },
-  { id: "tiktok", name: "TikTok", description: "Download TikTok videos without watermark", icon: "Video" },
-  { id: "instagram", name: "Instagram", description: "Download Instagram videos, photos, reels", icon: "Camera" },
-  { id: "youtube-dl", name: "YouTube Downloader", description: "Download YouTube videos in multiple formats", icon: "Youtube" },
-  { id: "facebook", name: "Facebook", description: "Download Facebook videos", icon: "Facebook" },
+  { id: "social-media", name: "Social Media", description: "Download from YouTube, TikTok, Instagram, Facebook, and Twitter/X", icon: "Share2" },
   { id: "spotify", name: "Spotify", description: "Search and download Spotify tracks as MP3", icon: "Music2" },
   { id: "shazam", name: "Shazam", description: "Search songs and recognize music from audio", icon: "AudioLines" },
   { id: "ephoto", name: "Ephoto360", description: "Generate text effects and artistic images", icon: "Sparkles" },
@@ -146,20 +143,21 @@ const musicEndpoints: ApiEndpoint[] = [
   { path: "/api/trending", method: "GET", description: "Get trending music from YouTube", params: [{ name: "country", type: "string", required: false, description: "Country code (default: US)" }], format: "json", category: "music" },
 ];
 
-const tiktokEndpoints: ApiEndpoint[] = [
-  { path: "/api/download/tiktok", method: "GET", description: "Download TikTok video without watermark", params: [{ name: "url", type: "string", required: true, description: "TikTok video URL" }], format: "json", category: "tiktok", provider: "ssstik.io" },
-];
-
-const instagramEndpoints: ApiEndpoint[] = [
-  { path: "/api/download/instagram", method: "GET", description: "Download Instagram videos, photos, reels", params: [{ name: "url", type: "string", required: true, description: "Instagram post/reel URL" }], format: "json", category: "instagram", provider: "Multi-provider" },
-];
-
-const youtubeEndpoints: ApiEndpoint[] = [
-  { path: "/api/download/youtube", method: "GET", description: "Download YouTube videos in multiple qualities", params: [{ name: "url", type: "string", required: false, description: "YouTube video URL" }, { name: "q", type: "string", required: false, description: "Video name to search" }], format: "json", category: "youtube-dl", provider: "y2mate.nu" },
-];
-
-const facebookEndpoints: ApiEndpoint[] = [
-  { path: "/api/download/facebook", method: "GET", description: "Download Facebook videos in SD and HD quality", params: [{ name: "url", type: "string", required: true, description: "Facebook video URL" }], format: "json", category: "facebook", provider: "fdownloader.net" },
+const socialMediaEndpoints: ApiEndpoint[] = [
+  { path: "/api/download/youtube", method: "GET", description: "Download YouTube videos in multiple qualities", params: [{ name: "url", type: "string", required: false, description: "YouTube video URL" }, { name: "q", type: "string", required: false, description: "Video name to search" }], format: "json", category: "social-media", provider: "y2mate.nu" },
+  { path: "/api/download/youtube/mp3", method: "GET", description: "Download YouTube video as MP3 audio", params: [{ name: "url", type: "string", required: false, description: "YouTube video URL" }, { name: "q", type: "string", required: false, description: "Song name to search" }], format: "json", category: "social-media", provider: "y2mate.nu" },
+  { path: "/api/download/youtube/mp4", method: "GET", description: "Download YouTube video as MP4", params: [{ name: "url", type: "string", required: false, description: "YouTube video URL" }, { name: "q", type: "string", required: false, description: "Video name to search" }], format: "json", category: "social-media", provider: "y2mate.nu" },
+  { path: "/api/download/youtube/info", method: "GET", description: "Get YouTube video info without downloading", params: [{ name: "url", type: "string", required: true, description: "YouTube video URL" }], format: "json", category: "social-media", provider: "y2mate.nu" },
+  { path: "/api/download/youtube/search", method: "GET", description: "Search YouTube videos", params: [{ name: "q", type: "string", required: true, description: "Search query" }], format: "json", category: "social-media", provider: "WolfAPIs" },
+  { path: "/api/download/tiktok", method: "GET", description: "Download TikTok video without watermark", params: [{ name: "url", type: "string", required: true, description: "TikTok video URL" }], format: "json", category: "social-media", provider: "ssstik.io" },
+  { path: "/api/download/tiktok/audio", method: "GET", description: "Extract audio from TikTok video", params: [{ name: "url", type: "string", required: true, description: "TikTok video URL" }], format: "json", category: "social-media", provider: "ssstik.io" },
+  { path: "/api/download/tiktok/info", method: "GET", description: "Get TikTok video info (title, author, stats)", params: [{ name: "url", type: "string", required: true, description: "TikTok video URL" }], format: "json", category: "social-media", provider: "ssstik.io" },
+  { path: "/api/download/instagram", method: "GET", description: "Download Instagram videos, photos, reels", params: [{ name: "url", type: "string", required: true, description: "Instagram post/reel URL" }], format: "json", category: "social-media", provider: "Multi-provider" },
+  { path: "/api/download/instagram/story", method: "GET", description: "Download Instagram story by URL", params: [{ name: "url", type: "string", required: true, description: "Instagram story URL" }], format: "json", category: "social-media", provider: "Multi-provider" },
+  { path: "/api/download/facebook", method: "GET", description: "Download Facebook videos in SD and HD quality", params: [{ name: "url", type: "string", required: true, description: "Facebook video URL" }], format: "json", category: "social-media", provider: "fdownloader.net" },
+  { path: "/api/download/facebook/reel", method: "GET", description: "Download Facebook Reels", params: [{ name: "url", type: "string", required: true, description: "Facebook Reel URL" }], format: "json", category: "social-media", provider: "fdownloader.net" },
+  { path: "/api/download/twitter", method: "GET", description: "Download Twitter/X videos and GIFs", params: [{ name: "url", type: "string", required: true, description: "Tweet URL (twitter.com or x.com)" }], format: "json", category: "social-media", provider: "Multi-provider" },
+  { path: "/api/download/twitter/info", method: "GET", description: "Get Twitter/X tweet info and media links", params: [{ name: "url", type: "string", required: true, description: "Tweet URL (twitter.com or x.com)" }], format: "json", category: "social-media", provider: "Multi-provider" },
 ];
 
 const spotifyEndpoints: ApiEndpoint[] = [
@@ -825,10 +823,7 @@ export const allEndpoints: ApiEndpoint[] = [
   ...aiToolEndpoints,
   ...aiImageEndpoints,
   ...musicEndpoints,
-  ...tiktokEndpoints,
-  ...instagramEndpoints,
-  ...youtubeEndpoints,
-  ...facebookEndpoints,
+  ...socialMediaEndpoints,
   ...spotifyEndpoints,
   ...shazamEndpoints,
   ...ephotoEndpoints,

@@ -6,6 +6,7 @@ import { downloadTikTok } from "../lib/downloaders/tiktok";
 import { downloadInstagram } from "../lib/downloaders/instagram";
 import { downloadYouTube } from "../lib/downloaders/youtube";
 import { downloadFacebook } from "../lib/downloaders/facebook";
+import { downloadTwitter } from "../lib/downloaders/twitter";
 import { searchSpotify, downloadSpotify } from "../lib/downloaders/spotify";
 import { searchShazam, recognizeShazamFull, getTrackDetails } from "../lib/downloaders/shazam";
 import { generateEphoto, listEphotoEffects } from "../lib/downloaders/ephoto360";
@@ -282,6 +283,192 @@ export async function registerRoutes(
       return res.json(result);
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message || "Facebook download failed" });
+    }
+  });
+
+  app.get("/api/download/facebook/reel", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url || url.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Query parameter 'url' is required. Provide a Facebook Reel URL.",
+        });
+      }
+      const result = await downloadFacebook(url);
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "Facebook Reel download failed" });
+    }
+  });
+
+  app.get("/api/download/youtube/mp3", async (req, res) => {
+    try {
+      let url = (req.query.url as string) || (req.query.q as string);
+      if (!url || url.trim().length === 0) {
+        return res.status(400).json({ success: false, error: "Provide 'url' or 'q' parameter." });
+      }
+      url = url.trim();
+      if (!isYouTubeUrl(url)) {
+        const searchResults = await searchSongs(url);
+        if (!searchResults.items?.length) return res.status(404).json({ success: false, error: `No results for "${url}".` });
+        url = `https://www.youtube.com/watch?v=${searchResults.items[0].id}`;
+      }
+      const result = await getDownloadInfo(url, "mp3");
+      return res.json({ ...result, creator: "APIs by Silent Wolf | A tech explorer", format: "mp3" });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "YouTube MP3 download failed" });
+    }
+  });
+
+  app.get("/api/download/youtube/mp4", async (req, res) => {
+    try {
+      let url = (req.query.url as string) || (req.query.q as string);
+      if (!url || url.trim().length === 0) {
+        return res.status(400).json({ success: false, error: "Provide 'url' or 'q' parameter." });
+      }
+      url = url.trim();
+      if (!isYouTubeUrl(url)) {
+        const searchResults = await searchSongs(url);
+        if (!searchResults.items?.length) return res.status(404).json({ success: false, error: `No results for "${url}".` });
+        url = `https://www.youtube.com/watch?v=${searchResults.items[0].id}`;
+      }
+      const result = await getDownloadInfo(url, "mp4");
+      return res.json({ ...result, creator: "APIs by Silent Wolf | A tech explorer", format: "mp4" });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "YouTube MP4 download failed" });
+    }
+  });
+
+  app.get("/api/download/youtube/info", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url || url.trim().length === 0) {
+        return res.status(400).json({ success: false, error: "Query parameter 'url' is required." });
+      }
+      const videoId = extractVideoId(url.trim());
+      if (!videoId) return res.status(400).json({ success: false, error: "Invalid YouTube URL." });
+      return res.json({
+        success: true,
+        creator: "APIs by Silent Wolf | A tech explorer",
+        videoId,
+        url: `https://www.youtube.com/watch?v=${videoId}`,
+        thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+        thumbnailHD: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+        embedUrl: `https://www.youtube.com/embed/${videoId}`,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "Info fetch failed" });
+    }
+  });
+
+  app.get("/api/download/youtube/search", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q || q.trim().length === 0) {
+        return res.status(400).json({ success: false, error: "Query parameter 'q' is required." });
+      }
+      const results = await searchSongs(q.trim());
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...results });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "YouTube search failed" });
+    }
+  });
+
+  app.get("/api/download/tiktok/audio", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url || url.trim().length === 0) {
+        return res.status(400).json({ success: false, error: "Query parameter 'url' is required." });
+      }
+      const result = await downloadTikTok(url);
+      if (!result.success) return res.json(result);
+      return res.json({
+        success: true,
+        creator: "APIs by Silent Wolf | A tech explorer",
+        title: result.title,
+        author: result.author,
+        audioUrl: result.audioUrl || result.videoUrl,
+        note: result.audioUrl ? "Direct audio extracted" : "Audio not separately available, use video URL",
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "TikTok audio extraction failed" });
+    }
+  });
+
+  app.get("/api/download/tiktok/info", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url || url.trim().length === 0) {
+        return res.status(400).json({ success: false, error: "Query parameter 'url' is required." });
+      }
+      const result = await downloadTikTok(url);
+      if (!result.success) return res.json(result);
+      return res.json({
+        success: true,
+        creator: "APIs by Silent Wolf | A tech explorer",
+        title: result.title,
+        author: result.author,
+        hasVideo: !!result.videoUrl,
+        hasAudio: !!result.audioUrl,
+        thumbnail: result.thumbnail || undefined,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "TikTok info fetch failed" });
+    }
+  });
+
+  app.get("/api/download/instagram/story", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url || url.trim().length === 0) {
+        return res.status(400).json({ success: false, error: "Query parameter 'url' is required. Provide an Instagram story URL." });
+      }
+      const result = await downloadInstagram(url);
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "Instagram story download failed" });
+    }
+  });
+
+  app.get("/api/download/twitter", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url || url.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Query parameter 'url' is required. Provide a Twitter/X tweet URL.",
+        });
+      }
+      const result = await downloadTwitter(url);
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "Twitter download failed" });
+    }
+  });
+
+  app.get("/api/download/twitter/info", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url || url.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Query parameter 'url' is required. Provide a Twitter/X tweet URL.",
+        });
+      }
+      const result = await downloadTwitter(url);
+      if (!result.success) return res.json(result);
+      return res.json({
+        success: true,
+        creator: "APIs by Silent Wolf | A tech explorer",
+        title: result.title,
+        author: result.author,
+        mediaCount: result.media?.length || 0,
+        mediaTypes: result.media?.map(m => m.type) || [],
+        provider: result.provider,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "Twitter info fetch failed" });
     }
   });
 

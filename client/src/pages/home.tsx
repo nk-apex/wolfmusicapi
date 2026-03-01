@@ -46,6 +46,7 @@ import {
   Type,
   RefreshCw,
   Headphones,
+  Share2,
 } from "lucide-react";
 import { allEndpoints, apiCategories, ephotoEffectsList, photofuniaEffectsList, TEXTPRO_EFFECTS, AUDIO_EFFECTS_LIST, type ApiEndpoint } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
@@ -55,10 +56,7 @@ const categoryIcons: Record<string, typeof MessageSquare> = {
   "ai-tools": Wand2,
   "ai-image": Image,
   music: Music,
-  tiktok: Video,
-  instagram: Camera,
-  "youtube-dl": Youtube,
-  facebook: Facebook,
+  "social-media": Share2,
   spotify: Music2,
   shazam: AudioLines,
   ephoto: Sparkles,
@@ -98,25 +96,10 @@ const heroData: Record<string, { tagline: string; title: string; description: st
     title: "15 Download Endpoints",
     description: "YouTube search, MP3/MP4 download, lyrics with synced timestamps, and trending music charts.",
   },
-  tiktok: {
-    tagline: "SOCIAL MEDIA",
-    title: "TikTok Downloader",
-    description: "Download TikTok videos without watermark in high quality.",
-  },
-  instagram: {
-    tagline: "SOCIAL MEDIA",
-    title: "Instagram Downloader",
-    description: "Download Instagram videos, photos, reels, and stories.",
-  },
-  "youtube-dl": {
-    tagline: "VIDEO DOWNLOAD",
-    title: "YouTube Downloader",
-    description: "Download YouTube videos in multiple formats and qualities.",
-  },
-  facebook: {
-    tagline: "SOCIAL MEDIA",
-    title: "Facebook Downloader",
-    description: "Download Facebook videos in SD and HD quality.",
+  "social-media": {
+    tagline: "MULTI-PLATFORM DOWNLOADER",
+    title: "14 Social Media Endpoints",
+    description: "Download from YouTube, TikTok, Instagram, Facebook, and Twitter/X. Video, audio, reels, stories, and more.",
   },
   spotify: {
     tagline: "MUSIC STREAMING",

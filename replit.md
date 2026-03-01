@@ -1,14 +1,14 @@
 # WolfApis
 
 ## Overview
-A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 35+ AI chat models (including WormGPT, Replit AI), AI tools (translate, summarize, code, AI scanner, humanizer), AI image endpoints (7 providers: Unsplash, Lorem Picsum, LoremFlickr, Dog CEO, CATAAS, Bing Image Creator), music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook), Spotify search/download, Shazam music recognition, Ephoto360 text effect generation (60 effects), PhotoFunia image effects (154 effects), Text Effects (109 effects via CoolText), movie data (13 endpoints via OMDb/YTS), anime images (30 types), fun text content (37 categories), URL services (7 shorteners + ImgBB + Catbox image hosting), developer tools (21 utilities), security/ethical hacking tools (38 endpoints), sports data (24 endpoints via TheSportsDB), search APIs (10 endpoints), media converters (6 converter endpoints for WhatsApp bots), and audio effects (25 effects: bass, bassboost, robot, echo, nightcore, 8D, reverb, etc.). 616 total endpoints across 24 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing, search bar with autocomplete for effect categories, and a documentation page with clickable expandable endpoint docs.
+A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 35+ AI chat models (including WormGPT, Replit AI), AI tools (translate, summarize, code, AI scanner, humanizer), AI image endpoints (7 providers: Unsplash, Lorem Picsum, LoremFlickr, Dog CEO, CATAAS, Bing Image Creator), music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook, Twitter/X — combined into one "Social Media" category with 14 endpoints), Spotify search/download, Shazam music recognition, Ephoto360 text effect generation (60 effects), PhotoFunia image effects (154 effects), Text Effects (109 effects via CoolText), movie data (13 endpoints via OMDb/YTS), anime images (30 types), fun text content (37 categories), URL services (7 shorteners + ImgBB + Catbox image hosting), developer tools (21 utilities), security/ethical hacking tools (38 endpoints), sports data (24 endpoints via TheSportsDB), search APIs (10 endpoints), media converters (6 converter endpoints for WhatsApp bots), and audio effects (25 effects: bass, bassboost, robot, echo, nightcore, 8D, reverb, etc.). 626 total endpoints across 21 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing, search bar with autocomplete for effect categories, and a documentation page with clickable expandable endpoint docs.
 
 ## Architecture
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui components
 - **Backend**: Express.js server in `server/`
 - **AI Proxy**: `server/ai-routes.ts` - 35 AI chat endpoints via chateverywhere.app + OpenAI (GPT-4/4o), plus translate/summarize/code/scanner/humanizer tools and 7 image endpoints (including Bing Image Creator)
 - **Music Scraping**: `lib/scraper.ts` - YouTube music search via yt-dlp, download via yt-dlp + y2mate/cobalt/vevioz/savefrom/cnvmp3 fallbacks
-- **Social Media Downloaders**: `lib/downloaders/` - TikTok, Instagram, YouTube, Facebook video downloaders
+- **Social Media Downloaders**: `lib/downloaders/` - YouTube, TikTok, Instagram, Facebook, Twitter/X video downloaders (14 endpoints combined)
 - **Spotify**: `lib/downloaders/spotify.ts` - Search and download via spotdown.org API with iTunes fallback
 - **Shazam**: `lib/downloaders/shazam.ts` - Shazam search + song recognition via reverse-engineered API
 - **Ephoto360**: `lib/downloaders/ephoto360.ts` - 60 text/neon/3D effect generators via ephoto360.com
@@ -28,7 +28,7 @@ A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access
 - **Stalker**: `lib/downloaders/stalker.ts` - OSINT profile lookup tools (GitHub, IP, NPM, TikTok, Instagram, Twitter, WhatsApp)
 
 ## Key Files
-- `shared/schema.ts` - All 616 endpoint definitions, 24 categories, and TypeScript types
+- `shared/schema.ts` - All 626 endpoint definitions, 21 categories, and TypeScript types
 - `server/ai-routes.ts` - AI proxy endpoints (35 chat + 5 tools + 7 image)
 - `server/routes.ts` - Express API endpoint definitions (all categories + registers AI routes + 10 search routes)
 - `lib/scraper.ts` - Shared scraping logic (search, check, download info)
@@ -37,7 +37,7 @@ A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access
 - `client/src/index.css` - Neon cyberpunk theme styles
 - `client/src/assets/wolf-logo.png` - Wolf logo
 
-## API Categories (590 endpoints across 23 categories)
+## API Categories (626 endpoints across 21 categories)
 
 ### AI Chat (35 endpoints)
 GPT, GPT-4, GPT-4o, Claude, Mistral, Gemini, DeepSeek, Venice, Groq, Cohere, LLaMA, Mixtral, Phi, Qwen, Falcon, Vicuna, OpenChat, WizardLM, Zephyr, CodeLlama, StarCoder, Dolphin, Nous Hermes, OpenHermes, NeuralChat, Solar, Yi, TinyLlama, Orca, Command R, Nemotron, InternLM, ChatGLM, WormGPT, Replit AI
@@ -63,8 +63,8 @@ List effects, generate text effect image - card grid view
 ### PhotoFunia (2 endpoints, 154 effects)
 List effects, generate photo effect - card grid view
 
-### Social Media Downloaders (4 endpoints)
-TikTok, Instagram, YouTube, Facebook
+### Social Media (14 endpoints)
+YouTube (download, MP3, MP4, info, search), TikTok (download, audio, info), Instagram (download, story), Facebook (download, reel), Twitter/X (download, info)
 
 ### Stalker (7 endpoints)
 GitHub, IP, NPM, TikTok, Instagram, Twitter/X, WhatsApp
@@ -114,7 +114,8 @@ bass, bassboost, robot, chipmunk, deep, echo, reverb, nightcore, slowed, 8d, vap
 - Sidebar navigation with popup-based API testing, collapsible sidebar
 
 ## Recent Changes
-- 2026-03-01: Added Audio Effects category (25 effects: bass, bassboost, robot, echo, nightcore, 8D, reverb, etc.), removed italic text styling from all headings, made "Multi-Provider API Hub" title vertical on welcome page. Total now 616 endpoints across 24 categories.
+- 2026-03-01: Merged YouTube, TikTok, Instagram, Facebook into one "Social Media" category, added Twitter/X downloader (multi-provider: TwitSave, SSSTwitter, TWDL), expanded to 14 social media endpoints (YouTube: download/mp3/mp4/info/search, TikTok: download/audio/info, Instagram: download/story, Facebook: download/reel, Twitter: download/info). Total now 626 endpoints across 21 categories.
+- 2026-03-01: Added Audio Effects category (25 effects: bass, bassboost, robot, echo, nightcore, 8D, reverb, etc.), removed italic text styling from all headings, made "Multi-Provider API Hub" title vertical on welcome page.
 - 2026-03-01: Added WormGPT and Replit AI to AI Chat (now 35 models), Bing Image Creator to AI Image (now 7 endpoints), Converter category with 6 media conversion endpoints (image↔sticker, video↔sticker, video↔GIF) for WhatsApp bots.
 - 2026-03-01: Added Search category (10 endpoints: Wikipedia, GNews, GitHub, NPM, PyPI, StackOverflow, Reddit, Urban Dictionary, Emoji, Countries). Changed Ephoto360 & PhotoFunia from table view to card grid view. Made Docs page API Categories clickable/expandable showing endpoint docs with method, path, params, and example requests.
 - 2026-03-01: v4.0 major expansion - Added 5 new categories: Anime (30 endpoints via waifu.pics/nekos.best), Fun (37 text content endpoints), URL Shortener (7 services), Tools (21 utility endpoints), Security (38 ethical hacking endpoints).
