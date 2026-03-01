@@ -4,7 +4,6 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import {
   securityHeaders,
-  globalRateLimit,
   antiScraping,
   antiClone,
   responseFingerprint,
@@ -26,8 +25,6 @@ app.use(securityHeaders());
 app.use(blockDirectSourceAccess);
 app.use(antiScraping);
 app.use(antiClone);
-app.use("/api", globalRateLimit);
-app.use("/download", globalRateLimit);
 
 app.use(
   express.json({

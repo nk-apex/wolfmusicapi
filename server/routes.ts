@@ -23,7 +23,6 @@ import { listTextproEffects, generateTextpro } from "../lib/downloaders/textpro"
 import { imageToSticker, stickerToImage, videoToSticker, stickerToVideo, videoToGif, gifToVideo } from "../lib/downloaders/converter";
 import { listAudioEffects, applyAudioEffect } from "../lib/downloaders/audio-effects";
 import { allEndpoints as schemaEndpoints, apiCategories as schemaCategories } from "../shared/schema";
-import { apiRateLimit, aiRateLimit, downloadRateLimit } from "./security";
 
 function isYouTubeUrl(input: string): boolean {
   return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|m\.youtube\.com)\//i.test(input) ||
@@ -36,11 +35,7 @@ export async function registerRoutes(
 ): Promise<Server> {
   registerAIRoutes(app);
 
-  app.use("/api/ai", aiRateLimit);
-  app.use("/download", downloadRateLimit);
-  app.use("/api/download", downloadRateLimit);
-
-  app.get("/api/search", apiRateLimit, async (req, res) => {
+  app.get("/api/search", async (req, res) => {
     try {
       const q = req.query.q as string;
       if (!q || q.trim().length === 0) {

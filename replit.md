@@ -104,8 +104,8 @@ bass, bassboost, robot, chipmunk, deep, echo, reverb, nightcore, slowed, 8d, vap
 
 ## Security (`server/security.ts`)
 - **Helmet**: Full security headers in production (CSP with frame-ancestors, CORS, referrer policy); disabled in dev for Vite compatibility
-- **Rate Limiting**: Global (60/min on /api + /download), API (30/min), AI (10/min), Download (15/min) — applied per-route in routes.ts
-- **Anti-Scraping**: Blocks suspicious UAs (curl, wget, python-requests, scrapy, etc.), tracks IP request counts, auto-blocks IPs exceeding 200 req/min for 5 min
+- **No Rate Limiting**: APIs are fully open — no request limits per IP (users may chain requests for other users)
+- **Anti-Scraping**: Blocks suspicious UAs (curl, wget, python-requests, scrapy, etc.), tracks IP request counts, auto-blocks IPs making clone-like requests
 - **Anti-Clone**: Protects `/api/endpoints/list` and `/api/all-endpoints` — only accessible from own site referer + browser UA
 - **Source Protection**: Blocks direct access to .ts/.tsx/.map/.env/.lock/.toml files and server/lib/shared directories (production only)
 - **Response Fingerprint**: Adds `X-Powered-By: WolfAPIs` and creator metadata to API responses

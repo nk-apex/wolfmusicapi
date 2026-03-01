@@ -1,5 +1,4 @@
 import type { Request, Response, NextFunction } from "express";
-import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
 const CREATOR = "APIs by Silent Wolf | A tech explorer";
@@ -99,70 +98,6 @@ export function securityHeaders() {
     xFrameOptions: false,
   });
 }
-
-export const globalRateLimit = rateLimit({
-  windowMs: 60 * 1000,
-  max: 60,
-  standardHeaders: true,
-  legacyHeaders: false,
-  validate: { trustProxy: false, xForwardedForHeader: false },
-  handler: (_req, res) => {
-    res.status(429).json({
-      success: false,
-      error: "Too many requests. Please slow down — max 60 requests per minute.",
-      creator: CREATOR,
-      retryAfter: "60 seconds",
-    });
-  },
-});
-
-export const apiRateLimit = rateLimit({
-  windowMs: 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  validate: { trustProxy: false, xForwardedForHeader: false },
-  handler: (_req, res) => {
-    res.status(429).json({
-      success: false,
-      error: "API rate limit exceeded. Max 30 API calls per minute per IP.",
-      creator: CREATOR,
-      retryAfter: "60 seconds",
-    });
-  },
-});
-
-export const aiRateLimit = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  validate: { trustProxy: false, xForwardedForHeader: false },
-  handler: (_req, res) => {
-    res.status(429).json({
-      success: false,
-      error: "AI endpoint rate limit exceeded. Max 10 AI requests per minute.",
-      creator: CREATOR,
-      retryAfter: "60 seconds",
-    });
-  },
-});
-
-export const downloadRateLimit = rateLimit({
-  windowMs: 60 * 1000,
-  max: 15,
-  standardHeaders: true,
-  legacyHeaders: false,
-  validate: { trustProxy: false, xForwardedForHeader: false },
-  handler: (_req, res) => {
-    res.status(429).json({
-      success: false,
-      error: "Download rate limit exceeded. Max 15 downloads per minute.",
-      creator: CREATOR,
-      retryAfter: "60 seconds",
-    });
-  },
-});
 
 export function antiScraping(req: Request, res: Response, next: NextFunction) {
   if (!req.path.startsWith("/api/") && !req.path.startsWith("/download/")) {
