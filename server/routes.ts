@@ -590,6 +590,94 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/url/imgbb", async (req, res) => {
+    try {
+      const { image } = req.body;
+      if (!image) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'image' parameter (URL or Base64)" });
+
+      let imageData = image;
+      if (image.startsWith("http")) {
+        const imgRes = await fetch(image, { redirect: "follow" });
+        if (!imgRes.ok) throw new Error("Failed to fetch image from URL");
+        const buffer = Buffer.from(await imgRes.arrayBuffer());
+        imageData = buffer.toString("base64");
+      }
+
+      const formBody = new URLSearchParams();
+      formBody.append("image", imageData);
+
+      const uploadRes = await fetch("https://freeimage.host/api/1/upload?key=6d207e02198a847aa98d0a2a901485a5&format=json", {
+        method: "POST",
+        body: formBody,
+      });
+      const data = await uploadRes.json() as any;
+
+      if (data.status_code !== 200 && !data.image) {
+        throw new Error(data.error?.message || data.status_txt || "Image upload failed");
+      }
+
+      return res.json({
+        success: true,
+        creator: "APIs by Silent Wolf | A tech explorer",
+        result: {
+          url: data.image?.url || data.image?.display_url,
+          display_url: data.image?.display_url,
+          thumb: data.image?.thumb?.url,
+          medium: data.image?.medium?.url,
+          title: data.image?.title,
+          size: data.image?.size,
+          width: data.image?.width,
+          height: data.image?.height,
+        },
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.post("/api/url/catbox", async (req, res) => {
+    try {
+      const { url } = req.body;
+      if (!url) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'url' parameter" });
+
+      const imgRes = await fetch(url, { redirect: "follow" });
+      if (!imgRes.ok) throw new Error("Failed to fetch file from URL");
+      const buffer = Buffer.from(await imgRes.arrayBuffer());
+
+      const contentType = imgRes.headers.get("content-type") || "application/octet-stream";
+      const ext = contentType.includes("png") ? "png" : contentType.includes("gif") ? "gif" : contentType.includes("webp") ? "webp" : "jpg";
+      const filename = `upload.${ext}`;
+
+      const boundary = "----FormBoundary" + Math.random().toString(36).slice(2);
+      const parts: Buffer[] = [];
+      parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="reqtype"\r\n\r\nfileupload\r\n`));
+      parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="fileToUpload"; filename="${filename}"\r\nContent-Type: ${contentType}\r\n\r\n`));
+      parts.push(buffer);
+      parts.push(Buffer.from(`\r\n--${boundary}--\r\n`));
+      const body = Buffer.concat(parts);
+
+      const uploadRes = await fetch("https://catbox.moe/user/api.php", {
+        method: "POST",
+        headers: { "Content-Type": `multipart/form-data; boundary=${boundary}` },
+        body,
+      });
+      const result = await uploadRes.text();
+      if (!result.startsWith("https://")) throw new Error("Catbox upload failed: " + result);
+
+      return res.json({
+        success: true,
+        creator: "APIs by Silent Wolf | A tech explorer",
+        result: {
+          url: result.trim(),
+          original: url,
+          service: "Catbox.moe",
+        },
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
   // ============== TOOLS ROUTES ==============
   app.get("/api/tools/qrcode", (req, res) => {
     const text = req.query.text as string;

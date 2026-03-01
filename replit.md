@@ -1,12 +1,12 @@
 # WolfApis
 
 ## Overview
-A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 33+ AI chat models, AI tools (translate, summarize, code), image search, music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook), Spotify search/download, Shazam music recognition, Ephoto360 text effect generation (60 effects), PhotoFunia image effects (154 effects), anime images (30 types), fun text content (37 categories), URL shortener (7 services), developer tools (21 utilities), security/ethical hacking tools (38 endpoints), and sports data (24 endpoints via TheSportsDB). 438+ total endpoints across 19 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing and a documentation page with community links.
+A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 33+ AI chat models, AI tools (translate, summarize, code, AI scanner, humanizer), AI image endpoints (6 providers: Unsplash, Lorem Picsum, LoremFlickr, Dog CEO, CATAAS), music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook), Spotify search/download, Shazam music recognition, Ephoto360 text effect generation (60 effects), PhotoFunia image effects (154 effects), anime images (30 types), fun text content (37 categories), URL services (7 shorteners + ImgBB + Catbox image hosting), developer tools (21 utilities), security/ethical hacking tools (38 endpoints), and sports data (24 endpoints via TheSportsDB). 447+ total endpoints across 19 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing and a documentation page with community links.
 
 ## Architecture
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui components
 - **Backend**: Express.js server in `server/`
-- **AI Proxy**: `server/ai-routes.ts` - 33 AI chat endpoints via chateverywhere.app + OpenAI (GPT-4/4o), plus translate/summarize/code tools
+- **AI Proxy**: `server/ai-routes.ts` - 33 AI chat endpoints via chateverywhere.app + OpenAI (GPT-4/4o), plus translate/summarize/code/scanner/humanizer tools and 6 image endpoints
 - **Music Scraping**: `lib/scraper.ts` - YouTube music search via yt-dlp, download via yt-dlp + y2mate/cobalt/vevioz/savefrom/cnvmp3 fallbacks
 - **Social Media Downloaders**: `lib/downloaders/` - TikTok, Instagram, YouTube, Facebook video downloaders
 - **Spotify**: `lib/downloaders/spotify.ts` - Search and download via spotdown.org API with iTunes fallback
@@ -24,7 +24,7 @@ A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access
 - **Sports**: `lib/downloaders/sports.ts` - 24 sports data endpoints via TheSportsDB free API (live scores, team/player/league search, fixtures, standings, highlights)
 
 ## Key Files
-- `shared/schema.ts` - All 438+ endpoint definitions, 19 categories, and TypeScript types
+- `shared/schema.ts` - All 447+ endpoint definitions, 19 categories, and TypeScript types
 - `server/ai-routes.ts` - AI proxy endpoints (33 chat + 3 tools + 1 image)
 - `server/routes.ts` - Express API endpoint definitions (all categories + registers AI routes)
 - `lib/scraper.ts` - Shared scraping logic (search, check, download info)

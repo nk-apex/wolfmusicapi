@@ -61,7 +61,7 @@ export const apiCategories = [
   { id: "stalker", name: "Stalker", description: "Profile lookup and OSINT tools", icon: "Eye" },
   { id: "anime", name: "Anime", description: "Waifu, neko, and anime reaction images", icon: "Cat" },
   { id: "fun", name: "Fun", description: "Jokes, quotes, pickup lines, and fun text content", icon: "Laugh" },
-  { id: "urlshortener", name: "URL Shortener", description: "Shorten URLs with multiple services", icon: "Link" },
+  { id: "urlshortener", name: "URL", description: "URL shortening and image-to-URL hosting services", icon: "Link" },
   { id: "tools", name: "Tools", description: "QR codes, dictionary, weather, passwords, and more utilities", icon: "Wrench" },
   { id: "security", name: "Security", description: "Ethical hacking, OSINT, vulnerability scanning tools", icon: "ShieldCheck" },
   { id: "sports", name: "Sports", description: "Live scores, fixtures, standings, team & player data", icon: "Trophy" },
@@ -107,10 +107,17 @@ const aiToolEndpoints: ApiEndpoint[] = [
   { path: "/api/ai/translate", method: "POST", description: "AI-powered text translation", params: [{ name: "text", type: "string", required: true, description: "Text to translate" }, { name: "to", type: "string", required: false, description: "Target language (default: en)" }, { name: "from", type: "string", required: false, description: "Source language (default: auto)" }], format: "json", category: "ai-tools", provider: "ChatEverywhere" },
   { path: "/api/ai/summarize", method: "POST", description: "AI-powered text summarization", params: [{ name: "text", type: "string", required: true, description: "Text to summarize" }], format: "json", category: "ai-tools", provider: "ChatEverywhere" },
   { path: "/api/ai/code", method: "POST", description: "AI code generation assistant", params: [{ name: "prompt", type: "string", required: true, description: "Code task description" }, { name: "language", type: "string", required: false, description: "Programming language (e.g. python, javascript)" }], format: "json", category: "ai-tools", provider: "ChatEverywhere" },
+  { path: "/api/ai/scanner", method: "POST", description: "AI content scanner - detect if text is AI-generated or human-written", params: [{ name: "text", type: "string", required: true, description: "Text to scan for AI detection" }], format: "json", category: "ai-tools", provider: "ChatEverywhere" },
+  { path: "/api/ai/humanizer", method: "POST", description: "AI text humanizer - rewrite AI-generated text to sound human-written", params: [{ name: "text", type: "string", required: true, description: "AI-generated text to humanize" }], format: "json", category: "ai-tools", provider: "ChatEverywhere" },
 ];
 
 const aiImageEndpoints: ApiEndpoint[] = [
   { path: "/api/ai/image/dall-e", method: "POST", description: "Search for images by prompt (Unsplash-powered)", params: [{ name: "prompt", type: "string", required: true, description: "Image search description" }], format: "json", category: "ai-image", provider: "ChatEverywhere" },
+  { path: "/api/ai/image/pixabay", method: "GET", description: "Search and get stock images by keyword", params: [{ name: "q", type: "string", required: true, description: "Search query" }, { name: "page", type: "number", required: false, description: "Page number (default 1)" }], format: "json", category: "ai-image", provider: "Unsplash + Picsum" },
+  { path: "/api/ai/image/lorem-picsum", method: "GET", description: "Get random placeholder image from Lorem Picsum", params: [{ name: "width", type: "number", required: false, description: "Image width (default 800)" }, { name: "height", type: "number", required: false, description: "Image height (default 600)" }], format: "json", category: "ai-image", provider: "Lorem Picsum" },
+  { path: "/api/ai/image/lorem-flickr", method: "GET", description: "Get random themed image from LoremFlickr", params: [{ name: "q", type: "string", required: true, description: "Image theme keyword" }, { name: "width", type: "number", required: false, description: "Image width (default 800)" }, { name: "height", type: "number", required: false, description: "Image height (default 600)" }], format: "json", category: "ai-image", provider: "LoremFlickr" },
+  { path: "/api/ai/image/dog", method: "GET", description: "Get random dog image", params: [{ name: "breed", type: "string", required: false, description: "Dog breed (e.g. husky, poodle)" }], format: "json", category: "ai-image", provider: "Dog CEO" },
+  { path: "/api/ai/image/cat", method: "GET", description: "Get random cat image", params: [], format: "json", category: "ai-image", provider: "CATAAS" },
 ];
 
 const musicEndpoints: ApiEndpoint[] = [
@@ -504,6 +511,8 @@ const urlShortenerEndpoints: ApiEndpoint[] = [
   { path: "/api/short/chilpit", method: "GET", description: "Shorten URL with Chilp.it", params: [{ name: "url", type: "string", required: true, description: "The URL to shorten" }], format: "json", category: "urlshortener", provider: "Chilp.it" },
   { path: "/api/short/clckru", method: "GET", description: "Shorten URL with clck.ru", params: [{ name: "url", type: "string", required: true, description: "The URL to shorten" }], format: "json", category: "urlshortener", provider: "clck.ru" },
   { path: "/api/short/dagd", method: "GET", description: "Shorten URL with da.gd", params: [{ name: "url", type: "string", required: true, description: "The URL to shorten" }], format: "json", category: "urlshortener", provider: "da.gd" },
+  { path: "/api/url/imgbb", method: "POST", description: "Upload image to ImgBB and get a hosted URL", params: [{ name: "image", type: "string", required: true, description: "Image URL or Base64-encoded image" }], format: "json", category: "urlshortener", provider: "ImgBB" },
+  { path: "/api/url/catbox", method: "POST", description: "Upload file to Catbox.moe and get a hosted URL", params: [{ name: "url", type: "string", required: true, description: "URL of the file to upload" }], format: "json", category: "urlshortener", provider: "Catbox" },
 ];
 
 const toolsEndpoints: ApiEndpoint[] = [

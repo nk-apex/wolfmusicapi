@@ -32,7 +32,6 @@ import {
   Cpu,
   ArrowUpRight,
   Bell,
-  User,
   Cat,
   Laugh,
   Link,
@@ -41,6 +40,7 @@ import {
   Trophy,
   BookOpen,
   ExternalLink,
+  Github,
 } from "lucide-react";
 import { allEndpoints, apiCategories, ephotoEffectsList, photofuniaEffectsList, type ApiEndpoint } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
@@ -144,9 +144,9 @@ const heroData: Record<string, { tagline: string; title: string; description: st
     description: "Jokes, quotes, pickup lines, roasts, compliments, trivia, dares, riddles, shayari, and more.",
   },
   urlshortener: {
-    tagline: "MULTI-SERVICE URL SHORTENER",
-    title: "7 Shortener Services",
-    description: "Shorten URLs with TinyURL, is.gd, v.gd, CleanURI, Chilp.it, clck.ru, and da.gd.",
+    tagline: "URL SHORTENING & IMAGE HOSTING",
+    title: "9 URL Services",
+    description: "Shorten URLs with TinyURL, is.gd, v.gd, CleanURI, Chilp.it, clck.ru, da.gd, plus upload images to ImgBB and Catbox.",
   },
   tools: {
     tagline: "DEVELOPER & UTILITY TOOLS",
@@ -264,7 +264,7 @@ function TestPopup({
       <div
         className="w-full max-w-2xl rounded-xl overflow-hidden"
         style={{
-          background: "#0c0c0c",
+          background: "#000000",
           border: "1px solid rgba(0,255,0,0.2)",
           maxHeight: "90vh",
         }}
@@ -445,7 +445,7 @@ function EndpointCard({
       data-testid={`card-endpoint-${endpoint.path}`}
       className="relative rounded-lg p-4 space-y-3 transition-all cursor-pointer group"
       style={{
-        background: "#0c0c0c",
+        background: "#000000",
         border: "1px solid rgba(0,255,0,0.12)",
       }}
       onMouseEnter={(e) => {
@@ -498,7 +498,7 @@ function EffectTable({
   onTry: (ep: ApiEndpoint) => void;
 }) {
   return (
-    <div className="overflow-x-auto rounded-lg" style={{ border: "1px solid rgba(0,255,0,0.12)", background: "#0c0c0c" }}>
+    <div className="overflow-x-auto rounded-lg" style={{ border: "1px solid rgba(0,255,0,0.12)", background: "#000000" }}>
       <table className="w-full text-left" style={{ minWidth: "600px" }}>
         <thead>
           <tr style={{ borderBottom: "1px solid rgba(0,255,0,0.12)" }}>
@@ -589,7 +589,7 @@ function WelcomePage({ onCategoryClick }: { onCategoryClick: (id: string) => voi
   return (
     <div className="px-6 py-6 space-y-8">
       <div className="rounded-lg p-6 sm:p-8" style={{
-        background: "#0c0c0c",
+        background: "#000000",
         border: "1px solid rgba(0,255,0,0.12)",
       }}>
         <div className="space-y-4">
@@ -630,7 +630,7 @@ function WelcomePage({ onCategoryClick }: { onCategoryClick: (id: string) => voi
               key={stat.label}
               className="relative rounded-lg p-5"
               style={{
-                background: "#0c0c0c",
+                background: "#000000",
                 border: "1px solid rgba(0,255,0,0.12)",
               }}
               data-testid={`stat-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}
@@ -669,7 +669,7 @@ function WelcomePage({ onCategoryClick }: { onCategoryClick: (id: string) => voi
                 key={cat.id}
                 className="relative flex items-center gap-4 rounded-lg p-4 text-left transition-all"
                 style={{
-                  background: "#0c0c0c",
+                  background: "#000000",
                   border: "1px solid rgba(0,255,0,0.12)",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(0,255,0,0.35)"; }}
@@ -715,7 +715,7 @@ function HeroSection({ categoryId }: { categoryId: string }) {
   return (
     <section className="px-6 pt-6 pb-2">
       <div className="rounded-lg p-6" style={{
-        background: "#0c0c0c",
+        background: "#000000",
         border: "1px solid rgba(0,255,0,0.12)",
       }}>
         <div className="space-y-3">
@@ -802,7 +802,7 @@ function DocumentationPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-4 px-5 py-4 rounded-xl transition-all"
               style={{
-                background: "#0c0c0c",
+                background: "#000000",
                 border: "1px solid rgba(0,255,0,0.1)",
               }}
               data-testid={`link-${link.title.toLowerCase().replace(/\s+/g, "-")}`}
@@ -830,7 +830,7 @@ function DocumentationPage() {
         >
           Quick Start
         </h3>
-        <div className="rounded-xl p-5 space-y-4" style={{ background: "#0c0c0c", border: "1px solid rgba(0,255,0,0.1)" }}>
+        <div className="rounded-xl p-5 space-y-4" style={{ background: "#000000", border: "1px solid rgba(0,255,0,0.1)" }}>
           <div>
             <h4 className="text-xs font-bold mb-2" style={{ color: "rgba(255,255,255,0.6)" }}>Base URL</h4>
             <div className="flex items-center gap-2">
@@ -888,7 +888,7 @@ function DocumentationPage() {
               <div
                 key={cat.id}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg"
-                style={{ background: "#0c0c0c", border: "1px solid rgba(0,255,0,0.08)" }}
+                style={{ background: "#000000", border: "1px solid rgba(0,255,0,0.08)" }}
                 data-testid={`docs-cat-${cat.id}`}
               >
                 <Icon className="w-4 h-4 flex-shrink-0" style={{ color: "#00ff00" }} />
@@ -907,7 +907,7 @@ function DocumentationPage() {
         </div>
       </div>
 
-      <div className="rounded-xl p-5" style={{ background: "#0c0c0c", border: "1px solid rgba(0,255,0,0.1)" }}>
+      <div className="rounded-xl p-5" style={{ background: "#000000", border: "1px solid rgba(0,255,0,0.1)" }}>
         <h3
           className="text-sm font-bold tracking-wider mb-3"
           style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif", fontStyle: "italic" }}
@@ -1195,10 +1195,17 @@ export default function Home() {
                 </span>
               </div>
               <Bell className="w-4 h-4 hidden sm:block" style={{ color: "rgba(255,255,255,0.3)" }} />
-              <div className="flex items-center gap-2 px-2 py-1 rounded-lg" style={{ border: "1px solid rgba(0,255,0,0.1)" }}>
-                <User className="w-4 h-4" style={{ color: "#00ff00" }} />
+              <a
+                href="https://github.com/7silent-wolf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-2 py-1 rounded-lg transition-all"
+                style={{ border: "1px solid rgba(0,255,0,0.1)" }}
+                data-testid="link-github-header"
+              >
+                <Github className="w-4 h-4" style={{ color: "#00ff00" }} />
                 <span className="text-[11px] hidden sm:inline" style={{ color: "rgba(255,255,255,0.5)" }}>wolf</span>
-              </div>
+              </a>
             </div>
           </div>
         </header>
