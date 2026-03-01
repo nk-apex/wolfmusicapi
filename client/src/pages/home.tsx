@@ -543,7 +543,41 @@ function WelcomePage({ onCategoryClick }: { onCategoryClick: (id: string) => voi
   ];
 
   return (
-    <div className="px-6 py-8 space-y-8">
+    <div className="px-6 py-6 space-y-8">
+      <div className="rounded-lg p-6 sm:p-8" style={{
+        background: "#111111",
+        border: "1px solid rgba(0,255,0,0.12)",
+      }}>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Zap className="w-5 h-5" style={{ color: "#00ff00" }} />
+            <span className="text-[11px] font-bold tracking-[0.25em]" style={{ color: "#00ff00" }}>
+              APIS BY SILENT WOLF
+            </span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold italic" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
+            Multi-Provider API Hub
+          </h2>
+          <p className="text-sm sm:text-base max-w-xl" style={{ color: "rgba(255,255,255,0.4)" }}>
+            {allEndpoints.length}+ endpoints across {apiCategories.length} categories.
+            AI chat, image effects, social media downloaders, music tools, and OSINT utilities.
+            All free, no API key required.
+          </p>
+          <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{
+              border: "1px solid rgba(0,255,0,0.2)",
+            }}>
+              <div className="w-2 h-2 rounded-full" style={{ background: "#00ff00", boxShadow: "0 0 8px #00ff00" }} />
+              <span className="text-[11px] font-semibold" style={{ color: "#00ff00" }}>ALL SYSTEMS LIVE</span>
+            </div>
+            <span className="text-[11px] font-mono px-2.5 py-1 rounded" style={{
+              border: "1px solid rgba(0,255,0,0.12)",
+              color: "rgba(255,255,255,0.35)",
+            }}>v4.0</span>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
@@ -579,7 +613,7 @@ function WelcomePage({ onCategoryClick }: { onCategoryClick: (id: string) => voi
         <div className="flex items-center gap-2 mb-5">
           <Zap className="w-4 h-4" style={{ color: "#00ff00" }} />
           <h3 className="text-lg font-bold italic" style={{ fontFamily: "'Orbitron', sans-serif", color: "#00ff00" }}>
-            Quick Actions
+            API Categories
           </h3>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -614,41 +648,16 @@ function WelcomePage({ onCategoryClick }: { onCategoryClick: (id: string) => voi
                     {cat.name}
                   </span>
                   <span className="text-[11px] block mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.3)" }}>
-                    {count} endpoint{count !== 1 ? "s" : ""} available
+                    {cat.description}
                   </span>
                 </div>
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded absolute bottom-3 right-3"
+                  style={{ background: "rgba(0,255,0,0.08)", color: "#00ff00", border: "1px solid rgba(0,255,0,0.12)" }}
+                >{count}</span>
               </button>
             );
           })}
-        </div>
-      </div>
-
-      <div>
-        <div className="flex items-center gap-2 mb-5">
-          <Globe className="w-4 h-4" style={{ color: "#00ff00" }} />
-          <h3 className="text-lg font-bold italic" style={{ fontFamily: "'Orbitron', sans-serif", color: "#00ff00" }}>
-            Server Plans
-          </h3>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-lg p-5" style={{ background: "#111111", border: "1px solid rgba(0,255,0,0.12)" }}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold tracking-wider" style={{ color: "#00ff00" }}>FREE TIER</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ background: "rgba(0,255,0,0.1)", color: "#00ff00", border: "1px solid rgba(0,255,0,0.15)" }}>ACTIVE</span>
-            </div>
-            <p className="text-2xl font-bold mb-1" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
-              Free
-            </p>
-            <p className="text-[11px] mb-4" style={{ color: "rgba(255,255,255,0.3)" }}>No API key required</p>
-            <div className="space-y-2">
-              {["Unlimited requests", `${allEndpoints.length}+ endpoints`, "All categories included", "JSON responses"].map(f => (
-                <div key={f} className="flex items-center gap-2">
-                  <Check className="w-3 h-3" style={{ color: "#00ff00" }} />
-                  <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.5)" }}>{f}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -799,11 +808,11 @@ export default function Home() {
             }}
             onClick={() => { setActiveCategory(null); setSidebarOpen(false); }}
             data-testid="nav-home"
-            title="Command Center"
+            title="Home"
           >
             <HomeIcon className="w-4 h-4 flex-shrink-0" />
             {!sidebarCollapsed && (
-              <span className="text-[13px] font-medium flex-1">Command Center</span>
+              <span className="text-[13px] font-medium flex-1">Home</span>
             )}
             {!sidebarCollapsed && activeCategory === null && (
               <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "#00ff00" }} />
@@ -840,6 +849,28 @@ export default function Home() {
             );
           })}
         </nav>
+
+        {!sidebarCollapsed && (
+          <div className="px-4 py-4 mt-auto" style={{ borderTop: "1px solid rgba(0,255,0,0.08)" }}>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <div
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ background: "#00ff00", boxShadow: "0 0 6px #00ff00" }}
+                />
+                <span className="text-[10px] font-semibold tracking-wider" style={{ color: "#00ff00" }}>
+                  ALL SYSTEMS LIVE
+                </span>
+              </div>
+              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+                APIs by Silent Wolf
+              </p>
+              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.15)" }}>
+                A tech explorer
+              </p>
+            </div>
+          </div>
+        )}
       </aside>
 
       <main className="flex-1 min-w-0">
@@ -864,9 +895,12 @@ export default function Home() {
 
             <div className="flex items-center gap-2 flex-1 min-w-0">
               {activeCategory === null ? (
-                <h2 className="text-sm font-bold tracking-wider" style={{ color: "#ffffff", fontFamily: "'Orbitron', sans-serif" }}>
-                  COMMAND CENTER
-                </h2>
+                <>
+                  <HomeIcon className="w-4 h-4" style={{ color: "#00ff00" }} />
+                  <h2 className="text-sm font-bold tracking-wider" style={{ color: "#ffffff", fontFamily: "'Orbitron', sans-serif" }}>
+                    WELCOME
+                  </h2>
+                </>
               ) : activeCategoryData ? (
                 <>
                   {(() => {
@@ -888,12 +922,13 @@ export default function Home() {
 
             <div className="flex items-center gap-3 flex-shrink-0">
               <div
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
                 style={{ border: "1px solid rgba(0,255,0,0.12)" }}
-                data-testid="status-endpoints"
+                data-testid="status-live"
               >
-                <span className="text-[11px] font-mono" style={{ color: "rgba(255,255,255,0.5)" }}>
-                  {allEndpoints.length} APIs
+                <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#00ff00", boxShadow: "0 0 6px #00ff00" }} />
+                <span className="text-[10px] font-semibold tracking-wider" style={{ color: "#00ff00" }}>
+                  LIVE
                 </span>
               </div>
               <Bell className="w-4 h-4 hidden sm:block" style={{ color: "rgba(255,255,255,0.3)" }} />
@@ -906,17 +941,7 @@ export default function Home() {
         </header>
 
         {activeCategory === null ? (
-          <>
-            <div className="px-6 pt-6 pb-2">
-              <h2 className="text-2xl sm:text-3xl font-bold italic" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
-                Command Center
-              </h2>
-              <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.35)" }}>
-                Welcome back, wolf
-              </p>
-            </div>
-            <WelcomePage onCategoryClick={handleCategoryClick} />
-          </>
+          <WelcomePage onCategoryClick={handleCategoryClick} />
         ) : (
           <>
             <HeroSection categoryId={activeCategory} />
