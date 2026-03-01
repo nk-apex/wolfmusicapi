@@ -42,6 +42,8 @@ import {
   ExternalLink,
   Github,
   Search,
+  Film,
+  Type,
 } from "lucide-react";
 import { allEndpoints, apiCategories, ephotoEffectsList, photofuniaEffectsList, type ApiEndpoint } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
@@ -67,6 +69,8 @@ const categoryIcons: Record<string, typeof MessageSquare> = {
   security: ShieldCheck,
   sports: Trophy,
   search: Search,
+  movie: Film,
+  textpro: Type,
 };
 
 const heroData: Record<string, { tagline: string; title: string; description: string }> = {
@@ -169,6 +173,16 @@ const heroData: Record<string, { tagline: string; title: string; description: st
     tagline: "UNIVERSAL SEARCH API",
     title: "10 Search Endpoints",
     description: "Wikipedia, news, GitHub repos, NPM packages, Stack Overflow, Reddit, Urban Dictionary, country info, and more.",
+  },
+  movie: {
+    tagline: "MOVIE DATABASE API",
+    title: "13 Movie Endpoints",
+    description: "Search movies, get trailers, trending, popular, upcoming, top rated, cast & crew, reviews, and discover by genre via TMDB.",
+  },
+  textpro: {
+    tagline: "TEXT EFFECT GENERATOR",
+    title: "109 Text Effects",
+    description: "Generate stunning text effects including neon, 3D, chrome, fire, glitter, graffiti, vintage, and more styles.",
   },
 };
 
@@ -889,104 +903,134 @@ function DocumentationPage({ onNavigateToCategory }: { onNavigateToCategory?: (c
         >
           API Categories
         </h3>
-        <div className="space-y-2">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {apiCategories.map((cat) => {
-            const catEndpoints = allEndpoints.filter(e => e.category === cat.id);
-            const count = catEndpoints.length;
+            const count = allEndpoints.filter(e => e.category === cat.id).length;
             const Icon = categoryIcons[cat.id] || Code2;
-            const isExpanded = expandedCategory === cat.id;
             return (
-              <div key={cat.id} className="rounded-lg overflow-hidden" style={{ border: isExpanded ? "1px solid rgba(0,255,0,0.2)" : "1px solid rgba(0,255,0,0.08)" }}>
-                <button
-                  onClick={() => setExpandedCategory(isExpanded ? null : cat.id)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-all hover:bg-[#0a0a0a]"
-                  style={{ background: "#000000" }}
-                  data-testid={`docs-cat-${cat.id}`}
+              <button
+                key={cat.id}
+                onClick={() => setExpandedCategory(cat.id)}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all hover:bg-[#0a0a0a]"
+                style={{ background: "#000000", border: "1px solid rgba(0,255,0,0.08)" }}
+                data-testid={`docs-cat-${cat.id}`}
+              >
+                <Icon className="w-4 h-4 flex-shrink-0" style={{ color: "#00ff00" }} />
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-medium" style={{ color: "#ffffff" }}>{cat.name}</span>
+                </div>
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(0,255,0,0.1)", color: "#00ff00" }}
                 >
-                  <Icon className="w-4 h-4 flex-shrink-0" style={{ color: "#00ff00" }} />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-xs font-medium" style={{ color: "#ffffff" }}>{cat.name}</span>
-                    <span className="text-[10px] ml-2" style={{ color: "rgba(255,255,255,0.3)" }}>{cat.description}</span>
-                  </div>
-                  <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-full mr-2"
-                    style={{ background: "rgba(0,255,0,0.1)", color: "#00ff00" }}
-                  >
-                    {count}
-                  </span>
-                  <ChevronRight className="w-3 h-3 flex-shrink-0 transition-transform" style={{ color: "rgba(255,255,255,0.3)", transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }} />
-                </button>
-                {isExpanded && (
-                  <div className="px-4 pb-3 space-y-2" style={{ background: "#000000" }}>
-                    <div className="flex items-center justify-between pt-1 pb-2" style={{ borderTop: "1px solid rgba(0,255,0,0.08)" }}>
-                      <span className="text-[10px] font-bold tracking-wider" style={{ color: "rgba(255,255,255,0.3)" }}>ENDPOINTS</span>
-                      {onNavigateToCategory && (
-                        <button
-                          onClick={() => onNavigateToCategory(cat.id)}
-                          className="text-[10px] font-bold px-2 py-1 rounded transition-colors hover:bg-[#0a0a0a]"
-                          style={{ color: "#00ff00" }}
-                          data-testid={`btn-goto-${cat.id}`}
-                        >
-                          Try it →
-                        </button>
-                      )}
-                    </div>
-                    {catEndpoints.map((ep, idx) => (
-                      <div
-                        key={idx}
-                        className="rounded-lg px-3 py-2.5"
-                        style={{ background: "rgba(0,255,0,0.03)", border: "1px solid rgba(0,255,0,0.06)" }}
-                        data-testid={`docs-endpoint-${cat.id}-${idx}`}
-                      >
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span
-                            className="text-[9px] font-bold px-1.5 py-0.5 rounded"
-                            style={{ background: ep.method === "POST" ? "rgba(255,165,0,0.15)" : "rgba(0,255,0,0.15)", color: ep.method === "POST" ? "#ffa500" : "#00ff00" }}
-                          >
-                            {ep.method}
-                          </span>
-                          <code className="text-[11px] font-mono" style={{ color: "#ffffff" }}>{ep.path}</code>
-                          {ep.provider && <span className="text-[9px] ml-auto" style={{ color: "rgba(255,255,255,0.25)" }}>{ep.provider}</span>}
-                        </div>
-                        <p className="text-[10px] mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>{ep.description}</p>
-                        {ep.params && ep.params.length > 0 && (
-                          <div className="space-y-1 mb-2">
-                            <span className="text-[9px] font-bold" style={{ color: "rgba(255,255,255,0.25)" }}>PARAMETERS:</span>
-                            {ep.params.map((p, pi) => (
-                              <div key={pi} className="flex items-center gap-2 text-[10px]">
-                                <code style={{ color: "#00ff00" }}>{p.name}</code>
-                                <span style={{ color: "rgba(255,255,255,0.2)" }}>{p.type}</span>
-                                {p.required && <span className="text-[8px] px-1 py-0.5 rounded" style={{ background: "rgba(255,100,100,0.15)", color: "#ff6464" }}>required</span>}
-                                <span style={{ color: "rgba(255,255,255,0.3)" }}>{p.description}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        <div>
-                          <span className="text-[9px] font-bold" style={{ color: "rgba(255,255,255,0.25)" }}>EXAMPLE:</span>
-                          <div className="flex items-center gap-2 mt-1">
-                            <code
-                              className="text-[10px] px-2 py-1 rounded font-mono flex-1 overflow-x-auto"
-                              style={{ background: "rgba(0,255,0,0.05)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(0,255,0,0.08)" }}
-                            >
-                              {ep.method === "POST"
-                                ? `curl -X POST ${baseUrl}${ep.path} -H "Content-Type: application/json" -d '${JSON.stringify(Object.fromEntries((ep.params || []).filter(p => p.required).map(p => [p.name, p.type === "string" ? "example" : "value"])))}'`
-                                : `${baseUrl}${ep.path}${ep.params?.some(p => p.required) ? "?" + ep.params.filter(p => p.required).map(p => `${p.name}=example`).join("&") : ""}`}
-                            </code>
-                            <CopyButton text={ep.method === "POST"
-                              ? `curl -X POST ${baseUrl}${ep.path} -H "Content-Type: application/json" -d '${JSON.stringify(Object.fromEntries((ep.params || []).filter(p => p.required).map(p => [p.name, p.type === "string" ? "example" : "value"])))}'`
-                              : `${baseUrl}${ep.path}${ep.params?.some(p => p.required) ? "?" + ep.params.filter(p => p.required).map(p => `${p.name}=example`).join("&") : ""}`} />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                  {count}
+                </span>
+              </button>
             );
           })}
         </div>
       </div>
+
+      {expandedCategory && (() => {
+        const cat = apiCategories.find(c => c.id === expandedCategory);
+        if (!cat) return null;
+        const catEndpoints = allEndpoints.filter(e => e.category === cat.id);
+        const Icon = categoryIcons[cat.id] || Code2;
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)" }}
+            onClick={(e) => { if (e.target === e.currentTarget) setExpandedCategory(null); }}
+            data-testid="docs-popup-overlay"
+          >
+            <div
+              className="w-full max-w-2xl max-h-[80vh] rounded-xl overflow-hidden flex flex-col"
+              style={{ background: "#0a0a0a", border: "1px solid rgba(0,255,0,0.2)" }}
+            >
+              <div className="flex items-center justify-between px-5 py-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(0,255,0,0.1)" }}>
+                <div className="flex items-center gap-3">
+                  <Icon className="w-5 h-5" style={{ color: "#00ff00" }} />
+                  <div>
+                    <h3 className="text-sm font-bold" style={{ color: "#ffffff", fontFamily: "'Orbitron', sans-serif" }}>{cat.name}</h3>
+                    <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>{cat.description}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(0,255,0,0.1)", color: "#00ff00" }}>{catEndpoints.length} endpoints</span>
+                  {onNavigateToCategory && (
+                    <button
+                      onClick={() => { setExpandedCategory(null); onNavigateToCategory(cat.id); }}
+                      className="text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors"
+                      style={{ background: "rgba(0,255,0,0.1)", color: "#00ff00", border: "1px solid rgba(0,255,0,0.2)" }}
+                      data-testid={`btn-goto-${cat.id}`}
+                    >
+                      Try it →
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setExpandedCategory(null)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-[#1a1a1a]"
+                    data-testid="btn-close-docs-popup"
+                  >
+                    <X className="w-4 h-4" style={{ color: "rgba(255,255,255,0.5)" }} />
+                  </button>
+                </div>
+              </div>
+              <div className="overflow-y-auto flex-1 p-4 space-y-2 hide-scrollbar">
+                {catEndpoints.map((ep, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-lg px-3 py-2.5"
+                    style={{ background: "rgba(0,255,0,0.03)", border: "1px solid rgba(0,255,0,0.06)" }}
+                    data-testid={`docs-endpoint-${cat.id}-${idx}`}
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span
+                        className="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                        style={{ background: ep.method === "POST" ? "rgba(255,165,0,0.15)" : "rgba(0,255,0,0.15)", color: ep.method === "POST" ? "#ffa500" : "#00ff00" }}
+                      >
+                        {ep.method}
+                      </span>
+                      <code className="text-[11px] font-mono" style={{ color: "#ffffff" }}>{ep.path}</code>
+                      {ep.provider && <span className="text-[9px] ml-auto" style={{ color: "rgba(255,255,255,0.25)" }}>{ep.provider}</span>}
+                    </div>
+                    <p className="text-[10px] mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>{ep.description}</p>
+                    {ep.params && ep.params.length > 0 && (
+                      <div className="space-y-1 mb-2">
+                        <span className="text-[9px] font-bold" style={{ color: "rgba(255,255,255,0.25)" }}>PARAMETERS:</span>
+                        {ep.params.map((p, pi) => (
+                          <div key={pi} className="flex items-center gap-2 text-[10px]">
+                            <code style={{ color: "#00ff00" }}>{p.name}</code>
+                            <span style={{ color: "rgba(255,255,255,0.2)" }}>{p.type}</span>
+                            {p.required && <span className="text-[8px] px-1 py-0.5 rounded" style={{ background: "rgba(255,100,100,0.15)", color: "#ff6464" }}>required</span>}
+                            <span style={{ color: "rgba(255,255,255,0.3)" }}>{p.description}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-[9px] font-bold" style={{ color: "rgba(255,255,255,0.25)" }}>EXAMPLE:</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <code
+                          className="text-[10px] px-2 py-1 rounded font-mono flex-1 overflow-x-auto"
+                          style={{ background: "rgba(0,255,0,0.05)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(0,255,0,0.08)" }}
+                        >
+                          {ep.method === "POST"
+                            ? `curl -X POST ${baseUrl}${ep.path} -H "Content-Type: application/json" -d '${JSON.stringify(Object.fromEntries((ep.params || []).filter(p => p.required).map(p => [p.name, p.type === "string" ? "example" : "value"])))}'`
+                            : `${baseUrl}${ep.path}${ep.params?.some(p => p.required) ? "?" + ep.params.filter(p => p.required).map(p => `${p.name}=example`).join("&") : ""}`}
+                        </code>
+                        <CopyButton text={ep.method === "POST"
+                          ? `curl -X POST ${baseUrl}${ep.path} -H "Content-Type: application/json" -d '${JSON.stringify(Object.fromEntries((ep.params || []).filter(p => p.required).map(p => [p.name, p.type === "string" ? "example" : "value"])))}'`
+                          : `${baseUrl}${ep.path}${ep.params?.some(p => p.required) ? "?" + ep.params.filter(p => p.required).map(p => `${p.name}=example`).join("&") : ""}`} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="rounded-xl p-5" style={{ background: "#000000", border: "1px solid rgba(0,255,0,0.1)" }}>
         <h3

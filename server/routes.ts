@@ -17,6 +17,8 @@ import { shortenUrl, shortenerServices } from "../lib/downloaders/urlshortener";
 import * as tools from "../lib/downloaders/tools";
 import * as security from "../lib/downloaders/security";
 import * as sports from "../lib/downloaders/sports";
+import * as movie from "../lib/downloaders/movie";
+import { listTextproEffects, generateTextpro } from "../lib/downloaders/textpro";
 import { allEndpoints as schemaEndpoints, apiCategories as schemaCategories } from "../shared/schema";
 
 function isYouTubeUrl(input: string): boolean {
@@ -1618,6 +1620,129 @@ export async function registerRoutes(
       if (!countryRes.ok) throw new Error(`No country found for "${q}"`);
       const data = await countryRes.json() as any[];
       return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", results: data.slice(0, 5).map((c: any) => ({ name: c.name?.common, official: c.name?.official, capital: c.capital?.[0], population: c.population, region: c.region, subregion: c.subregion, languages: c.languages ? Object.values(c.languages) : [], currencies: c.currencies ? Object.values(c.currencies).map((cur: any) => cur.name) : [], flag: c.flags?.png, timezones: c.timezones })) });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  // ============== MOVIE ROUTES ==============
+  app.get("/api/movie/search", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'q' parameter" });
+      const result = await movie.searchMovies(q, req.query.page as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/info", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await movie.getMovieInfo(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/trailer", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await movie.getMovieTrailer(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/trending", async (req, res) => {
+    try {
+      const result = await movie.getTrendingMovies(req.query.time as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/popular", async (req, res) => {
+    try {
+      const result = await movie.getPopularMovies(req.query.page as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/upcoming", async (req, res) => {
+    try {
+      const result = await movie.getUpcomingMovies(req.query.page as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/top-rated", async (req, res) => {
+    try {
+      const result = await movie.getTopRatedMovies(req.query.page as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/now-playing", async (req, res) => {
+    try {
+      const result = await movie.getNowPlayingMovies(req.query.page as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/similar", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await movie.getSimilarMovies(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/credits", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await movie.getMovieCredits(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/reviews", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await movie.getMovieReviews(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/genres", async (_req, res) => {
+    try {
+      const result = await movie.getMovieGenres();
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/discover", async (req, res) => {
+    try {
+      const result = await movie.discoverMovies(req.query.genre as string, req.query.year as string, req.query.sort as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  // ============== TEXTPRO ROUTES ==============
+  app.get("/api/textpro/list", async (_req, res) => {
+    try {
+      const effects = await listTextproEffects();
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", total: effects.length, effects });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/textpro/generate", async (req, res) => {
+    try {
+      const effect = req.query.effect as string;
+      const text = req.query.text as string;
+      if (!effect) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'effect' parameter. Use /api/textpro/list to see available effects." });
+      if (!text) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'text' parameter" });
+      const imageUrl = await generateTextpro(effect, text);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", effect, text, imageUrl });
     } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
   });
 
