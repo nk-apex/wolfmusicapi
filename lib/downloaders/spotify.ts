@@ -1,16 +1,17 @@
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
+const SPOTDOWN_API_KEY = process.env.SPOTDOWN_API_KEY || "fd7a643c9eedd6459334804d1e8014999e130b93d1d6101a4e0592861db56a16";
+const SPOTDOWN_BASE = "https://spotdown.org";
+
 interface SpotifyTrack {
   title: string;
   artist: string;
   album?: string;
   albumArt?: string;
-  duration?: number;
-  releaseDate?: string;
+  duration?: string;
   spotifyUrl?: string;
   previewUrl?: string;
-  trackId?: string;
 }
 
 interface SpotifySearchResult {
@@ -35,7 +36,7 @@ interface SpotifyDownloadResult {
   error?: string;
 }
 
-async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 15000): Promise<Response> {
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 20000): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -45,305 +46,54 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
   }
 }
 
-let cachedToken: { token: string; expiresAt: number } | null = null;
-
-async function getSpotifyTokenViaAnonymous(): Promise<string | null> {
-  try {
-    const res = await fetchWithTimeout("https://open.spotify.com/get_access_token?reason=transport&productType=web_player", {
-      headers: {
-        "User-Agent": USER_AGENT,
-        "Accept": "application/json",
-        "Origin": "https://open.spotify.com",
-        "Referer": "https://open.spotify.com/",
-      },
-    }, 10000);
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (data.accessToken) {
-      console.log("[spotify] Got token via anonymous endpoint");
-      return data.accessToken;
-    }
-    return null;
-  } catch {
-    return null;
-  }
+function isSpotifyUrl(input: string): boolean {
+  return /spotify\.com\/(track|album|playlist|artist)\//.test(input) || /spotify:(track|album|playlist|artist):/.test(input);
 }
 
-async function getSpotifyTokenViaEmbed(): Promise<string | null> {
-  const embedTracks = [
-    "0VjIjW4GlUZAMYd2vXMi3b",
-    "7qiZfU4dY1lWllzX7mPBI3",
-    "4cOdK2wGLETKBW3PvgPWqT",
-  ];
+async function spotdownRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
+  const res = await fetchWithTimeout(`${SPOTDOWN_BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      "User-Agent": USER_AGENT,
+      "X-API-Key": SPOTDOWN_API_KEY,
+      "Referer": `${SPOTDOWN_BASE}/`,
+      "Accept": "application/json",
+      ...((options.headers as Record<string, string>) || {}),
+    },
+  });
 
-  for (const trackId of embedTracks) {
-    try {
-      const embedRes = await fetchWithTimeout(
-        `https://open.spotify.com/embed/track/${trackId}`,
-        { headers: { "User-Agent": USER_AGENT } },
-        8000
-      );
-      if (!embedRes.ok) continue;
-      const html = await embedRes.text();
-
-      const tokenMatch = html.match(/"accessToken":"([^"]+)"/);
-      if (tokenMatch) {
-        console.log("[spotify] Got token via embed");
-        return tokenMatch[1];
-      }
-    } catch {
-      continue;
-    }
-  }
-  return null;
-}
-
-async function getSpotifyToken(): Promise<string | null> {
-  if (cachedToken && Date.now() < cachedToken.expiresAt) {
-    return cachedToken.token;
+  if (res.status === 429) {
+    throw new Error("Rate limited by Spotdown. Please try again later.");
   }
 
-  const tokenGetters = [
-    getSpotifyTokenViaAnonymous,
-    getSpotifyTokenViaEmbed,
-  ];
-
-  for (const getter of tokenGetters) {
-    const token = await getter();
-    if (token) {
-      cachedToken = {
-        token,
-        expiresAt: Date.now() + 30 * 60 * 1000,
-      };
-      return token;
-    }
-  }
-
-  console.log("[spotify] All token methods failed");
-  return null;
-}
-
-function extractSpotifyId(url: string): { type: string; id: string } | null {
-  const match = url.match(/spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/);
-  if (match) return { type: match[1], id: match[2] };
-  const uriMatch = url.match(/spotify:(track|album|playlist):([a-zA-Z0-9]+)/);
-  if (uriMatch) return { type: uriMatch[1], id: uriMatch[2] };
-  return null;
-}
-
-function parseSpotifyApiTrack(item: any): SpotifyTrack {
-  return {
-    title: item.name || "Unknown",
-    artist: item.artists?.map((a: any) => a.name).join(", ") || "Unknown",
-    album: item.album?.name || undefined,
-    albumArt: item.album?.images?.[0]?.url || undefined,
-    duration: item.duration_ms ? Math.round(item.duration_ms / 1000) : undefined,
-    releaseDate: item.album?.release_date || undefined,
-    spotifyUrl: item.external_urls?.spotify || `https://open.spotify.com/track/${item.id}`,
-    previewUrl: item.preview_url || undefined,
-    trackId: item.id,
-  };
-}
-
-async function searchViaSpotifyApi(query: string, retryCount = 0): Promise<SpotifyTrack[]> {
-  const token = await getSpotifyToken();
-  if (!token) return [];
-
-  try {
-    const res = await fetchWithTimeout(
-      `https://api.spotify.com/v1/search?type=track&q=${encodeURIComponent(query)}&limit=10`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "User-Agent": USER_AGENT,
-        },
-      }
-    );
-
-    if (res.status === 401) {
-      cachedToken = null;
-      if (retryCount < 1) {
-        return searchViaSpotifyApi(query, retryCount + 1);
-      }
-      return [];
-    }
-
-    if (res.status === 429) {
-      const retryAfter = parseInt(res.headers.get("retry-after") || "5");
-      console.log(`[spotify] Rate limited, retry after ${retryAfter}s`);
-      cachedToken = null;
-      if (retryCount < 1 && retryAfter <= 30) {
-        await new Promise(r => setTimeout(r, Math.min(retryAfter, 5) * 1000));
-        return searchViaSpotifyApi(query, retryCount + 1);
-      }
-      return [];
-    }
-
-    if (!res.ok) return [];
-
+  if (!res.ok) {
     const text = await res.text();
-    let data: any;
-    try {
-      data = JSON.parse(text);
-    } catch {
+    throw new Error(`Spotdown returned ${res.status}: ${text.substring(0, 200)}`);
+  }
+
+  return res.json();
+}
+
+async function searchViaSpotdown(query: string): Promise<SpotifyTrack[]> {
+  try {
+    const data = await spotdownRequest(`/api/song-details?url=${encodeURIComponent(query)}`);
+
+    if (!data.songs || !Array.isArray(data.songs) || data.songs.length === 0) {
       return [];
     }
 
-    if (!data.tracks?.items?.length) return [];
-
-    return data.tracks.items.map(parseSpotifyApiTrack);
-  } catch {
+    return data.songs.map((song: any) => ({
+      title: song.title || "Unknown",
+      artist: song.artist || "Unknown",
+      album: song.album || undefined,
+      albumArt: song.thumbnail || undefined,
+      duration: song.duration || undefined,
+      spotifyUrl: song.url || undefined,
+      previewUrl: song.previewUrl || undefined,
+    }));
+  } catch (err: any) {
+    console.log(`[spotify] Spotdown search failed: ${err.message}`);
     return [];
-  }
-}
-
-async function getTrackViaSpotifyApi(trackId: string): Promise<SpotifyTrack | null> {
-  const token = await getSpotifyToken();
-  if (!token) return null;
-
-  try {
-    const res = await fetchWithTimeout(
-      `https://api.spotify.com/v1/tracks/${trackId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "User-Agent": USER_AGENT,
-        },
-      }
-    );
-
-    if (res.status === 429 || res.status === 401) {
-      cachedToken = null;
-      return null;
-    }
-
-    if (!res.ok) return null;
-
-    const text = await res.text();
-    let data: any;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return null;
-    }
-
-    return parseSpotifyApiTrack(data);
-  } catch {
-    return null;
-  }
-}
-
-async function getSpotifyEmbed(trackId: string): Promise<SpotifyTrack | null> {
-  try {
-    const res = await fetchWithTimeout(
-      `https://open.spotify.com/embed/track/${trackId}`,
-      { headers: { "User-Agent": USER_AGENT } }
-    );
-    if (!res.ok) return null;
-    const html = await res.text();
-
-    const titleMatch = html.match(/"title":"([^"]+)"/);
-    const artistsMatch = html.match(/"artists":\[([^\]]+)\]/);
-
-    let title = "Unknown";
-    let artist = "Unknown";
-    let albumArt: string | undefined;
-
-    if (titleMatch) title = titleMatch[1];
-
-    if (artistsMatch) {
-      const names = artistsMatch[1].match(/"name":"([^"]+)"/g);
-      if (names) {
-        artist = names.map(n => n.replace(/"name":"/, "").replace(/"$/, "")).join(", ");
-      }
-    }
-
-    const artMatch = html.match(/"coverArt":\{"sources":\[.*?"url":"([^"]+)"/);
-    if (artMatch) albumArt = artMatch[1];
-
-    return {
-      title,
-      artist,
-      albumArt,
-      spotifyUrl: `https://open.spotify.com/track/${trackId}`,
-      trackId,
-    };
-  } catch {
-    return null;
-  }
-}
-
-async function getDownloadViaYouTube(title: string, artist: string, baseUrl: string): Promise<{ url: string; source: string } | null> {
-  try {
-    const query = `${title} ${artist}`;
-    const searchRes = await fetchWithTimeout(`${baseUrl}/api/search?q=${encodeURIComponent(query)}`);
-    if (!searchRes.ok) return null;
-
-    const searchText = await searchRes.text();
-    let searchData: any;
-    try {
-      searchData = JSON.parse(searchText);
-    } catch {
-      return null;
-    }
-    if (!searchData.items?.length) return null;
-
-    const videoId = searchData.items[0].id;
-    const dlRes = await fetchWithTimeout(`${baseUrl}/download/mp3?url=https://www.youtube.com/watch?v=${videoId}`);
-    if (!dlRes.ok) return null;
-
-    const dlText = await dlRes.text();
-    let dlData: any;
-    try {
-      dlData = JSON.parse(dlText);
-    } catch {
-      return null;
-    }
-    if (!dlData.success || !dlData.downloadUrl) return null;
-
-    return { url: dlData.downloadUrl, source: "youtube" };
-  } catch {
-    return null;
-  }
-}
-
-async function getDownloadViaYouTubeDirect(query: string, baseUrl: string): Promise<{ url: string; title: string; artist: string } | null> {
-  try {
-    const searchRes = await fetchWithTimeout(`${baseUrl}/api/search?q=${encodeURIComponent(query)}`);
-    if (!searchRes.ok) return null;
-
-    const searchText = await searchRes.text();
-    let searchData: any;
-    try {
-      searchData = JSON.parse(searchText);
-    } catch {
-      return null;
-    }
-    if (!searchData.items?.length) return null;
-
-    const firstResult = searchData.items[0];
-    const videoId = firstResult.id;
-    const videoTitle = firstResult.title || query;
-
-    const dlRes = await fetchWithTimeout(`${baseUrl}/download/mp3?url=https://www.youtube.com/watch?v=${videoId}`);
-    if (!dlRes.ok) return null;
-
-    const dlText = await dlRes.text();
-    let dlData: any;
-    try {
-      dlData = JSON.parse(dlText);
-    } catch {
-      return null;
-    }
-    if (!dlData.success || !dlData.downloadUrl) return null;
-
-    const titleParts = videoTitle.split(" - ");
-    const artist = titleParts.length > 1 ? titleParts[0].trim() : "Unknown";
-    const title = titleParts.length > 1 ? titleParts.slice(1).join(" - ").trim() : videoTitle;
-
-    return { url: dlData.downloadUrl, title, artist };
-  } catch {
-    return null;
   }
 }
 
@@ -362,11 +112,9 @@ async function searchViaItunes(query: string): Promise<SpotifyTrack[]> {
       artist: item.artistName || "Unknown",
       album: item.collectionName || undefined,
       albumArt: item.artworkUrl100?.replace("100x100", "400x400") || undefined,
-      duration: item.trackTimeMillis ? Math.round(item.trackTimeMillis / 1000) : undefined,
-      releaseDate: item.releaseDate?.substring(0, 10) || undefined,
+      duration: item.trackTimeMillis ? `${Math.floor(item.trackTimeMillis / 60000)}:${String(Math.floor((item.trackTimeMillis % 60000) / 1000)).padStart(2, "0")}` : undefined,
       spotifyUrl: undefined,
       previewUrl: item.previewUrl || undefined,
-      trackId: String(item.trackId || ""),
     }));
   } catch {
     return [];
@@ -380,10 +128,10 @@ export async function searchSpotify(query: string): Promise<SpotifySearchResult>
 
   console.log(`[spotify] Searching: ${query}`);
 
-  let tracks = await searchViaSpotifyApi(query);
+  let tracks = await searchViaSpotdown(query);
 
   if (tracks.length === 0) {
-    console.log(`[spotify] Spotify API failed, trying iTunes fallback`);
+    console.log(`[spotify] Spotdown search failed, trying iTunes fallback`);
     tracks = await searchViaItunes(query);
   }
 
@@ -413,70 +161,66 @@ export async function downloadSpotify(
   }
 
   input = input.trim();
-  let trackInfo: SpotifyTrack | null = null;
 
-  const spotifyParsed = extractSpotifyId(input);
-  if (spotifyParsed && spotifyParsed.type === "track") {
-    trackInfo = await getTrackViaSpotifyApi(spotifyParsed.id);
-    if (!trackInfo) {
-      trackInfo = await getSpotifyEmbed(spotifyParsed.id);
+  try {
+    const songData = await spotdownRequest(`/api/song-details?url=${encodeURIComponent(input)}`);
+
+    if (!songData.songs || songData.songs.length === 0) {
+      return { success: false, creator: "APIs by Silent Wolf | A tech explorer", error: `No results found for "${input}".` };
     }
-  }
 
-  if (!trackInfo) {
-    console.log(`[spotify] Input is not a Spotify URL or track not found, searching: ${input}`);
-    const searchResult = await searchSpotify(input);
-    if (searchResult.success && searchResult.tracks && searchResult.tracks.length > 0) {
-      trackInfo = searchResult.tracks[0];
+    const song = songData.songs[0];
+    const spotifyUrl = song.url;
+
+    if (!spotifyUrl) {
+      return { success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Could not find Spotify URL for track." };
     }
-  }
 
-  if (trackInfo) {
-    console.log(`[spotify] Found track: ${trackInfo.title} by ${trackInfo.artist}`);
+    const downloadUrl = `${SPOTDOWN_BASE}/api/direct-download?url=${encodeURIComponent(spotifyUrl)}`;
 
-    const ytResult = await getDownloadViaYouTube(trackInfo.title, trackInfo.artist, baseUrl);
-    if (ytResult) {
+    return {
+      success: true,
+      creator: "APIs by Silent Wolf | A tech explorer",
+      title: song.title || "Unknown",
+      artist: song.artist || "Unknown",
+      album: song.album || undefined,
+      albumArt: song.thumbnail || undefined,
+      downloadUrl,
+      format: "mp3",
+      source: "spotdown",
+      spotifyUrl,
+    };
+  } catch (err: any) {
+    console.log(`[spotify] Spotdown download failed: ${err.message}`);
+
+    if (isSpotifyUrl(input)) {
       return {
-        success: true,
+        success: false,
         creator: "APIs by Silent Wolf | A tech explorer",
-        title: trackInfo.title,
-        artist: trackInfo.artist,
-        album: trackInfo.album,
-        albumArt: trackInfo.albumArt,
-        downloadUrl: ytResult.url,
-        format: "mp3",
-        source: ytResult.source,
-        spotifyUrl: trackInfo.spotifyUrl,
+        error: `Download failed: ${err.message}. Please try again later.`,
       };
     }
+
+    try {
+      const searchResult = await searchViaItunes(input);
+      if (searchResult.length > 0) {
+        const track = searchResult[0];
+        return {
+          success: false,
+          creator: "APIs by Silent Wolf | A tech explorer",
+          title: track.title,
+          artist: track.artist,
+          album: track.album,
+          albumArt: track.albumArt,
+          error: "Download temporarily unavailable. Track info returned from iTunes.",
+        };
+      }
+    } catch {}
 
     return {
       success: false,
       creator: "APIs by Silent Wolf | A tech explorer",
-      title: trackInfo.title,
-      artist: trackInfo.artist,
-      spotifyUrl: trackInfo.spotifyUrl,
-      error: "Download temporarily unavailable. Try again later.",
+      error: `Could not find track for "${input}". Try a Spotify URL or different search term.`,
     };
   }
-
-  console.log(`[spotify] Spotify search unavailable, falling back to YouTube for: ${input}`);
-  const ytDirect = await getDownloadViaYouTubeDirect(input, baseUrl);
-  if (ytDirect) {
-    return {
-      success: true,
-      creator: "APIs by Silent Wolf | A tech explorer",
-      title: ytDirect.title,
-      artist: ytDirect.artist,
-      downloadUrl: ytDirect.url,
-      format: "mp3",
-      source: "youtube",
-    };
-  }
-
-  return {
-    success: false,
-    creator: "APIs by Silent Wolf | A tech explorer",
-    error: `Could not find track for "${input}". Try a Spotify URL or different search term.`,
-  };
 }

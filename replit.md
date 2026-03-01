@@ -1,92 +1,77 @@
 # WolfApis
 
 ## Overview
-A multi-provider API hub (branded as WOLFAPIS) that provides unified access to AI chat services, image search, social media downloaders (YouTube, TikTok, Instagram, Facebook), Spotify search/download, and Shazam music recognition. No API keys required - all endpoints work through web scraping and reverse-engineered APIs. Features a minimal dark-themed cyberpunk documentation frontend with interactive playground.
+A multi-provider API hub (branded as WOLFAPIS v3.0) that provides unified access to 33+ AI chat models, AI tools (translate, summarize, code), image search, music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook), Spotify search/download (via spotdown.org), Shazam music recognition, and Ephoto360 text effect generation. 63 total endpoints across 11 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing.
 
 ## Architecture
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui components
 - **Backend**: Express.js server in `server/`
-- **AI Proxy**: `server/ai-routes.ts` - routes that proxy AI chat/image through chateverywhere.app (free, no API keys)
-- **Music Scraping**: `lib/scraper.ts` - shared scraping module for YouTube music search via yt-dlp (self-contained, no external API dependency), download via yt-dlp primary + y2mate/cobalt/vevioz/savefrom/cnvmp3 fallbacks with provider health tracking
+- **AI Proxy**: `server/ai-routes.ts` - 33 AI chat endpoints via chateverywhere.app + OpenAI (GPT-4/4o), plus translate/summarize/code tools
+- **Music Scraping**: `lib/scraper.ts` - YouTube music search via yt-dlp, download via yt-dlp + y2mate/cobalt/vevioz/savefrom/cnvmp3 fallbacks
 - **Social Media Downloaders**: `lib/downloaders/` - TikTok, Instagram, YouTube, Facebook video downloaders
-- **Spotify**: `lib/downloaders/spotify.ts` - Spotify search via multiple token sources (anonymous endpoint + embed) with iTunes/Apple Music fallback + download via YouTube matching
-- **Shazam**: `lib/downloaders/shazam.ts` - Shazam search + song recognition via reverse-engineered API (shazam-api npm)
-- **Data Sources**: chateverywhere.app (AI chat + image), yt-dlp (music search + download, self-contained), y2mate/cobalt/vevioz/savefrom/cnvmp3 (download fallbacks), Spotify anonymous token + iTunes (search), Shazam/iTunes (track lookup), Shazam API (search + recognition)
-- **Provider Health System**: Automatic tracking of provider failures with cooldown periods (5 min cooldown after 3 failures, auto-reset after 15 min). Broken providers are temporarily skipped to speed up responses.
+- **Spotify**: `lib/downloaders/spotify.ts` - Search and download via spotdown.org API with iTunes fallback
+- **Shazam**: `lib/downloaders/shazam.ts` - Shazam search + song recognition via reverse-engineered API
+- **Ephoto360**: `lib/downloaders/ephoto360.ts` - 25 text/neon effect generators via ephoto360.com
+- **Provider Health System**: Automatic tracking of provider failures with cooldown periods
 
 ## Key Files
-- `shared/schema.ts` - All endpoint definitions, categories, and TypeScript types
-- `server/ai-routes.ts` - AI proxy endpoints scraping chateverywhere.app (8 chat + 1 image)
-- `server/routes.ts` - Express API endpoint definitions (music, social media, Spotify, Shazam + registers AI routes)
+- `shared/schema.ts` - All 63 endpoint definitions, 11 categories, and TypeScript types
+- `server/ai-routes.ts` - AI proxy endpoints (33 chat + 3 tools + 1 image)
+- `server/routes.ts` - Express API endpoint definitions (music, social media, Spotify, Shazam, Ephoto + registers AI routes)
 - `lib/scraper.ts` - Shared scraping logic (search, check, download info)
-- `lib/downloaders/spotify.ts` - Spotify search (via embed token) + download (via YouTube)
-- `lib/downloaders/shazam.ts` - Shazam search + song recognition (via shazam-api npm package)
+- `lib/downloaders/spotify.ts` - Spotify search/download via spotdown.org
+- `lib/downloaders/shazam.ts` - Shazam search + song recognition
+- `lib/downloaders/ephoto360.ts` - Ephoto360 text effect generation
 - `lib/downloaders/tiktok.ts` - TikTok video downloader
-- `lib/downloaders/instagram.ts` - Instagram media downloader (multiple fallback providers)
+- `lib/downloaders/instagram.ts` - Instagram media downloader
 - `lib/downloaders/youtube.ts` - YouTube video downloader
 - `lib/downloaders/facebook.ts` - Facebook video downloader
-- `client/src/pages/home.tsx` - Main UI with category browsing, endpoint docs, and playground
-- `client/src/index.css` - Styles
+- `client/src/pages/home.tsx` - Main UI with sidebar navigation and popup API tester
+- `client/src/index.css` - Neon cyberpunk theme styles
 - `client/src/assets/wolf-logo.png` - Wolf logo
 
-## API Categories
-### AI Chat (all powered by chateverywhere.app - no API keys needed)
-- `POST /api/ai/gpt` - GPT chat
-- `POST /api/ai/claude` - Claude-style chat
-- `POST /api/ai/mistral` - Mistral-style chat
-- `POST /api/ai/gemini` - Gemini-style chat
-- `POST /api/ai/deepseek` - DeepSeek-style chat
-- `POST /api/ai/venice` - Venice-style chat
-- `POST /api/ai/groq` - Groq-style chat
-- `POST /api/ai/cohere` - Cohere-style chat
+## API Categories (63 endpoints total)
 
-### AI Image (powered by chateverywhere.app Unsplash proxy)
-- `POST /api/ai/image/dall-e` - Image search by prompt
+### AI Chat (33 endpoints - chateverywhere.app + OpenAI)
+GPT, GPT-4, GPT-4o, Claude, Mistral, Gemini, DeepSeek, Venice, Groq, Cohere, LLaMA, Mixtral, Phi, Qwen, Falcon, Vicuna, OpenChat, WizardLM, Zephyr, CodeLlama, StarCoder, Dolphin, Nous Hermes, OpenHermes, NeuralChat, Solar, Yi, TinyLlama, Orca, Command R, Nemotron, InternLM, ChatGLM
 
-### Music & Media (search via yt-dlp, download via yt-dlp + fallbacks - no API keys needed)
-- `GET /api/search?q=...` - Search songs
-- `GET /download/mp3?url=...` - MP3 download (real MP3, 192kbps)
-- `GET /download/mp4?url=...` - MP4 download (360p)
-- `GET /download/stream/mp3?q=...` - Stream MP3 directly (best for bots)
-- `GET /download/stream/mp4?q=...` - Stream MP4 directly (best for bots)
-- Plus more download variants (audio, ytmp3, dlmp3, yta, yta2, yta3)
+### AI Tools (3 endpoints)
+- `POST /api/ai/translate` - AI translation
+- `POST /api/ai/summarize` - AI summarization
+- `POST /api/ai/code` - AI code generation
 
-### Spotify (no API keys needed - uses anonymous token + iTunes fallback)
-- `GET /api/spotify/search?q=...` - Search tracks on Spotify (returns title, artist, album, art, duration, Spotify URL)
-- `GET /api/spotify/download?url=...` or `?q=...` - Download Spotify track as MP3 (via YouTube matching)
+### AI Image (1 endpoint)
+- `POST /api/ai/image/dall-e` - Image search (Unsplash-powered)
 
-### Shazam (no API keys needed - reverse-engineered API)
-- `GET /api/shazam/search?q=...` - Search for songs on Shazam
-- `POST /api/shazam/recognize` - Identify a song from audio (base64 PCM or audio URL)
-- `GET /api/shazam/track/:id` - Get detailed track info by Shazam ID
+### Music & Media (15 endpoints)
+Search, MP3/MP4 download (multiple variants), lyrics, trending
 
-### Social Media Downloaders
-- `GET /api/download/tiktok?url=...` - Download TikTok videos without watermark
-- `GET /api/download/instagram?url=...` - Download Instagram media (currently blocked by Instagram)
-- `GET /api/download/youtube?url=...` or `?q=...` - Download YouTube videos
-- `GET /api/download/facebook?url=...` - Download Facebook videos
+### Spotify (2 endpoints - via spotdown.org)
+- `GET /api/spotify/search?q=...` - Search tracks
+- `GET /api/spotify/download?url=...` or `?q=...` - Download as MP3
 
-## No API Keys Required
-All endpoints work through web scraping and reverse-engineered APIs - no API keys or environment secrets needed for any functionality.
+### Shazam (3 endpoints)
+- `GET /api/shazam/search?q=...` - Search songs
+- `POST /api/shazam/recognize` - Identify from audio
+- `GET /api/shazam/track/:id` - Track details
+
+### Ephoto360 (2 endpoints)
+- `GET /api/ephoto/list` - List 25 text effects
+- `POST /api/ephoto/generate` - Generate text effect image
+
+### Social Media Downloaders (4 endpoints)
+TikTok, Instagram, YouTube, Facebook
+
+## Environment Variables
+- `OPENAI_API_KEY` - Required for GPT-4/GPT-4o endpoints only (optional, other AI endpoints work without it)
+- `SPOTDOWN_API_KEY` - Spotify download API key (has fallback default)
+- `YOUTUBE_API_KEY` - YouTube trending API key (optional, falls back to search)
 
 ## Branding
 - Name: WOLFAPIS (WOLF in green #00ff00, APIS in white)
-- Subtitle: MULTI-PROVIDER API HUB
-- Dark theme with #0a0a0a background, minimal borders, neon green accents
-- Wolf logo image as favicon and header icon
+- Creator tag: "APIs by Silent Wolf | A tech explorer"
+- Dark theme with #0a0a0a background, neon green accents
+- Sidebar navigation with popup-based API testing
 
 ## Recent Changes
-- 2026-02-21: Major stability overhaul - replaced rinodepot.fr search with self-contained yt-dlp search (no external API dependency), added YouTube HTML scraping as search fallback, added provider health tracking system (auto-disables broken providers for 5 min after 3 failures), improved stream handler to pipe directly via yt-dlp (fixes HLS/manifest URL issues), added iTunes/Apple Music as Spotify search fallback, added multiple Spotify token sources (anonymous endpoint + embed), fixed rate-limit handling to avoid long waits
-- 2026-02-19: Fixed all download providers - installed yt-dlp + ffmpeg, made yt-dlp primary provider, added SaveFrom + CnvMP3 fallbacks, updated Cobalt to community instances, added y2mate auth caching + rate-limit handling, improved Vevioz with multiple endpoints. Provider chain: ytdlp → y2mate → cobalt → vevioz → savefrom → cnvmp3
-- 2026-02-18: Added Spotify search + download endpoints (search via embed token, download via YouTube matching)
-- 2026-02-18: Added Shazam search + song recognition + track details endpoints (via shazam-api npm package)
-- 2026-02-18: Added yt-dlp as 4th fallback download provider for MP3/MP4 (local, no rate limits)
-- 2026-02-18: Improved Instagram downloader with 5 fallback providers and better error handling
-- 2026-02-15: Switched MP3/MP4 downloads from ytdown.to (returned M4A) to y2mate.nu/etacloud.org (returns real MP3 at 192kbps)
-- 2026-02-15: Added /download/stream/mp3 and /download/stream/mp4 endpoints for direct bot playback
-- 2026-02-15: Simplified YouTube full downloader to return MP3 + MP4 via y2mate
-- 2026-02-13: Switched AI endpoints from direct API keys to scraping chateverywhere.app (free, no keys needed)
-- 2026-02-13: Major pivot from music-only (WolfMusicApi) to multi-provider API hub (WolfApis)
-- 2026-02-13: Added AI chat endpoints for 8 providers + image search endpoint
-- 2026-02-13: Redesigned frontend with category filtering, endpoint cards, and unified playground
-- 2026-02-12: Initial build with YouTube music endpoints and cyberpunk theme
+- 2026-03-01: Major v3.0 expansion - 33 AI chat models, Spotify rewrite (spotdown.org), Ephoto360 text effects, sidebar UI + popup tester, removed stream endpoints, added lyrics/trending/ytmp4/dlmp4/video/hd endpoints

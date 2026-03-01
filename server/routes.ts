@@ -1,28 +1,15 @@
 import type { Express } from "express";
 import { type Server } from "http";
-import { spawn } from "child_process";
 import { searchSongs, getDownloadInfo, extractVideoId } from "./scraper";
-import { existsSync } from "fs";
-import path from "path";
 import { registerAIRoutes } from "./ai-routes";
 import { downloadTikTok } from "../lib/downloaders/tiktok";
 import { downloadInstagram } from "../lib/downloaders/instagram";
 import { downloadYouTube } from "../lib/downloaders/youtube";
 import { downloadFacebook } from "../lib/downloaders/facebook";
 import { searchSpotify, downloadSpotify } from "../lib/downloaders/spotify";
-import { searchShazam, recognizeShazam, recognizeShazamFull, getTrackDetails } from "../lib/downloaders/shazam";
-
-function getCookiesPath(): string | null {
-  const paths = [
-    path.join(process.cwd(), "cookies.txt"),
-    "/var/www/wolfmusicapi/cookies.txt",
-    path.join(process.env.HOME || "", "cookies.txt"),
-  ];
-  for (const p of paths) {
-    if (existsSync(p)) return p;
-  }
-  return null;
-}
+import { searchShazam, recognizeShazamFull, getTrackDetails } from "../lib/downloaders/shazam";
+import { generateEphoto, listEphotoEffects } from "../lib/downloaders/ephoto360";
+import { allEndpoints as schemaEndpoints, apiCategories as schemaCategories } from "../shared/schema";
 
 function isYouTubeUrl(input: string): boolean {
   return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|m\.youtube\.com)\//i.test(input) ||
@@ -41,7 +28,6 @@ export async function registerRoutes(
       if (!q || q.trim().length === 0) {
         return res.status(400).json({ error: "Query parameter 'q' is required" });
       }
-
       const results = await searchSongs(q.trim());
       return res.json({
         success: true,
@@ -82,12 +68,9 @@ export async function registerRoutes(
         const videoUrl = `https://www.youtube.com/watch?v=${firstResult.id}`;
         const result = await getDownloadInfo(videoUrl, format);
 
-        const streamParam = `url=${encodeURIComponent(videoUrl)}`;
         return res.json({
           ...result,
           creator: "APIs by Silent Wolf | A tech explorer",
-          streamUrl: `${baseUrl}/download/stream/${format}?${streamParam}`,
-          note: "Use streamUrl for direct playback in bots (streams audio/video directly).",
           searchQuery: url,
           searchResult: {
             title: firstResult.title,
@@ -98,12 +81,9 @@ export async function registerRoutes(
       }
 
       const result = await getDownloadInfo(url, format);
-      const streamParam = `url=${encodeURIComponent(url)}`;
       return res.json({
         ...result,
         creator: "APIs by Silent Wolf | A tech explorer",
-        streamUrl: `${baseUrl}/download/stream/${format}?${streamParam}`,
-        note: "Use streamUrl for direct playback in bots (streams audio/video directly).",
       });
     } catch (error: any) {
       return res.status(500).json({
@@ -121,99 +101,113 @@ export async function registerRoutes(
   app.get("/download/yta2", downloadHandler("mp3"));
   app.get("/download/yta3", downloadHandler("mp3"));
   app.get("/download/mp4", downloadHandler("mp4"));
+  app.get("/download/ytmp4", downloadHandler("mp4"));
+  app.get("/download/dlmp4", downloadHandler("mp4"));
+  app.get("/download/video", downloadHandler("mp4"));
+  app.get("/download/hd", downloadHandler("mp4"));
 
-  const streamHandler = (format: "mp3" | "mp4") => async (req: any, res: any) => {
+  app.get("/download/lyrics", async (req, res) => {
     try {
-      let url = (req.query.url as string) || (req.query.q as string) || (req.query.name as string);
-      if (!url || url.trim().length === 0) {
-        return res.status(400).json({
-          success: false,
+      const q = (req.query.q as string) || (req.query.name as string);
+      if (!q || q.trim().length === 0) {
+        return res.status(400).json({ success: false, error: "Query parameter 'q' is required. Example: /download/lyrics?q=Shape of You" });
+      }
+
+      const searchTerm = q.trim();
+      const response = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(searchTerm.split(" - ")[0] || searchTerm)}/${encodeURIComponent(searchTerm.split(" - ")[1] || searchTerm)}`, {
+        headers: { "User-Agent": "Mozilla/5.0" },
+      });
+
+      if (response.ok) {
+        const data = await response.json() as any;
+        if (data.lyrics) {
+          return res.json({
+            success: true,
+            creator: "APIs by Silent Wolf | A tech explorer",
+            query: searchTerm,
+            lyrics: data.lyrics.trim(),
+          });
+        }
+      }
+
+      const geniusRes = await fetch(`https://some-random-api.com/lyrics?title=${encodeURIComponent(searchTerm)}`, {
+        headers: { "User-Agent": "Mozilla/5.0" },
+      });
+      if (geniusRes.ok) {
+        const gData = await geniusRes.json() as any;
+        if (gData.lyrics) {
+          return res.json({
+            success: true,
+            creator: "APIs by Silent Wolf | A tech explorer",
+            query: searchTerm,
+            title: gData.title,
+            author: gData.author,
+            thumbnail: gData.thumbnail?.genius,
+            lyrics: gData.lyrics,
+          });
+        }
+      }
+
+      return res.status(404).json({
+        success: false,
+        creator: "APIs by Silent Wolf | A tech explorer",
+        error: `No lyrics found for "${searchTerm}". Try "Artist - Song Title" format.`,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "Lyrics fetch failed" });
+    }
+  });
+
+  app.get("/api/trending", async (req, res) => {
+    try {
+      const country = (req.query.country as string) || "US";
+      const ytApiKey = process.env.YOUTUBE_API_KEY || "";
+      if (!ytApiKey) {
+        const searchResults = await searchSongs("trending music " + country);
+        return res.json({
+          success: true,
           creator: "APIs by Silent Wolf | A tech explorer",
-          error: "Provide 'url' (YouTube link) or 'q'/'name' (song name) as a query parameter.",
+          country,
+          items: searchResults.items.slice(0, 20),
+          source: "search",
+        });
+      }
+      const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&videoCategoryId=10&regionCode=${country}&maxResults=20&key=${ytApiKey}`, {
+        headers: { "User-Agent": "Mozilla/5.0" },
+      });
+
+      if (!response.ok) {
+        const searchResults = await searchSongs("trending music " + country);
+        return res.json({
+          success: true,
+          creator: "APIs by Silent Wolf | A tech explorer",
+          country,
+          items: searchResults.items.slice(0, 20),
+          source: "search",
         });
       }
 
-      url = url.trim();
+      const data = await response.json() as any;
+      const items = (data.items || []).map((item: any) => ({
+        title: item.snippet?.title,
+        channelTitle: item.snippet?.channelTitle,
+        videoId: item.id,
+        thumbnail: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.default?.url,
+        viewCount: item.statistics?.viewCount,
+        duration: item.contentDetails?.duration,
+        publishedAt: item.snippet?.publishedAt,
+      }));
 
-      if (!isYouTubeUrl(url)) {
-        const searchResults = await searchSongs(url);
-        if (!searchResults.items || searchResults.items.length === 0) {
-          return res.status(404).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: `No results found for "${url}".` });
-        }
-        url = `https://www.youtube.com/watch?v=${searchResults.items[0].id}`;
-      }
-
-      const videoId = extractVideoId(url);
-      if (!videoId) {
-        return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Invalid YouTube URL." });
-      }
-
-      const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-      const contentType = format === "mp3" ? "audio/mpeg" : "video/mp4";
-      const safeTitle = `audio_${videoId}`;
-      res.setHeader("Content-Type", contentType);
-      res.setHeader("Content-Disposition", `attachment; filename="${safeTitle}.${format}"`);
-      res.setHeader("X-Creator", "APIs by Silent Wolf | A tech explorer");
-      res.setHeader("Transfer-Encoding", "chunked");
-
-      const formatArg = format === "mp3"
-        ? "bestaudio[ext=m4a]/bestaudio"
-        : "best[height<=480][ext=mp4]/best[ext=mp4]/best";
-
-      const cookiesPath = getCookiesPath();
-      const ytdlpArgs = [
-        ...(cookiesPath ? ["--cookies", cookiesPath] : []),
-        "--no-warnings",
-        "-f", formatArg,
-        "-o", "-",
-        youtubeUrl,
-      ];
-      const ytdlp = spawn("yt-dlp", ytdlpArgs);
-
-      let hasData = false;
-
-      ytdlp.stdout.on("data", (chunk: Buffer) => {
-        hasData = true;
-        if (!res.writableEnded) {
-          res.write(chunk);
-        }
-      });
-
-      ytdlp.stderr.on("data", (data: Buffer) => {
-        console.log(`[stream] yt-dlp stderr: ${data.toString().trim()}`);
-      });
-
-      ytdlp.on("close", (code) => {
-        if (!hasData && !res.headersSent) {
-          return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: `Stream failed (yt-dlp exit code ${code})` });
-        }
-        if (!res.writableEnded) {
-          res.end();
-        }
-      });
-
-      ytdlp.on("error", (err) => {
-        if (!res.headersSent) {
-          return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: `Stream error: ${err.message}` });
-        }
-        if (!res.writableEnded) {
-          res.end();
-        }
-      });
-
-      req.on("close", () => {
-        ytdlp.kill("SIGTERM");
+      return res.json({
+        success: true,
+        creator: "APIs by Silent Wolf | A tech explorer",
+        country,
+        items,
       });
     } catch (error: any) {
-      if (!res.headersSent) {
-        return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message || "Stream failed" });
-      }
+      return res.status(500).json({ success: false, error: error.message || "Trending fetch failed" });
     }
-  };
-
-  app.get("/download/stream/mp3", streamHandler("mp3"));
-  app.get("/download/stream/mp4", streamHandler("mp4"));
+  });
 
   app.get("/api/download/tiktok", async (req, res) => {
     try {
@@ -262,13 +256,9 @@ export async function registerRoutes(
       if (!isYouTubeUrl(url)) {
         const searchResults = await searchSongs(url);
         if (!searchResults.items || searchResults.items.length === 0) {
-          return res.status(404).json({
-            success: false,
-            error: `No results found for "${url}".`,
-          });
+          return res.status(404).json({ success: false, error: `No results found for "${url}".` });
         }
-        const firstResult = searchResults.items[0];
-        url = `https://www.youtube.com/watch?v=${firstResult.id}`;
+        url = `https://www.youtube.com/watch?v=${searchResults.items[0].id}`;
       }
 
       const result = await downloadYouTube(url);
@@ -376,16 +366,9 @@ export async function registerRoutes(
         const { audio, url: audioUrl } = req.body || {};
 
         if (audioUrl) {
-          console.log(`[shazam] Downloading audio from URL: ${audioUrl}`);
-          const audioRes = await fetch(audioUrl, {
-            headers: { "User-Agent": "Mozilla/5.0" },
-          });
+          const audioRes = await fetch(audioUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
           if (!audioRes.ok) {
-            return res.status(400).json({
-              success: false,
-              creator: "APIs by Silent Wolf | A tech explorer",
-              error: "Failed to download audio from the provided URL.",
-            });
+            return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Failed to download audio from the provided URL." });
           }
           audioBuffer = Buffer.from(await audioRes.arrayBuffer());
         } else if (audio) {
@@ -394,25 +377,57 @@ export async function registerRoutes(
           return res.status(400).json({
             success: false,
             creator: "APIs by Silent Wolf | A tech explorer",
-            error: "Provide 'audio' (base64-encoded raw PCM s16LE) or 'url' (link to audio file) in the request body. Example: {\"url\": \"https://example.com/audio.mp3\"} or {\"audio\": \"<base64 PCM data>\"}",
+            error: "Provide 'audio' (base64-encoded raw PCM s16LE) or 'url' (link to audio file) in the request body.",
           });
         }
       }
 
       if (audioBuffer.length < 1000) {
-        return res.status(400).json({
-          success: false,
-          creator: "APIs by Silent Wolf | A tech explorer",
-          error: "Audio data too short. Provide at least a few seconds of audio.",
-        });
+        return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Audio data too short." });
       }
 
-      console.log(`[shazam] Recognizing audio: ${audioBuffer.length} bytes`);
       const result = await recognizeShazamFull(audioBuffer);
       return res.json(result);
     } catch (error: any) {
       return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message || "Shazam recognition failed" });
     }
+  });
+
+  app.get("/api/ephoto/list", (_req, res) => {
+    return res.json({
+      success: true,
+      creator: "APIs by Silent Wolf | A tech explorer",
+      effects: listEphotoEffects(),
+    });
+  });
+
+  app.post("/api/ephoto/generate", async (req, res) => {
+    try {
+      const { effect, text, text2 } = req.body;
+      if (!effect || !text) {
+        return res.status(400).json({
+          success: false,
+          error: "Parameters 'effect' (effect slug or ID) and 'text' (text to render) are required.",
+        });
+      }
+
+      const texts = text2 ? [text, text2] : [text];
+      const result = await generateEphoto(effect, texts);
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message || "Ephoto generation failed" });
+    }
+  });
+
+  app.get("/api/endpoints", (_req, res) => {
+    return res.json({
+      success: true,
+      creator: "APIs by Silent Wolf | A tech explorer",
+      version: "3.0",
+      totalEndpoints: schemaEndpoints.length,
+      categories: schemaCategories,
+      endpoints: schemaEndpoints,
+    });
   });
 
   return httpServer;
