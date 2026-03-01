@@ -754,6 +754,15 @@ export const TEXTPRO_EFFECTS: { id: string; name: string; logoId: number; params
 const textproEndpoints: ApiEndpoint[] = [
   { path: "/api/textpro/list", method: "GET", description: "List all available text effects with style previews", params: [], format: "json", category: "textpro", provider: "CoolText" },
   { path: "/api/textpro/generate", method: "GET", description: "Generate a styled text effect image", params: [{ name: "effect", type: "string", required: true, description: "Effect ID from the effects list" }, { name: "text", type: "string", required: true, description: "Text to render" }], format: "json", category: "textpro", provider: "CoolText" },
+  ...TEXTPRO_EFFECTS.map(e => ({
+    path: `/api/textpro/${e.id}`,
+    method: "GET" as const,
+    description: `Generate ${e.name} text effect`,
+    params: [{ name: "text", type: "string", required: true, description: "Text to render" }],
+    format: "json" as const,
+    category: "textpro" as const,
+    provider: "CoolText",
+  })),
 ];
 
 export const allEndpoints: ApiEndpoint[] = [

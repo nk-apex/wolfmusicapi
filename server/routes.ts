@@ -1746,6 +1746,16 @@ export async function registerRoutes(
     } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
   });
 
+  app.get("/api/textpro/:effectId", async (req, res) => {
+    try {
+      const effectId = req.params.effectId;
+      const text = req.query.text as string;
+      if (!text) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'text' parameter" });
+      const imageUrl = await generateTextpro(effectId, text);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", effect: effectId, text, imageUrl });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
   app.get("/api/endpoints", (_req, res) => {
     return res.json({
       success: true,

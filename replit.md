@@ -1,7 +1,7 @@
 # WolfApis
 
 ## Overview
-A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 33+ AI chat models, AI tools (translate, summarize, code, AI scanner, humanizer), AI image endpoints (6 providers: Unsplash, Lorem Picsum, LoremFlickr, Dog CEO, CATAAS), music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook), Spotify search/download, Shazam music recognition, Ephoto360 text effect generation (60 effects), PhotoFunia image effects (154 effects), anime images (30 types), fun text content (37 categories), URL services (7 shorteners + ImgBB + Catbox image hosting), developer tools (21 utilities), security/ethical hacking tools (38 endpoints), sports data (24 endpoints via TheSportsDB), and search APIs (10 endpoints). 457+ total endpoints across 20 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing and a documentation page with clickable expandable endpoint docs.
+A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 33+ AI chat models, AI tools (translate, summarize, code, AI scanner, humanizer), AI image endpoints (6 providers: Unsplash, Lorem Picsum, LoremFlickr, Dog CEO, CATAAS), music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook), Spotify search/download, Shazam music recognition, Ephoto360 text effect generation (60 effects), PhotoFunia image effects (154 effects), Text Effects (109 effects via CoolText), movie data (13 endpoints via OMDb/YTS), anime images (30 types), fun text content (37 categories), URL services (7 shorteners + ImgBB + Catbox image hosting), developer tools (21 utilities), security/ethical hacking tools (38 endpoints), sports data (24 endpoints via TheSportsDB), and search APIs (10 endpoints). 580+ total endpoints across 22 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing, search bar with autocomplete for effect categories, and a documentation page with clickable expandable endpoint docs.
 
 ## Architecture
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui components
@@ -13,6 +13,8 @@ A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access
 - **Shazam**: `lib/downloaders/shazam.ts` - Shazam search + song recognition via reverse-engineered API
 - **Ephoto360**: `lib/downloaders/ephoto360.ts` - 60 text/neon/3D effect generators via ephoto360.com
 - **PhotoFunia**: `lib/downloaders/photofunia.ts` - 154 photo effects via photofunia.com
+- **TextPro**: `lib/downloaders/textpro.ts` - 109 text effects via CoolText API (neon, 3D, chrome, fire, glitter, graffiti, etc.)
+- **Movie**: `lib/downloaders/movie.ts` - 13 movie data endpoints via OMDb/YTS APIs
 - **Anime**: `lib/downloaders/anime.ts` - 30 anime image types via waifu.pics & nekos.best
 - **Fun**: `lib/downloaders/fun.ts` - 37 fun text content categories with built-in arrays + external API fallbacks
 - **URL Shortener**: `lib/downloaders/urlshortener.ts` - 7 shortener services (TinyURL, is.gd, v.gd, CleanURI, etc.)
@@ -25,7 +27,7 @@ A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access
 - **Stalker**: `lib/downloaders/stalker.ts` - OSINT profile lookup tools (GitHub, IP, NPM, TikTok, Instagram, Twitter, WhatsApp)
 
 ## Key Files
-- `shared/schema.ts` - All 457+ endpoint definitions, 20 categories, and TypeScript types
+- `shared/schema.ts` - All 580+ endpoint definitions, 22 categories, and TypeScript types
 - `server/ai-routes.ts` - AI proxy endpoints (33 chat + 5 tools + 6 image)
 - `server/routes.ts` - Express API endpoint definitions (all categories + registers AI routes + 10 search routes)
 - `lib/scraper.ts` - Shared scraping logic (search, check, download info)

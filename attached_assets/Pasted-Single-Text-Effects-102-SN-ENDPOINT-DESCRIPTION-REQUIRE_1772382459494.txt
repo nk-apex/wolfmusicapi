@@ -1,0 +1,559 @@
+Single Text Effects (102)
+SN	ENDPOINT	DESCRIPTION	REQUIRED	STATUS	ACTION
+1	
+Xmas Cards 3D
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+2	
+Blood Text On The Frosted Glass
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+3	
+Halloween Fire Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+4	
+Metal Dark Gold Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+5	
+Logo Joker
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+6	
+Wicker Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+7	
+Natural Leaves Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+8	
+Firework Sparkle Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+9	
+Skeleton Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+10	
+Red Foil Balloon Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+11	
+Purple Foil Balloon Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+12	
+Pink Foil Balloon Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+13	
+Green Foil Balloon Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+14	
+Cyan Foil Balloon Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+15	
+Blue Foil Balloon Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+16	
+Gold Foil Balloon Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+17	
+Steel Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+18	
+Ultra Gloss Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+19	
+Denim Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+20	
+Decorate Green Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+21	
+Decorate Purple Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+22	
+Peridot Stone Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+23	
+Rock Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+24	
+Lava Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+25	
+Yellow Glass Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+26	
+Purple Glass Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+27	
+Orange Glass Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+28	
+Green Glass Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+29	
+Cyan Glass Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+30	
+Blue Glass Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+31	
+Red Glass Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+32	
+Purple Shiny Glass Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+33	
+Captain America Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+34	
+Robot R2 D2 Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+35	
+Rainbow Equalizer Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+36	
+Toxic Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+37	
+Pink Sparkling Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+38	
+Blue Sparkling Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+39	
+Green Sparkling Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+40	
+Purple Sparkling Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+41	
+Gold Sparkling Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+42	
+Red Sparkling Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+43	
+Cyan Sparkling Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+44	
+Purple Glass Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+45	
+Decorative Glass Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+46	
+Chocolate Cake Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+47	
+Strawberry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+48	
+Koi Fish Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+49	
+Bread Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+50	
+Horror Blood Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+51	
+Neon Light Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+52	
+Thunder Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+53	
+3D Box Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+54	
+Neon Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+55	
+Road Warning Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+56	
+Bokeh Text effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+57	
+Green Neon Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+58	
+Advanced Glow Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+59	
+Dropwater Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+60	
+Break Wall Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+61	
+Chrismast Gift Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+62	
+Honey Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+63	
+Plastic Bag Drug Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+64	
+Horror Gift Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+65	
+Marble Slabs Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+66	
+Marble Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+67	
+Ice Cold Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+68	
+Fruit Juice Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+69	
+Rusty Metal Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+70	
+Abstra Gold Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+71	
+Biscuit Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+72	
+Bagel Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+73	
+Wood Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+74	
+SCI - Fi Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+75	
+Metal Rainbow Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+76	
+Purple Gem Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+77	
+Shiny Metal Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+78	
+Yellow Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+79	
+Silver Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+80	
+Red Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+81	
+Purple Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+82	
+Orange Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+83	
+Green Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+84	
+Cyan Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+85	
+Blue Jewelry Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+86	
+Hot Metal Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+87	
+Hexa Golden Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+88	
+Blue Glitter Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+89	
+Purple Glitter Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+90	
+Pink Glitter Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+91	
+Green Glitter Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+92	
+Silver Glitter Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+93	
+Gold Glitter Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+94	
+Bronze Glitter Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+95	
+Eroded Metal Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+96	
+Carbon Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+97	
+Pink Candy Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+98	
+Blue Metal Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+99	
+Blue Gem Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+100	
+Black Metal Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+101	
+3D Glowing Metal Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+102	
+3D Chrome Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text	
+Active	
+Test
+Double Text Effects (9)
+SN	ENDPOINT	DESCRIPTION	REQUIRED	STATUS	ACTION
+1	
+Text Logo 3D Metal Silver
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text1, text2	
+Active	
+Test
+2	
+Text Logo 3D Metal Rose Gold
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text1, text2	
+Active	
+Test
+3	
+Text Logo 3D Metal Gold
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text1, text2	
+Active	
+Test
+4	
+Text Logo 3D Metal Galaxy
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text1, text2	
+Active	
+Test
+5	
+Lion Logo Mascot
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text1, text2	
+Active	
+Test
+6	
+Wolf Logo Black & White
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text1, text2	
+Active	
+Test
+7	
+Wolf Logo Galaxy
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text1, text2	
+Active	
+Test
+8	
+Ninja Logo
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text1, text2	
+Active	
+Test
+9	
+3D Steel Text Effect
+GET, JSON	Generate Text Effect via TextPro.me	apikey, text1, text2	
+Active	
+Test
