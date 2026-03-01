@@ -33,6 +33,11 @@ import {
   ArrowUpRight,
   Bell,
   User,
+  Cat,
+  Laugh,
+  Link,
+  Wrench,
+  ShieldCheck,
 } from "lucide-react";
 import { allEndpoints, apiCategories, ephotoEffectsList, photofuniaEffectsList, type ApiEndpoint } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
@@ -51,6 +56,11 @@ const categoryIcons: Record<string, typeof MessageSquare> = {
   ephoto: Sparkles,
   photofunia: ImagePlus,
   stalker: Eye,
+  anime: Cat,
+  fun: Laugh,
+  urlshortener: Link,
+  tools: Wrench,
+  security: ShieldCheck,
 };
 
 const heroData: Record<string, { tagline: string; title: string; description: string }> = {
@@ -118,6 +128,31 @@ const heroData: Record<string, { tagline: string; title: string; description: st
     tagline: "OSINT & PROFILE LOOKUP",
     title: "7 Stalker Tools",
     description: "GitHub, Twitter/X, Instagram, TikTok, IP geolocation, NPM, and WhatsApp channel lookup.",
+  },
+  anime: {
+    tagline: "ANIME IMAGE & REACTION API",
+    title: "30 Anime Endpoints",
+    description: "Waifu, neko, shinobu, megumin, and 26+ anime reaction GIFs from waifu.pics & nekos.best.",
+  },
+  fun: {
+    tagline: "FUN & TEXT CONTENT",
+    title: "37 Fun Endpoints",
+    description: "Jokes, quotes, pickup lines, roasts, compliments, trivia, dares, riddles, shayari, and more.",
+  },
+  urlshortener: {
+    tagline: "MULTI-SERVICE URL SHORTENER",
+    title: "7 Shortener Services",
+    description: "Shorten URLs with TinyURL, is.gd, v.gd, CleanURI, Chilp.it, clck.ru, and da.gd.",
+  },
+  tools: {
+    tagline: "DEVELOPER & UTILITY TOOLS",
+    title: "21 Tool Endpoints",
+    description: "QR codes, Bible verses, dictionary, weather, passwords, Base64, hashing, UUID, and more.",
+  },
+  security: {
+    tagline: "ETHICAL HACKING & SECURITY",
+    title: "38 Security Endpoints",
+    description: "DNS, WHOIS, port scanning, SSL checks, WAF detection, vulnerability scans, and OSINT tools.",
   },
 };
 
@@ -220,7 +255,7 @@ function TestPopup({
       <div
         className="w-full max-w-2xl rounded-xl overflow-hidden"
         style={{
-          background: "#111111",
+          background: "#0c0c0c",
           border: "1px solid rgba(0,255,0,0.2)",
           maxHeight: "90vh",
         }}
@@ -401,7 +436,7 @@ function EndpointCard({
       data-testid={`card-endpoint-${endpoint.path}`}
       className="relative rounded-lg p-4 space-y-3 transition-all cursor-pointer group"
       style={{
-        background: "#111111",
+        background: "#0c0c0c",
         border: "1px solid rgba(0,255,0,0.12)",
       }}
       onMouseEnter={(e) => {
@@ -454,7 +489,7 @@ function EffectTable({
   onTry: (ep: ApiEndpoint) => void;
 }) {
   return (
-    <div className="overflow-x-auto rounded-lg" style={{ border: "1px solid rgba(0,255,0,0.12)", background: "#111111" }}>
+    <div className="overflow-x-auto rounded-lg" style={{ border: "1px solid rgba(0,255,0,0.12)", background: "#0c0c0c" }}>
       <table className="w-full text-left" style={{ minWidth: "600px" }}>
         <thead>
           <tr style={{ borderBottom: "1px solid rgba(0,255,0,0.12)" }}>
@@ -545,7 +580,7 @@ function WelcomePage({ onCategoryClick }: { onCategoryClick: (id: string) => voi
   return (
     <div className="px-6 py-6 space-y-8">
       <div className="rounded-lg p-6 sm:p-8" style={{
-        background: "#111111",
+        background: "#0c0c0c",
         border: "1px solid rgba(0,255,0,0.12)",
       }}>
         <div className="space-y-4">
@@ -586,7 +621,7 @@ function WelcomePage({ onCategoryClick }: { onCategoryClick: (id: string) => voi
               key={stat.label}
               className="relative rounded-lg p-5"
               style={{
-                background: "#111111",
+                background: "#0c0c0c",
                 border: "1px solid rgba(0,255,0,0.12)",
               }}
               data-testid={`stat-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}
@@ -625,7 +660,7 @@ function WelcomePage({ onCategoryClick }: { onCategoryClick: (id: string) => voi
                 key={cat.id}
                 className="relative flex items-center gap-4 rounded-lg p-4 text-left transition-all"
                 style={{
-                  background: "#111111",
+                  background: "#0c0c0c",
                   border: "1px solid rgba(0,255,0,0.12)",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(0,255,0,0.35)"; }}
@@ -671,7 +706,7 @@ function HeroSection({ categoryId }: { categoryId: string }) {
   return (
     <section className="px-6 pt-6 pb-2">
       <div className="rounded-lg p-6" style={{
-        background: "#111111",
+        background: "#0c0c0c",
         border: "1px solid rgba(0,255,0,0.12)",
       }}>
         <div className="space-y-3">
@@ -722,7 +757,7 @@ export default function Home() {
   const sidebarWidth = sidebarCollapsed ? "60px" : "240px";
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#0a0a0a" }}>
+    <div className="min-h-screen flex" style={{ background: "#050505" }}>
       {sidebarOpen && (
         <div
           className="fixed inset-0 lg:hidden"
@@ -736,8 +771,7 @@ export default function Home() {
         style={{
           width: sidebarWidth,
           zIndex: 45,
-          background: "#0d0d0d",
-          borderRight: "1px solid rgba(0,255,0,0.08)",
+          background: "#080808",
         }}
         data-testid="sidebar"
       >
@@ -878,9 +912,9 @@ export default function Home() {
           className="sticky top-0"
           style={{
             zIndex: 30,
-            background: "rgba(10,10,10,0.95)",
+            background: "rgba(5,5,5,0.95)",
             backdropFilter: "blur(20px)",
-            borderBottom: "1px solid rgba(0,255,0,0.08)",
+            borderBottom: "1px solid rgba(255,255,255,0.04)",
           }}
         >
           <div className="px-6 py-3 flex items-center gap-3">

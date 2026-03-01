@@ -1,7 +1,7 @@
 # WolfApis
 
 ## Overview
-A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 33+ AI chat models, AI tools (translate, summarize, code), image search, music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook), Spotify search/download (via spotdown.org), Shazam music recognition, Ephoto360 text effect generation (60 effects), and PhotoFunia image effects (154 effects). 65 total endpoints across 12 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing.
+A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 33+ AI chat models, AI tools (translate, summarize, code), image search, music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook), Spotify search/download, Shazam music recognition, Ephoto360 text effect generation (60 effects), PhotoFunia image effects (154 effects), anime images (30 types), fun text content (37 categories), URL shortener (7 services), developer tools (21 utilities), and security/ethical hacking tools (38 endpoints). 414+ total endpoints across 18 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing.
 
 ## Architecture
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui components
@@ -12,62 +12,72 @@ A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access
 - **Spotify**: `lib/downloaders/spotify.ts` - Search and download via spotdown.org API with iTunes fallback
 - **Shazam**: `lib/downloaders/shazam.ts` - Shazam search + song recognition via reverse-engineered API
 - **Ephoto360**: `lib/downloaders/ephoto360.ts` - 60 text/neon/3D effect generators via ephoto360.com
-- **PhotoFunia**: `lib/downloaders/photofunia.ts` - 154 photo effects (filters, frames, faces, billboards, text art, etc.) via photofunia.com
+- **PhotoFunia**: `lib/downloaders/photofunia.ts` - 154 photo effects via photofunia.com
+- **Anime**: `lib/downloaders/anime.ts` - 30 anime image types via waifu.pics & nekos.best
+- **Fun**: `lib/downloaders/fun.ts` - 37 fun text content categories with built-in arrays + external API fallbacks
+- **URL Shortener**: `lib/downloaders/urlshortener.ts` - 7 shortener services (TinyURL, is.gd, v.gd, CleanURI, etc.)
+- **Tools**: `lib/downloaders/tools.ts` - 21 utility endpoints (QR, dictionary, weather, password, hash, etc.)
+- **Security**: `lib/downloaders/security.ts` - 38 security/ethical hacking endpoints (DNS, WHOIS, port scan, SSL, WAF, etc.)
 - **Lyrics**: Uses lrclib.net API for song lyrics (with synced lyrics support)
 - **Provider Health System**: Automatic tracking of provider failures with cooldown periods
+- **Stalker**: `lib/downloaders/stalker.ts` - OSINT profile lookup tools (GitHub, IP, NPM, TikTok, Instagram, Twitter, WhatsApp)
 
 ## Key Files
-- `shared/schema.ts` - All 65 endpoint definitions, 12 categories, and TypeScript types
+- `shared/schema.ts` - All 414+ endpoint definitions, 18 categories, and TypeScript types
 - `server/ai-routes.ts` - AI proxy endpoints (33 chat + 3 tools + 1 image)
-- `server/routes.ts` - Express API endpoint definitions (music, social media, Spotify, Shazam, Ephoto, PhotoFunia + registers AI routes)
+- `server/routes.ts` - Express API endpoint definitions (all categories + registers AI routes)
 - `lib/scraper.ts` - Shared scraping logic (search, check, download info)
-- `lib/downloaders/spotify.ts` - Spotify search/download via spotdown.org
-- `lib/downloaders/shazam.ts` - Shazam search + song recognition
-- `lib/downloaders/ephoto360.ts` - Ephoto360 text effect generation (60 effects: neon, 3D, text, fire categories)
-- `lib/downloaders/photofunia.ts` - PhotoFunia image effects (154 effects across 20+ categories)
-- `lib/downloaders/tiktok.ts` - TikTok video downloader
-- `lib/downloaders/instagram.ts` - Instagram media downloader
-- `lib/downloaders/youtube.ts` - YouTube video downloader
-- `lib/downloaders/facebook.ts` - Facebook video downloader
+- `lib/downloaders/` - All downloader/module implementations
 - `client/src/pages/home.tsx` - Main UI with sidebar navigation and popup API tester
 - `client/src/index.css` - Neon cyberpunk theme styles
 - `client/src/assets/wolf-logo.png` - Wolf logo
 
-## API Categories (65 endpoints total)
+## API Categories (414+ endpoints across 18 categories)
 
-### AI Chat (33 endpoints - chateverywhere.app + OpenAI)
+### AI Chat (33 endpoints)
 GPT, GPT-4, GPT-4o, Claude, Mistral, Gemini, DeepSeek, Venice, Groq, Cohere, LLaMA, Mixtral, Phi, Qwen, Falcon, Vicuna, OpenChat, WizardLM, Zephyr, CodeLlama, StarCoder, Dolphin, Nous Hermes, OpenHermes, NeuralChat, Solar, Yi, TinyLlama, Orca, Command R, Nemotron, InternLM, ChatGLM
 
 ### AI Tools (3 endpoints)
-- `POST /api/ai/translate` - AI translation
-- `POST /api/ai/summarize` - AI summarization
-- `POST /api/ai/code` - AI code generation
+translate, summarize, code
 
 ### AI Image (1 endpoint)
-- `POST /api/ai/image/dall-e` - Image search (Unsplash-powered)
+Image search (Unsplash-powered)
 
 ### Music & Media (15 endpoints)
-Search, MP3/MP4 download (multiple variants), lyrics (lrclib.net), trending
+Search, MP3/MP4 download, lyrics (lrclib.net), trending
 
-### Spotify (2 endpoints - via spotdown.org)
-- `GET /api/spotify/search?q=...` - Search tracks
-- `GET /api/spotify/download?url=...` or `?q=...` - Download as MP3
+### Spotify (2 endpoints)
+Search and download via spotdown.org
 
 ### Shazam (3 endpoints)
-- `GET /api/shazam/search?q=...` - Search songs
-- `POST /api/shazam/recognize` - Identify from audio
-- `GET /api/shazam/track/:id` - Track details
+Search, recognize, track details
 
 ### Ephoto360 (2 endpoints, 60 effects)
-- `GET /api/ephoto/list` - List 60 text effects (neon 19, 3D 18, text 16+, fire 2)
-- `POST /api/ephoto/generate` - Generate text effect image
+List effects, generate text effect image
 
 ### PhotoFunia (2 endpoints, 154 effects)
-- `GET /api/photofunia/list` - List 154 photo effects
-- `POST /api/photofunia/generate` - Generate photo effect (text, image, or both)
+List effects, generate photo effect
 
 ### Social Media Downloaders (4 endpoints)
 TikTok, Instagram, YouTube, Facebook
+
+### Stalker (7 endpoints)
+GitHub, IP, NPM, TikTok, Instagram, Twitter/X, WhatsApp
+
+### Anime (30 endpoints)
+waifu, neko, shinobu, megumin, cuddle, hug, kiss, pat, smug, bonk, blush, smile, wave, dance, cry, slap, bite, poke, happy, wink, highfive, sleep, laugh, thumbsup, stare, baka, facepalm, yawn, nervous, punch
+
+### Fun (37 endpoints)
+jokes, advice, quotes, motivation, flirt, pickuplines, truth, dares, riddles, trivia, funfacts, puns, roasts, compliments, wouldyourather, goodmorning, goodnight, valentines, birthday, love, friendship, shayari, humor, wisdom, success, heartbreak, sorry, halloween, christmas, newyear, thankyou, gratitude, roseday, fathersday, mothersday, girlfriendsday, boyfriendsday
+
+### URL Shortener (7 endpoints)
+TinyURL, is.gd, v.gd, CleanURI, Chilp.it, clck.ru, da.gd
+
+### Tools (21 endpoints)
+QR code, Bible verse, dictionary, Wikipedia, weather, Base64 encode/decode, text stats, password generator, Lorem Ipsum, color generator, timestamp, URL encode/decode, JSON formatter, email validation, IP validation, hash, UUID, password strength, screenshot
+
+### Security (38 endpoints)
+WHOIS, DNS lookup, subdomain scan, reverse IP, GeoIP, port scan, HTTP headers, SSL check, TLS info, ping, latency, traceroute, ASN lookup, MAC lookup, security headers, WAF detection, firewall check, robots.txt, sitemap, CMS detection, tech stack, cookies scan, redirect chain, XSS check, SQL injection check, CSRF check, clickjacking check, directory scan, exposed files, misconfig check, hash identify, hash generate, password strength, open ports, IP info, URL scan, phishing check, metadata extract
 
 ## Environment Variables
 - `OPENAI_API_KEY` - Required for GPT-4/GPT-4o endpoints only (optional, other AI endpoints work without it)
@@ -77,9 +87,10 @@ TikTok, Instagram, YouTube, Facebook
 ## Branding
 - Name: WOLFAPIS (WOLF in green #00ff00, APIS in white)
 - Creator tag: "APIs by Silent Wolf | A tech explorer"
-- Dark theme with #0a0a0a background, neon green accents
-- Sidebar navigation with popup-based API testing
+- Dark theme: main #050505, sidebar #080808, cards #0c0c0c, neon green accents
+- Sidebar navigation with popup-based API testing, collapsible sidebar
 
 ## Recent Changes
-- 2026-03-01: v4.0 expansion - Added PhotoFunia (154 effects), expanded Ephoto360 (60 effects with neon/3D/text/fire), fixed lyrics endpoint (lrclib.net), fixed AI model names in responses (show label not internal model), updated schema to 12 categories and 65 endpoints
-- 2026-03-01: Major v3.0 expansion - 33 AI chat models, Spotify rewrite (spotdown.org), Ephoto360 text effects, sidebar UI + popup tester, removed stream endpoints, added lyrics/trending/ytmp4/dlmp4/video/hd endpoints
+- 2026-03-01: v4.0 major expansion - Added 5 new categories: Anime (30 endpoints via waifu.pics/nekos.best), Fun (37 text content endpoints), URL Shortener (7 services), Tools (21 utility endpoints), Security (38 ethical hacking endpoints). Total now 414+ endpoints across 18 categories. Darkened UI backgrounds to #050505/#080808/#0c0c0c, removed sidebar border line.
+- 2026-03-01: v4.0 initial - Added PhotoFunia (154 effects), expanded Ephoto360 (60 effects), fixed lyrics endpoint, fixed AI model names, updated schema
+- 2026-03-01: Major v3.0 expansion - 33 AI chat models, Spotify rewrite (spotdown.org), Ephoto360 text effects, sidebar UI + popup tester

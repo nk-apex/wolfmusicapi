@@ -11,6 +11,11 @@ import { searchShazam, recognizeShazamFull, getTrackDetails } from "../lib/downl
 import { generateEphoto, listEphotoEffects } from "../lib/downloaders/ephoto360";
 import { generatePhotofunia, listPhotofuniaEffects } from "../lib/downloaders/photofunia";
 import { githubStalk, ipStalk, npmStalk, tiktokStalk, instagramStalk, twitterStalk, waChannelStalk } from "../lib/downloaders/stalker";
+import { fetchAnimeImage } from "../lib/downloaders/anime";
+import { getFunContent, funTypes } from "../lib/downloaders/fun";
+import { shortenUrl, shortenerServices } from "../lib/downloaders/urlshortener";
+import * as tools from "../lib/downloaders/tools";
+import * as security from "../lib/downloaders/security";
 import { allEndpoints as schemaEndpoints, apiCategories as schemaCategories } from "../shared/schema";
 
 function isYouTubeUrl(input: string): boolean {
@@ -547,6 +552,587 @@ export async function registerRoutes(
       if (!query) return res.status(400).json({ success: false, error: "Query parameter 'query' is required." });
       const result = await waChannelStalk(query.trim());
       return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  // ============== ANIME ROUTES ==============
+  app.get("/api/anime/:type", async (req, res) => {
+    try {
+      const result = await fetchAnimeImage(req.params.type);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  // ============== FUN ROUTES ==============
+  app.get("/api/fun/:type", async (req, res) => {
+    try {
+      const result = await getFunContent(req.params.type);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  // ============== URL SHORTENER ROUTES ==============
+  app.get("/api/short/:service", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'url' query parameter" });
+      const result = await shortenUrl(req.params.service, url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  // ============== TOOLS ROUTES ==============
+  app.get("/api/tools/qrcode", (req, res) => {
+    const text = req.query.text as string;
+    if (!text) return res.status(400).json({ success: false, error: "Missing 'text' parameter" });
+    const size = parseInt(req.query.size as string) || 300;
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.generateQRCode(text, size) });
+  });
+
+  app.get("/api/tools/bible", async (req, res) => {
+    try {
+      const result = await tools.getBibleVerse(req.query.ref as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/tools/dictionary", async (req, res) => {
+    try {
+      const word = req.query.word as string;
+      if (!word) return res.status(400).json({ success: false, error: "Missing 'word' parameter" });
+      const result = await tools.getDictionary(word);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/tools/wikipedia", async (req, res) => {
+    try {
+      const query = req.query.query as string;
+      if (!query) return res.status(400).json({ success: false, error: "Missing 'query' parameter" });
+      const result = await tools.getWikipedia(query);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/tools/weather", async (req, res) => {
+    try {
+      const city = req.query.city as string;
+      if (!city) return res.status(400).json({ success: false, error: "Missing 'city' parameter" });
+      const result = await tools.getWeather(city);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/tools/base64encode", (req, res) => {
+    const text = req.query.text as string;
+    if (!text) return res.status(400).json({ success: false, error: "Missing 'text' parameter" });
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.base64Encode(text) });
+  });
+
+  app.get("/api/tools/base64decode", (req, res) => {
+    const text = req.query.text as string;
+    if (!text) return res.status(400).json({ success: false, error: "Missing 'text' parameter" });
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.base64Decode(text) });
+  });
+
+  app.get("/api/tools/textstats", (req, res) => {
+    const text = req.query.text as string;
+    if (!text) return res.status(400).json({ success: false, error: "Missing 'text' parameter" });
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.textStats(text) });
+  });
+
+  app.get("/api/tools/password", (req, res) => {
+    const length = parseInt(req.query.length as string) || 16;
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.generatePassword(length) });
+  });
+
+  app.get("/api/tools/lorem", (req, res) => {
+    const paragraphs = parseInt(req.query.paragraphs as string) || 1;
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.loremIpsum(paragraphs) });
+  });
+
+  app.get("/api/tools/color", (_req, res) => {
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.generateColor() });
+  });
+
+  app.get("/api/tools/timestamp", (_req, res) => {
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.getTimestamp() });
+  });
+
+  app.get("/api/tools/urlencode", (req, res) => {
+    const text = req.query.text as string;
+    if (!text) return res.status(400).json({ success: false, error: "Missing 'text' parameter" });
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.urlEncode(text) });
+  });
+
+  app.get("/api/tools/urldecode", (req, res) => {
+    const text = req.query.text as string;
+    if (!text) return res.status(400).json({ success: false, error: "Missing 'text' parameter" });
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.urlDecode(text) });
+  });
+
+  app.post("/api/tools/jsonformat", (req, res) => {
+    const json = req.body.json as string;
+    if (!json) return res.status(400).json({ success: false, error: "Missing 'json' in body" });
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.jsonFormat(json) });
+  });
+
+  app.get("/api/tools/email-validate", (req, res) => {
+    const email = req.query.email as string;
+    if (!email) return res.status(400).json({ success: false, error: "Missing 'email' parameter" });
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.validateEmail(email) });
+  });
+
+  app.get("/api/tools/ip-validate", (req, res) => {
+    const ip = req.query.ip as string;
+    if (!ip) return res.status(400).json({ success: false, error: "Missing 'ip' parameter" });
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.validateIP(ip) });
+  });
+
+  app.get("/api/tools/hash", (req, res) => {
+    const text = req.query.text as string;
+    if (!text) return res.status(400).json({ success: false, error: "Missing 'text' parameter" });
+    const algorithm = (req.query.algorithm as string) || "sha256";
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.hashText(text, algorithm) });
+  });
+
+  app.get("/api/tools/uuid", (_req, res) => {
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.uuidGenerate() });
+  });
+
+  app.get("/api/tools/password-strength", (req, res) => {
+    const password = req.query.password as string;
+    if (!password) return res.status(400).json({ success: false, error: "Missing 'password' parameter" });
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: tools.checkPasswordStrength(password) });
+  });
+
+  app.get("/api/tools/screenshot", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await tools.screenshotUrl(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  // ============== SECURITY ROUTES ==============
+  app.get("/api/security/whois", async (req, res) => {
+    try {
+      const domain = req.query.domain as string;
+      if (!domain) return res.status(400).json({ success: false, error: "Missing 'domain' parameter" });
+      const result = await security.whoisLookup(domain);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/dns", async (req, res) => {
+    try {
+      const domain = req.query.domain as string;
+      if (!domain) return res.status(400).json({ success: false, error: "Missing 'domain' parameter" });
+      const result = await security.dnsLookup(domain);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/subdomain", async (req, res) => {
+    try {
+      const domain = req.query.domain as string;
+      if (!domain) return res.status(400).json({ success: false, error: "Missing 'domain' parameter" });
+      const result = await security.subdomainScan(domain);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/reverse-ip", async (req, res) => {
+    try {
+      const ip = req.query.ip as string;
+      if (!ip) return res.status(400).json({ success: false, error: "Missing 'ip' parameter" });
+      const result = await security.reverseIp(ip);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/geoip", async (req, res) => {
+    try {
+      const ip = req.query.ip as string;
+      if (!ip) return res.status(400).json({ success: false, error: "Missing 'ip' parameter" });
+      const result = await security.geoIp(ip);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/portscan", async (req, res) => {
+    try {
+      const host = req.query.host as string;
+      if (!host) return res.status(400).json({ success: false, error: "Missing 'host' parameter" });
+      const result = await security.portScan(host);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/headers", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.httpHeaders(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/ssl", async (req, res) => {
+    try {
+      const host = req.query.host as string;
+      if (!host) return res.status(400).json({ success: false, error: "Missing 'host' parameter" });
+      const result = await security.sslCheck(host);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/tls", async (req, res) => {
+    try {
+      const host = req.query.host as string;
+      if (!host) return res.status(400).json({ success: false, error: "Missing 'host' parameter" });
+      const result = await security.tlsInfo(host);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/ping", async (req, res) => {
+    try {
+      const host = req.query.host as string;
+      if (!host) return res.status(400).json({ success: false, error: "Missing 'host' parameter" });
+      const result = await security.pingHost(host);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/latency", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.latencyCheck(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/traceroute", async (req, res) => {
+    try {
+      const host = req.query.host as string;
+      if (!host) return res.status(400).json({ success: false, error: "Missing 'host' parameter" });
+      const result = await security.traceroute(host);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/asn", async (req, res) => {
+    try {
+      const ip = req.query.ip as string;
+      if (!ip) return res.status(400).json({ success: false, error: "Missing 'ip' parameter" });
+      const result = await security.asnLookup(ip);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/mac", async (req, res) => {
+    try {
+      const mac = req.query.mac as string;
+      if (!mac) return res.status(400).json({ success: false, error: "Missing 'mac' parameter" });
+      const result = await security.macLookup(mac);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/security-headers", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.securityHeaders(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/waf", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.wafDetect(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/firewall", async (req, res) => {
+    try {
+      const host = req.query.host as string;
+      if (!host) return res.status(400).json({ success: false, error: "Missing 'host' parameter" });
+      const result = await security.firewallCheck(host);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/robots", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.robotsCheck(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/sitemap", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.sitemapCheck(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/cms", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.cmsDetect(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/techstack", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.techStack(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/cookies", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.cookieScan(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/redirects", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.redirectCheck(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/xss", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.xssCheck(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/sqli", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.sqliCheck(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/csrf", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.csrfCheck(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/clickjack", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.clickjackCheck(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/directory", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.directoryScan(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/exposed-files", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.exposedFiles(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/misconfig", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.misconfigCheck(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/hash-identify", (req, res) => {
+    const hash = req.query.hash as string;
+    if (!hash) return res.status(400).json({ success: false, error: "Missing 'hash' parameter" });
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: security.hashIdentify(hash) });
+  });
+
+  app.get("/api/security/hash-generate", (req, res) => {
+    const text = req.query.text as string;
+    if (!text) return res.status(400).json({ success: false, error: "Missing 'text' parameter" });
+    const algorithm = (req.query.algorithm as string) || "sha256";
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: security.hashGenerate(text, algorithm) });
+  });
+
+  app.get("/api/security/password-strength", (req, res) => {
+    const password = req.query.password as string;
+    if (!password) return res.status(400).json({ success: false, error: "Missing 'password' parameter" });
+    return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result: security.passwordStrength(password) });
+  });
+
+  app.get("/api/security/openports", async (req, res) => {
+    try {
+      const host = req.query.host as string;
+      if (!host) return res.status(400).json({ success: false, error: "Missing 'host' parameter" });
+      const result = await security.openPorts(host);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/ip-info", async (req, res) => {
+    try {
+      const ip = req.query.ip as string;
+      if (!ip) return res.status(400).json({ success: false, error: "Missing 'ip' parameter" });
+      const result = await security.ipInfo(ip);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/url-scan", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.urlScan(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/phish", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.phishCheck(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
+    }
+  });
+
+  app.get("/api/security/metadata", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, error: "Missing 'url' parameter" });
+      const result = await security.metadataExtract(url);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", result });
     } catch (error: any) {
       return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
     }

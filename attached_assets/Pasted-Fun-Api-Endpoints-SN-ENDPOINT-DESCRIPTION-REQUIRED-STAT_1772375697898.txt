@@ -1,0 +1,122 @@
+Fun Api Endpoints
+SN	ENDPOINT	DESCRIPTION	REQUIRED	STATUS	ACTION
+1	
+Jokes
+GET, JSON	Generate Random Jokes	apikey	
+Active	
+Test
+2	
+Advice
+GET, JSON	Generate Random Advice	apikey	
+Active	
+Test
+3	
+Dares
+GET, JSON	Generate Random Dares	apikey	
+Active	
+Test
+4	
+Valentines
+GET, JSON	Generate Random Valentines Wishes	apikey	
+Active	
+Test
+5	
+Flirt
+GET, JSON	Generate Random Flirty Messages	apikey	
+Active	
+Test
+6	
+Goodnight
+GET, JSON	Generate Random Goodnight Wishes	apikey	
+Active	
+Test
+7	
+Quotes
+GET, JSON	Generate Random Quotes	apikey	
+Active	
+Test
+8	
+Truth
+GET, JSON	Generate Random Truth Quotes	apikey	
+Active	
+Test
+9	
+Shayari
+GET, JSON	Generate Random Shayari	apikey	
+Active	
+Test
+10	
+Rose Day
+GET, JSON	Generate Random Rose DAy Wishes	apikey	
+Active	
+Test
+11	
+Motivation
+GET, JSON	Generate Random Motivational Quotes	apikey	
+Active	
+Test
+12	
+Halloween
+GET, JSON	Generate Random Halloween Wishes	apikey	
+Active	
+Test
+13	
+Thank You
+GET, JSON	Generate Random Thank You Messages	apikey	
+Active	
+Test
+14	
+Gratitude
+GET, JSON	Generate Random Gratitude Messages	apikey	
+Active	
+Test
+15	
+Friendship
+GET, JSON	Generate Random Friendship Quotes	apikey	
+Active	
+Test
+16	
+Love
+GET, JSON	Generate Random Love Messages	apikey	
+Active	
+Test
+17	
+Father's Day
+GET, JSON	Generate Random Father's Day Wishes	apikey	
+Active	
+Test
+18	
+Mother's Day
+GET, JSON	Generate Random Mother's Day Wishes	apikey	
+Active	
+Test
+19	
+Pick Up Lines
+GET, JSON	Generate Random PickUp Lines	apikey	
+Active	
+Test
+20	
+Girlfriend's Day
+GET, JSON	Generate Random Girlfriend's Day Wishes	apikey	
+Active	
+Test
+21	
+Boyfriend's Day
+GET, JSON	Generate Random Boyfriend's Day Wishes	apikey	
+Active	
+Test
+22	
+New Year
+GET, JSON	Generate Random New Year Wishes	apikey	
+Active	
+Test
+23	
+Christmas
+GET, JSON	Generate Random Christmas Day Wishes	apikey	
+Active	
+Test
+24	
+HeartBreak
+GET, JSON	Generate Random HeartBreak Quotes	apikey	
+Active	
+Test
