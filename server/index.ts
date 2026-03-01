@@ -2,6 +2,14 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import {
+  securityHeaders,
+  globalRateLimit,
+  antiScraping,
+  antiClone,
+  responseFingerprint,
+  blockDirectSourceAccess,
+} from "./security";
 
 const app = express();
 const httpServer = createServer(app);
@@ -12,15 +20,25 @@ declare module "http" {
   }
 }
 
+app.set("trust proxy", 1);
+
+app.use(securityHeaders());
+app.use(blockDirectSourceAccess);
+app.use(antiScraping);
+app.use(antiClone);
+app.use("/api", globalRateLimit);
+app.use("/download", globalRateLimit);
+
 app.use(
   express.json({
+    limit: "5mb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
   }),
 );
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   try {

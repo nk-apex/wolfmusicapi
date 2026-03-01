@@ -23,6 +23,7 @@ import { listTextproEffects, generateTextpro } from "../lib/downloaders/textpro"
 import { imageToSticker, stickerToImage, videoToSticker, stickerToVideo, videoToGif, gifToVideo } from "../lib/downloaders/converter";
 import { listAudioEffects, applyAudioEffect } from "../lib/downloaders/audio-effects";
 import { allEndpoints as schemaEndpoints, apiCategories as schemaCategories } from "../shared/schema";
+import { apiRateLimit, aiRateLimit, downloadRateLimit } from "./security";
 
 function isYouTubeUrl(input: string): boolean {
   return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|m\.youtube\.com)\//i.test(input) ||
@@ -35,7 +36,11 @@ export async function registerRoutes(
 ): Promise<Server> {
   registerAIRoutes(app);
 
-  app.get("/api/search", async (req, res) => {
+  app.use("/api/ai", aiRateLimit);
+  app.use("/download", downloadRateLimit);
+  app.use("/api/download", downloadRateLimit);
+
+  app.get("/api/search", apiRateLimit, async (req, res) => {
     try {
       const q = req.query.q as string;
       if (!q || q.trim().length === 0) {
@@ -2016,7 +2021,22 @@ export async function registerRoutes(
     } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
   });
 
-  app.get("/api/endpoints", (_req, res) => {
+  app.get("/api/endpoints", (req, res) => {
+    const referer = req.headers.referer || "";
+    const host = req.headers.host || "";
+    const ua = req.headers["user-agent"] || "";
+
+    const isFromOwnSite = referer.includes(host);
+    const isBrowser = /Mozilla|Chrome|Safari|Firefox|Edge/i.test(ua);
+
+    if (!isFromOwnSite || !isBrowser) {
+      return res.status(403).json({
+        success: false,
+        error: "This endpoint is restricted to the WolfAPIs dashboard.",
+        creator: "APIs by Silent Wolf | A tech explorer",
+      });
+    }
+
     return res.json({
       success: true,
       creator: "APIs by Silent Wolf | A tech explorer",

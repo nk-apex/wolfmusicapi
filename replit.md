@@ -102,6 +102,14 @@ Image↔Sticker, Video↔Sticker, Video↔GIF for WhatsApp bot media conversion
 ### Audio Effects (26 endpoints: 1 list + 25 effects)
 bass, bassboost, robot, chipmunk, deep, echo, reverb, nightcore, slowed, 8d, vaporwave, karaoke, treble, distortion, flanger, phaser, chorus, vibrato, tremolo, reverse, speed2x, slow05x, telephone, underwater, megaphone
 
+## Security (`server/security.ts`)
+- **Helmet**: Full security headers in production (CSP with frame-ancestors, CORS, referrer policy); disabled in dev for Vite compatibility
+- **Rate Limiting**: Global (60/min on /api + /download), API (30/min), AI (10/min), Download (15/min) — applied per-route in routes.ts
+- **Anti-Scraping**: Blocks suspicious UAs (curl, wget, python-requests, scrapy, etc.), tracks IP request counts, auto-blocks IPs exceeding 200 req/min for 5 min
+- **Anti-Clone**: Protects `/api/endpoints/list` and `/api/all-endpoints` — only accessible from own site referer + browser UA
+- **Source Protection**: Blocks direct access to .ts/.tsx/.map/.env/.lock/.toml files and server/lib/shared directories (production only)
+- **Response Fingerprint**: Adds `X-Powered-By: WolfAPIs` and creator metadata to API responses
+
 ## Environment Variables
 - `OPENAI_API_KEY` - Required for GPT-4/GPT-4o endpoints only (optional, other AI endpoints work without it)
 - `SPOTDOWN_API_KEY` - Spotify download API key (has fallback default)
