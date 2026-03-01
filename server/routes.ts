@@ -20,6 +20,7 @@ import * as sports from "../lib/downloaders/sports";
 import * as movie from "../lib/downloaders/movie";
 import { listTextproEffects, generateTextpro } from "../lib/downloaders/textpro";
 import { imageToSticker, stickerToImage, videoToSticker, stickerToVideo, videoToGif, gifToVideo } from "../lib/downloaders/converter";
+import { listAudioEffects, applyAudioEffect } from "../lib/downloaders/audio-effects";
 import { allEndpoints as schemaEndpoints, apiCategories as schemaCategories } from "../shared/schema";
 
 function isYouTubeUrl(input: string): boolean {
@@ -1807,6 +1808,23 @@ export async function registerRoutes(
       const url = req.query.url as string;
       if (!url) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'url' parameter" });
       const result = await gifToVideo(url);
+      return res.json({ ...result, creator: "APIs by Silent Wolf | A tech explorer" });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/audio/list", (_req, res) => {
+    try {
+      const effects = listAudioEffects();
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", count: effects.length, effects });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/audio/:effectId", async (req, res) => {
+    try {
+      const effectId = req.params.effectId;
+      const url = req.query.url as string;
+      if (!url) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'url' parameter - provide an audio/video URL" });
+      const result = await applyAudioEffect(effectId, url);
       return res.json({ ...result, creator: "APIs by Silent Wolf | A tech explorer" });
     } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
   });

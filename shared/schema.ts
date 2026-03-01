@@ -69,6 +69,7 @@ export const apiCategories = [
   { id: "movie", name: "Movie", description: "Movie search, info, trailers, trending, and discover via TMDB", icon: "Film" },
   { id: "textpro", name: "Text Effects", description: "109 text effect generators with neon, 3D, chrome, fire, and more", icon: "Type" },
   { id: "converter", name: "Converter", description: "Media conversion tools for WhatsApp bots (sticker, image, video, GIF)", icon: "RefreshCw" },
+  { id: "audio-fx", name: "Audio Effects", description: "25 audio effects: bass boost, robot, echo, nightcore, 8D, reverb, and more", icon: "Headphones" },
 ];
 
 const aiChatEndpoints: ApiEndpoint[] = [
@@ -778,6 +779,47 @@ const converterEndpoints: ApiEndpoint[] = [
   { path: "/api/converter/gif-to-video", method: "GET", description: "Convert GIF to video (MP4)", params: [{ name: "url", type: "string", required: true, description: "GIF URL to convert" }], format: "json", category: "converter", provider: "WolfAPIs" },
 ];
 
+export const AUDIO_EFFECTS_LIST = [
+  { id: "bass", name: "Bass" },
+  { id: "bassboost", name: "Bass Boost" },
+  { id: "robot", name: "Robot" },
+  { id: "chipmunk", name: "Chipmunk" },
+  { id: "deep", name: "Deep Voice" },
+  { id: "echo", name: "Echo" },
+  { id: "reverb", name: "Reverb" },
+  { id: "nightcore", name: "Nightcore" },
+  { id: "slowed", name: "Slowed" },
+  { id: "8d", name: "8D Audio" },
+  { id: "vaporwave", name: "Vaporwave" },
+  { id: "karaoke", name: "Karaoke" },
+  { id: "treble", name: "Treble Boost" },
+  { id: "distortion", name: "Distortion" },
+  { id: "flanger", name: "Flanger" },
+  { id: "phaser", name: "Phaser" },
+  { id: "chorus", name: "Chorus" },
+  { id: "vibrato", name: "Vibrato" },
+  { id: "tremolo", name: "Tremolo" },
+  { id: "reverse", name: "Reverse" },
+  { id: "speed2x", name: "Speed 2x" },
+  { id: "slow05x", name: "Slow 0.5x" },
+  { id: "telephone", name: "Telephone" },
+  { id: "underwater", name: "Underwater" },
+  { id: "megaphone", name: "Megaphone" },
+];
+
+const audioFxEndpoints: ApiEndpoint[] = [
+  { path: "/api/audio/list", method: "GET", description: "List all available audio effects with ffmpeg filters", params: [], format: "json", category: "audio-fx", provider: "WolfAPIs" },
+  ...AUDIO_EFFECTS_LIST.map(e => ({
+    path: `/api/audio/${e.id}`,
+    method: "GET" as const,
+    description: `${e.name} effect - get audio data with ffmpeg filter command`,
+    params: [{ name: "url", type: "string" as const, required: true, description: "Audio/video URL to process" }],
+    format: "json" as const,
+    category: "audio-fx",
+    provider: "WolfAPIs",
+  })),
+];
+
 export const allEndpoints: ApiEndpoint[] = [
   ...aiChatEndpoints,
   ...aiToolEndpoints,
@@ -802,6 +844,7 @@ export const allEndpoints: ApiEndpoint[] = [
   ...movieEndpoints,
   ...textproEndpoints,
   ...converterEndpoints,
+  ...audioFxEndpoints,
 ];
 
 export const endpointInfo = allEndpoints.filter(e => e.category === "music");

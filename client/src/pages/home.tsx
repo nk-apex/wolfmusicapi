@@ -45,8 +45,9 @@ import {
   Film,
   Type,
   RefreshCw,
+  Headphones,
 } from "lucide-react";
-import { allEndpoints, apiCategories, ephotoEffectsList, photofuniaEffectsList, TEXTPRO_EFFECTS, type ApiEndpoint } from "@shared/schema";
+import { allEndpoints, apiCategories, ephotoEffectsList, photofuniaEffectsList, TEXTPRO_EFFECTS, AUDIO_EFFECTS_LIST, type ApiEndpoint } from "@shared/schema";
 import wolfLogo from "../assets/wolf-logo.png";
 
 const categoryIcons: Record<string, typeof MessageSquare> = {
@@ -73,6 +74,7 @@ const categoryIcons: Record<string, typeof MessageSquare> = {
   movie: Film,
   textpro: Type,
   converter: RefreshCw,
+  "audio-fx": Headphones,
 };
 
 const heroData: Record<string, { tagline: string; title: string; description: string }> = {
@@ -190,6 +192,11 @@ const heroData: Record<string, { tagline: string; title: string; description: st
     tagline: "WHATSAPP MEDIA CONVERTER",
     title: "6 Converter Endpoints",
     description: "Convert between images, stickers, videos, and GIFs for WhatsApp bots. Image↔Sticker, Video↔Sticker, Video↔GIF.",
+  },
+  "audio-fx": {
+    tagline: "AUDIO EFFECTS ENGINE",
+    title: `${AUDIO_EFFECTS_LIST.length} Audio Effects`,
+    description: "Bass boost, robot, echo, nightcore, 8D audio, reverb, chipmunk, vaporwave, karaoke, distortion, and more. Get audio data with ready-to-use ffmpeg filter commands.",
   },
 };
 
@@ -621,32 +628,55 @@ function WelcomePage({ onCategoryClick, onTryEndpoint }: { onCategoryClick: (id:
         background: "#000000",
         border: "1px solid rgba(0,255,0,0.12)",
       }}>
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5" style={{ color: "#00ff00" }} />
-            <span className="text-[11px] font-bold tracking-[0.25em]" style={{ color: "#00ff00" }}>
-              APIS BY SILENT WOLF
-            </span>
+        <div className="flex gap-6">
+          <div className="hidden sm:flex items-center">
+            <h2
+              className="text-2xl sm:text-3xl font-bold"
+              style={{
+                fontFamily: "'Orbitron', sans-serif",
+                color: "#ffffff",
+                writingMode: "vertical-rl",
+                textOrientation: "mixed",
+                letterSpacing: "0.15em",
+                textShadow: "0 0 20px rgba(0,255,0,0.3)",
+                borderRight: "2px solid rgba(0,255,0,0.2)",
+                paddingRight: "1.25rem",
+              }}
+              data-testid="text-hero-title"
+            >
+              Multi-Provider API Hub
+            </h2>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold italic" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
-            Multi-Provider API Hub
-          </h2>
-          <p className="text-sm sm:text-base max-w-xl" style={{ color: "rgba(255,255,255,0.4)" }}>
-            {allEndpoints.length}+ endpoints across {apiCategories.length} categories.
-            AI chat, image effects, social media downloaders, music tools, and OSINT utilities.
-            All free, no API key required.
-          </p>
-          <div className="flex items-center gap-3 pt-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{
-              border: "1px solid rgba(0,255,0,0.2)",
-            }}>
-              <div className="w-2 h-2 rounded-full" style={{ background: "#00ff00", boxShadow: "0 0 8px #00ff00" }} />
-              <span className="text-[11px] font-semibold" style={{ color: "#00ff00" }}>ALL SYSTEMS LIVE</span>
+          <div className="space-y-4 flex-1">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5" style={{ color: "#00ff00" }} />
+              <span className="text-[11px] font-bold tracking-[0.25em]" style={{ color: "#00ff00" }}>
+                APIS BY SILENT WOLF
+              </span>
             </div>
-            <span className="text-[11px] font-mono px-2.5 py-1 rounded" style={{
-              border: "1px solid rgba(0,255,0,0.12)",
-              color: "rgba(255,255,255,0.35)",
-            }}>v4.0</span>
+            <h2
+              className="sm:hidden text-3xl font-bold"
+              style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}
+            >
+              Multi-Provider API Hub
+            </h2>
+            <p className="text-sm sm:text-base max-w-xl" style={{ color: "rgba(255,255,255,0.4)" }}>
+              {allEndpoints.length}+ endpoints across {apiCategories.length} categories.
+              AI chat, image effects, social media downloaders, music tools, and OSINT utilities.
+              All free, no API key required.
+            </p>
+            <div className="flex items-center gap-3 pt-2">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{
+                border: "1px solid rgba(0,255,0,0.2)",
+              }}>
+                <div className="w-2 h-2 rounded-full" style={{ background: "#00ff00", boxShadow: "0 0 8px #00ff00" }} />
+                <span className="text-[11px] font-semibold" style={{ color: "#00ff00" }}>ALL SYSTEMS LIVE</span>
+              </div>
+              <span className="text-[11px] font-mono px-2.5 py-1 rounded" style={{
+                border: "1px solid rgba(0,255,0,0.12)",
+                color: "rgba(255,255,255,0.35)",
+              }}>v4.0</span>
+            </div>
           </div>
         </div>
       </div>
@@ -693,7 +723,7 @@ function WelcomePage({ onCategoryClick, onTryEndpoint }: { onCategoryClick: (id:
       <div>
         <div className="flex items-center gap-2 mb-5">
           <Zap className="w-4 h-4" style={{ color: "#00ff00" }} />
-          <h3 className="text-lg font-bold italic" style={{ fontFamily: "'Orbitron', sans-serif", color: "#00ff00" }}>
+          <h3 className="text-lg font-bold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#00ff00" }}>
             API Categories
           </h3>
         </div>
@@ -762,7 +792,7 @@ function HeroSection({ categoryId }: { categoryId: string }) {
               {data.tagline}
             </span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-bold italic" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
+          <h3 className="text-xl sm:text-2xl font-bold" style={{ fontFamily: "'Orbitron', sans-serif", color: "#ffffff" }}>
             {data.title}
           </h3>
           <p className="text-sm max-w-lg" style={{ color: "rgba(255,255,255,0.35)" }}>
@@ -815,7 +845,7 @@ function DocumentationPage({ onNavigateToCategory }: { onNavigateToCategory?: (c
         </div>
         <h2
           className="text-2xl font-bold mb-3"
-          style={{ color: "#ffffff", fontFamily: "'Orbitron', sans-serif", fontStyle: "italic" }}
+          style={{ color: "#ffffff", fontFamily: "'Orbitron', sans-serif" }}
           data-testid="text-docs-title"
         >
           WolfAPIs Documentation
@@ -828,7 +858,7 @@ function DocumentationPage({ onNavigateToCategory }: { onNavigateToCategory?: (c
       <div className="mb-10">
         <h3
           className="text-sm font-bold tracking-wider mb-4"
-          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif", fontStyle: "italic" }}
+          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif" }}
         >
           Community & Links
         </h3>
@@ -865,7 +895,7 @@ function DocumentationPage({ onNavigateToCategory }: { onNavigateToCategory?: (c
       <div className="mb-10">
         <h3
           className="text-sm font-bold tracking-wider mb-4"
-          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif", fontStyle: "italic" }}
+          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif" }}
         >
           Quick Start
         </h3>
@@ -915,7 +945,7 @@ function DocumentationPage({ onNavigateToCategory }: { onNavigateToCategory?: (c
       <div className="mb-10">
         <h3
           className="text-sm font-bold tracking-wider mb-4"
-          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif", fontStyle: "italic" }}
+          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif" }}
         >
           API Categories
         </h3>
@@ -1051,7 +1081,7 @@ function DocumentationPage({ onNavigateToCategory }: { onNavigateToCategory?: (c
       <div className="rounded-xl p-5" style={{ background: "#000000", border: "1px solid rgba(0,255,0,0.1)" }}>
         <h3
           className="text-sm font-bold tracking-wider mb-3"
-          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif", fontStyle: "italic" }}
+          style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif" }}
         >
           About
         </h3>
