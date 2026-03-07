@@ -1250,6 +1250,7 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [effectSearch, setEffectSearch] = useState("");
+  const [copiedAllEndpoints, setCopiedAllEndpoints] = useState(false);
 
   const comingSoonCategories = ["photofunia", "ephoto", "security", "movie", "urlshortener"];
   const displayCategories = apiCategories.filter(cat => !comingSoonCategories.includes(cat.id));
@@ -1264,6 +1265,15 @@ export default function Home() {
   const handleCategoryClick = (id: string) => {
     setActiveCategory(id);
     setEffectSearch("");
+    setCopiedAllEndpoints(false);
+  };
+
+  const handleCopyAllEndpoints = () => {
+    const text = filteredEndpoints.map((ep) => ep.path).join("\n");
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedAllEndpoints(true);
+      setTimeout(() => setCopiedAllEndpoints(false), 2000);
+    });
   };
 
   const filteredEndpoints = activeCategory ? allEndpoints.filter((e) => e.category === activeCategory) : [];
@@ -1537,6 +1547,24 @@ export default function Home() {
                   >
                     {filteredEndpoints.length} endpoint{filteredEndpoints.length !== 1 ? "s" : ""}
                   </span>
+                  <button
+                    onClick={handleCopyAllEndpoints}
+                    data-testid="button-copy-all-endpoints"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-semibold tracking-wider transition-all"
+                    style={{
+                      background: copiedAllEndpoints ? "rgba(0,255,0,0.12)" : "rgba(0,255,0,0.06)",
+                      color: copiedAllEndpoints ? "#00ff00" : "rgba(0,255,0,0.7)",
+                      border: `1px solid ${copiedAllEndpoints ? "rgba(0,255,0,0.35)" : "rgba(0,255,0,0.15)"}`,
+                    }}
+                    title="Copy all endpoint paths to clipboard"
+                  >
+                    {copiedAllEndpoints ? (
+                      <Check className="w-3 h-3" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                    {copiedAllEndpoints ? "COPIED!" : "COPY ALL"}
+                  </button>
                 </>
               ) : null}
             </div>
