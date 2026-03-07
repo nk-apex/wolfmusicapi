@@ -1,282 +1,352 @@
-const OMDB_KEY = "trilogy";
-const OMDB_BASE = "https://www.omdbapi.com";
-const YTS_BASE = "https://yts.mx/api/v2";
+const TMDB_BASE = "https://api.themoviedb.org/3";
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
 
-async function omdbFetch(params: Record<string, string>): Promise<any> {
-  const url = new URL(OMDB_BASE);
-  url.searchParams.set("apikey", OMDB_KEY);
-  for (const [k, v] of Object.entries(params)) {
-    if (v) url.searchParams.set(k, v);
-  }
-  const res = await fetch(url.toString(), { headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error(`OMDb API error: ${res.status}`);
-  const data = await res.json() as any;
-  if (data.Response === "False") throw new Error(data.Error || "Movie not found");
-  return data;
+function getTmdbKey(): string {
+  const key = process.env.TMDB_API_KEY;
+  if (!key) throw new Error("TMDB_API_KEY is not configured");
+  return key;
 }
 
-async function ytsFetch(path: string, params: Record<string, string> = {}): Promise<any> {
-  const url = new URL(`${YTS_BASE}${path}`);
+async function tmdbFetch(path: string, params: Record<string, string> = {}): Promise<any> {
+  const url = new URL(`${TMDB_BASE}${path}`);
+  url.searchParams.set("api_key", getTmdbKey());
   for (const [k, v] of Object.entries(params)) {
-    if (v) url.searchParams.set(k, v);
+    if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
+
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 10000);
   try {
-    const res = await fetch(url.toString(), { headers: { Accept: "application/json" }, signal: controller.signal });
+    const res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
     clearTimeout(timeout);
-    if (!res.ok) throw new Error(`YTS API error: ${res.status}`);
-    const data = await res.json() as any;
-    return data.data;
+    if (!res.ok) throw new Error(`TMDB API error: ${res.status} ${res.statusText}`);
+    return await res.json();
   } catch (e: any) {
     clearTimeout(timeout);
-    throw new Error("Movie listing service temporarily unavailable");
+    throw e;
   }
 }
 
-function formatOmdbMovie(m: any) {
+function img(path: string | null | undefined, size = "w500"): string | null {
+  if (!path) return null;
+  return `${TMDB_IMAGE_BASE}/${size}${path}`;
+}
+
+function formatMovie(m: any) {
   return {
-    title: m.Title,
-    year: m.Year,
-    imdbId: m.imdbID,
-    type: m.Type,
-    poster: m.Poster !== "N/A" ? m.Poster : null,
+    id: m.id,
+    title: m.title || m.name,
+    originalTitle: m.original_title || m.original_name,
+    overview: m.overview,
+    releaseDate: m.release_date || m.first_air_date,
+    year: (m.release_date || m.first_air_date || "").slice(0, 4),
+    voteAverage: m.vote_average,
+    voteCount: m.vote_count,
+    popularity: m.popularity,
+    poster: img(m.poster_path),
+    posterLarge: img(m.poster_path, "w780"),
+    backdrop: img(m.backdrop_path, "w1280"),
+    genres: (m.genre_ids || []),
+    adult: m.adult,
+    language: m.original_language,
+    mediaType: m.media_type || "movie",
   };
 }
 
-function formatOmdbDetail(m: any) {
-  return {
-    title: m.Title,
-    year: m.Year,
-    rated: m.Rated,
-    released: m.Released,
-    runtime: m.Runtime,
-    genre: m.Genre,
-    director: m.Director,
-    writer: m.Writer,
-    actors: m.Actors,
-    plot: m.Plot,
-    language: m.Language,
-    country: m.Country,
-    awards: m.Awards,
-    poster: m.Poster !== "N/A" ? m.Poster : null,
-    ratings: m.Ratings?.map((r: any) => ({ source: r.Source, value: r.Value })),
-    imdbRating: m.imdbRating,
-    imdbVotes: m.imdbVotes,
-    imdbId: m.imdbID,
-    type: m.Type,
-    boxOffice: m.BoxOffice,
-    production: m.Production,
-    website: m.Website !== "N/A" ? m.Website : null,
-  };
-}
-
-function formatYtsMovie(m: any) {
+function formatMovieDetail(m: any) {
   return {
     id: m.id,
     title: m.title,
-    year: m.year,
-    rating: m.rating,
+    originalTitle: m.original_title,
+    tagline: m.tagline,
+    overview: m.overview,
+    releaseDate: m.release_date,
+    year: (m.release_date || "").slice(0, 4),
     runtime: m.runtime,
-    genres: m.genres,
-    summary: m.summary || m.description_full,
-    poster: m.medium_cover_image,
-    posterLarge: m.large_cover_image,
-    backdrop: m.background_image,
-    language: m.language,
-    imdbCode: m.imdb_code,
-    torrents: m.torrents?.map((t: any) => ({
-      quality: t.quality,
-      type: t.type,
-      size: t.size,
-      seeds: t.seeds,
-      peers: t.peers,
+    status: m.status,
+    budget: m.budget,
+    revenue: m.revenue,
+    voteAverage: m.vote_average,
+    voteCount: m.vote_count,
+    popularity: m.popularity,
+    poster: img(m.poster_path),
+    posterLarge: img(m.poster_path, "w780"),
+    backdrop: img(m.backdrop_path, "w1280"),
+    genres: m.genres?.map((g: any) => ({ id: g.id, name: g.name })),
+    language: m.original_language,
+    languages: m.spoken_languages?.map((l: any) => l.english_name),
+    productionCompanies: m.production_companies?.map((c: any) => ({
+      id: c.id,
+      name: c.name,
+      logo: img(c.logo_path, "w200"),
+      country: c.origin_country,
     })),
+    productionCountries: m.production_countries?.map((c: any) => c.name),
+    imdbId: m.imdb_id,
+    homepage: m.homepage,
+    adult: m.adult,
+    belongsToCollection: m.belongs_to_collection ? {
+      id: m.belongs_to_collection.id,
+      name: m.belongs_to_collection.name,
+      poster: img(m.belongs_to_collection.poster_path),
+      backdrop: img(m.belongs_to_collection.backdrop_path, "w1280"),
+    } : null,
+  };
+}
+
+function formatVideo(v: any) {
+  return {
+    id: v.id,
+    name: v.name,
+    key: v.key,
+    site: v.site,
+    type: v.type,
+    official: v.official,
+    publishedAt: v.published_at,
+    url: v.site === "YouTube" ? `https://www.youtube.com/watch?v=${v.key}` : null,
+    thumbnail: v.site === "YouTube" ? `https://img.youtube.com/vi/${v.key}/hqdefault.jpg` : null,
   };
 }
 
 export async function searchMovies(query: string, page?: string) {
-  const data = await omdbFetch({ s: query, page: page || "1", type: "movie" });
+  const data = await tmdbFetch("/search/movie", { query, page: page || "1", include_adult: "false" });
   return {
-    totalResults: parseInt(data.totalResults || "0"),
-    movies: (data.Search || []).map(formatOmdbMovie),
+    page: data.page,
+    totalResults: data.total_results,
+    totalPages: data.total_pages,
+    movies: (data.results || []).map(formatMovie),
   };
 }
 
 export async function getMovieInfo(id: string) {
-  const data = await omdbFetch({ i: id, plot: "full" });
-  return formatOmdbDetail(data);
+  const data = await tmdbFetch(`/movie/${id}`, { append_to_response: "external_ids" });
+  return formatMovieDetail(data);
 }
 
 export async function getMovieTrailer(id: string) {
-  const searchRes = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(id + " official trailer")}&type=video&maxResults=5&key=`, { headers: { Accept: "application/json" } });
+  const [detail, videos] = await Promise.all([
+    tmdbFetch(`/movie/${id}`),
+    tmdbFetch(`/movie/${id}/videos`),
+  ]);
 
-  const omdbData = await omdbFetch({ i: id, plot: "short" });
-  const title = omdbData.Title;
-  const year = omdbData.Year;
+  const allVideos = (videos.results || []).map(formatVideo);
 
-  const ytSearchRes = await fetch(`https://vid.puffyan.us/api/v1/search?q=${encodeURIComponent(title + " " + year + " official trailer")}&type=video`, {
-    headers: { Accept: "application/json" },
-  });
+  const trailers = allVideos.filter((v: any) => v.type === "Trailer" && v.site === "YouTube");
+  const teasers = allVideos.filter((v: any) => v.type === "Teaser" && v.site === "YouTube");
+  const clips = allVideos.filter((v: any) => v.type === "Clip" && v.site === "YouTube");
+  const featurettes = allVideos.filter((v: any) => v.type === "Featurette" && v.site === "YouTube");
+  const behindScenes = allVideos.filter((v: any) => v.type === "Behind the Scenes" && v.site === "YouTube");
 
-  if (ytSearchRes.ok) {
-    const ytData = await ytSearchRes.json() as any[];
-    if (ytData && ytData.length > 0) {
-      return {
-        title: `${title} (${year}) - Official Trailer`,
-        videos: ytData.slice(0, 5).map((v: any) => ({
-          title: v.title,
-          videoId: v.videoId,
-          url: `https://www.youtube.com/watch?v=${v.videoId}`,
-          thumbnail: v.videoThumbnails?.[0]?.url,
-          duration: v.lengthSeconds,
-          author: v.author,
-        })),
-      };
-    }
-  }
+  const officialTrailer = trailers.find((v: any) => v.official) || trailers[0] || teasers[0] || allVideos[0] || null;
 
   return {
-    title: `${title} (${year}) - Official Trailer`,
-    searchUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(title + " " + year + " official trailer")}`,
-    videos: [],
+    movieId: detail.id,
+    title: detail.title,
+    year: (detail.release_date || "").slice(0, 4),
+    poster: img(detail.poster_path),
+    backdrop: img(detail.backdrop_path, "w1280"),
+    officialTrailer,
+    trailers,
+    teasers,
+    clips,
+    featurettes,
+    behindScenes,
+    allVideos,
+    totalVideos: allVideos.length,
   };
 }
 
 export async function getTrendingMovies(timeWindow?: string) {
-  try {
-    const data = await ytsFetch("/list_movies.json", {
-      sort_by: "download_count",
-      limit: "20",
-      order_by: "desc",
-    });
-    return {
-      timeWindow: timeWindow || "day",
-      movies: (data.movies || []).map(formatYtsMovie),
-    };
-  } catch {
-    const currentYear = new Date().getFullYear();
-    const data = await omdbFetch({ s: "movie", y: currentYear.toString(), type: "movie" });
-    return {
-      timeWindow: timeWindow || "day",
-      source: "OMDb",
-      movies: (data.Search || []).map(formatOmdbMovie),
-    };
-  }
+  const window = timeWindow === "week" ? "week" : "day";
+  const data = await tmdbFetch(`/trending/movie/${window}`);
+  return {
+    timeWindow: window,
+    page: data.page,
+    totalResults: data.total_results,
+    movies: (data.results || []).map(formatMovie),
+  };
+}
+
+export async function getTrendingAll(timeWindow?: string) {
+  const window = timeWindow === "week" ? "week" : "day";
+  const data = await tmdbFetch(`/trending/all/${window}`);
+  return {
+    timeWindow: window,
+    page: data.page,
+    totalResults: data.total_results,
+    results: (data.results || []).map(formatMovie),
+  };
 }
 
 export async function getPopularMovies(page?: string) {
-  try {
-    const data = await ytsFetch("/list_movies.json", { sort_by: "like_count", limit: "20", page: page || "1", order_by: "desc" });
-    return { page: parseInt(page || "1"), totalResults: data.movie_count || 0, movies: (data.movies || []).map(formatYtsMovie) };
-  } catch {
-    const data = await omdbFetch({ s: "avengers", type: "movie", page: page || "1" });
-    return { page: parseInt(page || "1"), source: "OMDb", movies: (data.Search || []).map(formatOmdbMovie) };
-  }
+  const data = await tmdbFetch("/movie/popular", { page: page || "1" });
+  return {
+    page: data.page,
+    totalResults: data.total_results,
+    totalPages: data.total_pages,
+    movies: (data.results || []).map(formatMovie),
+  };
 }
 
 export async function getUpcomingMovies(page?: string) {
-  try {
-    const data = await ytsFetch("/list_movies.json", { sort_by: "year", minimum_rating: "0", limit: "20", page: page || "1", order_by: "desc" });
-    return { page: parseInt(page || "1"), movies: (data.movies || []).filter((m: any) => m.year >= new Date().getFullYear()).map(formatYtsMovie) };
-  } catch {
-    const year = (new Date().getFullYear()).toString();
-    const data = await omdbFetch({ s: "movie", y: year, type: "movie" });
-    return { page: parseInt(page || "1"), source: "OMDb", movies: (data.Search || []).map(formatOmdbMovie) };
-  }
+  const data = await tmdbFetch("/movie/upcoming", { page: page || "1" });
+  return {
+    page: data.page,
+    totalResults: data.total_results,
+    totalPages: data.total_pages,
+    dates: data.dates,
+    movies: (data.results || []).map(formatMovie),
+  };
 }
 
 export async function getTopRatedMovies(page?: string) {
-  try {
-    const data = await ytsFetch("/list_movies.json", { sort_by: "rating", minimum_rating: "8", limit: "20", page: page || "1", order_by: "desc" });
-    return { page: parseInt(page || "1"), totalResults: data.movie_count || 0, movies: (data.movies || []).map(formatYtsMovie) };
-  } catch {
-    const data = await omdbFetch({ s: "godfather", type: "movie" });
-    return { page: parseInt(page || "1"), source: "OMDb", movies: (data.Search || []).map(formatOmdbMovie) };
-  }
+  const data = await tmdbFetch("/movie/top_rated", { page: page || "1" });
+  return {
+    page: data.page,
+    totalResults: data.total_results,
+    totalPages: data.total_pages,
+    movies: (data.results || []).map(formatMovie),
+  };
 }
 
 export async function getNowPlayingMovies(page?: string) {
-  try {
-    const data = await ytsFetch("/list_movies.json", { sort_by: "date_added", limit: "20", page: page || "1", order_by: "desc" });
-    return { page: parseInt(page || "1"), movies: (data.movies || []).map(formatYtsMovie) };
-  } catch {
-    const year = (new Date().getFullYear()).toString();
-    const data = await omdbFetch({ s: "new", y: year, type: "movie" });
-    return { page: parseInt(page || "1"), source: "OMDb", movies: (data.Search || []).map(formatOmdbMovie) };
-  }
+  const data = await tmdbFetch("/movie/now_playing", { page: page || "1" });
+  return {
+    page: data.page,
+    totalResults: data.total_results,
+    totalPages: data.total_pages,
+    dates: data.dates,
+    movies: (data.results || []).map(formatMovie),
+  };
 }
 
 export async function getSimilarMovies(id: string) {
-  try {
-    const data = await ytsFetch("/movie_suggestions.json", { movie_id: id });
-    return { movies: (data.movies || []).map(formatYtsMovie) };
-  } catch {
-    const movieData = await omdbFetch({ i: id, plot: "short" });
-    const genre = movieData.Genre?.split(",")[0]?.trim() || "action";
-    const data = await omdbFetch({ s: genre, type: "movie" });
-    return { source: "OMDb", movies: (data.Search || []).map(formatOmdbMovie) };
-  }
+  const [similar, recommendations] = await Promise.all([
+    tmdbFetch(`/movie/${id}/similar`),
+    tmdbFetch(`/movie/${id}/recommendations`),
+  ]);
+  return {
+    similar: (similar.results || []).map(formatMovie),
+    recommendations: (recommendations.results || []).map(formatMovie),
+  };
 }
 
 export async function getMovieCredits(id: string) {
-  const data = await omdbFetch({ i: id, plot: "full" });
-  const actors = data.Actors?.split(", ") || [];
-  const directors = data.Director?.split(", ") || [];
-  const writers = data.Writer?.split(", ") || [];
-
+  const data = await tmdbFetch(`/movie/${id}/credits`);
   return {
-    cast: actors.map((name: string) => ({ name, role: "Actor" })),
-    crew: [
-      ...directors.map((name: string) => ({ name, job: "Director" })),
-      ...writers.map((name: string) => ({ name, job: "Writer" })),
-    ],
+    cast: (data.cast || []).slice(0, 20).map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      character: p.character,
+      order: p.order,
+      photo: img(p.profile_path, "w185"),
+      popularity: p.popularity,
+    })),
+    crew: (data.crew || [])
+      .filter((p: any) => ["Director", "Producer", "Screenplay", "Writer", "Story", "Music", "Cinematography"].includes(p.job))
+      .map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        job: p.job,
+        department: p.department,
+        photo: img(p.profile_path, "w185"),
+      })),
   };
 }
 
 export async function getMovieReviews(id: string) {
-  const data = await omdbFetch({ i: id, plot: "full" });
+  const data = await tmdbFetch(`/movie/${id}/reviews`);
   return {
-    title: data.Title,
-    ratings: (data.Ratings || []).map((r: any) => ({ source: r.Source, value: r.Value })),
-    imdbRating: data.imdbRating,
-    imdbVotes: data.imdbVotes,
-    metascore: data.Metascore,
-    awards: data.Awards,
+    page: data.page,
+    totalResults: data.total_results,
+    reviews: (data.results || []).map((r: any) => ({
+      id: r.id,
+      author: r.author,
+      authorDetails: {
+        name: r.author_details?.name,
+        username: r.author_details?.username,
+        avatar: r.author_details?.avatar_path ? img(r.author_details.avatar_path, "w92") : null,
+        rating: r.author_details?.rating,
+      },
+      content: r.content,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+      url: r.url,
+    })),
   };
 }
 
 export async function getMovieGenres() {
+  const data = await tmdbFetch("/genre/movie/list");
   return {
-    genres: [
-      { id: "action", name: "Action" }, { id: "adventure", name: "Adventure" },
-      { id: "animation", name: "Animation" }, { id: "biography", name: "Biography" },
-      { id: "comedy", name: "Comedy" }, { id: "crime", name: "Crime" },
-      { id: "documentary", name: "Documentary" }, { id: "drama", name: "Drama" },
-      { id: "family", name: "Family" }, { id: "fantasy", name: "Fantasy" },
-      { id: "film-noir", name: "Film-Noir" }, { id: "history", name: "History" },
-      { id: "horror", name: "Horror" }, { id: "music", name: "Music" },
-      { id: "musical", name: "Musical" }, { id: "mystery", name: "Mystery" },
-      { id: "romance", name: "Romance" }, { id: "sci-fi", name: "Sci-Fi" },
-      { id: "sport", name: "Sport" }, { id: "thriller", name: "Thriller" },
-      { id: "war", name: "War" }, { id: "western", name: "Western" },
-    ],
+    genres: (data.genres || []).map((g: any) => ({ id: g.id, name: g.name })),
   };
 }
 
 export async function discoverMovies(genreId?: string, year?: string, sortBy?: string) {
-  try {
-    const params: Record<string, string> = { limit: "20", sort_by: sortBy || "rating", order_by: "desc" };
-    if (genreId) params.genre = genreId;
-    if (year) params.query_term = year;
-    if (year) params.minimum_rating = "0";
-    const data = await ytsFetch("/list_movies.json", params);
-    return { totalResults: data.movie_count || 0, movies: (data.movies || []).map(formatYtsMovie) };
-  } catch {
-    const searchTerm = genreId || "action";
-    const params: Record<string, string> = { s: searchTerm, type: "movie" };
-    if (year) params.y = year;
-    const data = await omdbFetch(params);
-    return { source: "OMDb", movies: (data.Search || []).map(formatOmdbMovie) };
-  }
+  const params: Record<string, string> = {
+    sort_by: sortBy || "popularity.desc",
+    include_adult: "false",
+    include_video: "false",
+    page: "1",
+  };
+  if (genreId) params.with_genres = genreId;
+  if (year) params.primary_release_year = year;
+
+  const data = await tmdbFetch("/discover/movie", params);
+  return {
+    page: data.page,
+    totalResults: data.total_results,
+    totalPages: data.total_pages,
+    movies: (data.results || []).map(formatMovie),
+  };
+}
+
+export async function getMovieImages(id: string) {
+  const data = await tmdbFetch(`/movie/${id}/images`);
+  return {
+    backdrops: (data.backdrops || []).slice(0, 10).map((i: any) => ({
+      url: img(i.file_path, "w1280"),
+      width: i.width,
+      height: i.height,
+      aspectRatio: i.aspect_ratio,
+      voteAverage: i.vote_average,
+    })),
+    posters: (data.posters || []).slice(0, 10).map((i: any) => ({
+      url: img(i.file_path, "w500"),
+      width: i.width,
+      height: i.height,
+      language: i.iso_639_1,
+      voteAverage: i.vote_average,
+    })),
+    logos: (data.logos || []).slice(0, 5).map((i: any) => ({
+      url: img(i.file_path, "w500"),
+      language: i.iso_639_1,
+    })),
+  };
+}
+
+export async function getPersonInfo(id: string) {
+  const [person, credits] = await Promise.all([
+    tmdbFetch(`/person/${id}`),
+    tmdbFetch(`/person/${id}/movie_credits`),
+  ]);
+  return {
+    id: person.id,
+    name: person.name,
+    biography: person.biography,
+    birthday: person.birthday,
+    deathday: person.deathday,
+    placeOfBirth: person.place_of_birth,
+    popularity: person.popularity,
+    photo: img(person.profile_path, "w500"),
+    homepage: person.homepage,
+    imdbId: person.imdb_id,
+    knownForDepartment: person.known_for_department,
+    knownFor: (credits.cast || []).slice(0, 10).map(formatMovie),
+    directed: (credits.crew || []).filter((c: any) => c.job === "Director").slice(0, 10).map(formatMovie),
+  };
 }

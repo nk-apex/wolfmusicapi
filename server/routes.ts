@@ -1916,6 +1916,31 @@ export async function registerRoutes(
     } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
   });
 
+  app.get("/api/movie/images", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await movie.getMovieImages(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/trending-all", async (req, res) => {
+    try {
+      const result = await movie.getTrendingAll(req.query.time as string);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/movie/person", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'id' parameter" });
+      const result = await movie.getPersonInfo(id);
+      return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", ...result });
+    } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
   // ============== TEXTPRO ROUTES ==============
   app.get("/api/textpro/list", async (_req, res) => {
     try {
