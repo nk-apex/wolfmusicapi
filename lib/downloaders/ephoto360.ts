@@ -102,13 +102,13 @@ export const EPHOTO_EFFECTS: EphotoEffect[] = [
   { id: "hologram3d", name: "Hologram 3D Text", slug: "free-create-a-3d-hologram-text-effect-441", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Holo text" }] },
   { id: "gradient3d", name: "Gradient 3D Text", slug: "create-3d-gradient-text-effect-online-686", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Gradient text" }] },
   { id: "stone3d", name: "Stone 3D Text", slug: "3d-ruby-stone-text-281", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Stone text" }] },
-  { id: "space3d", name: "Space 3D Text", slug: "create-3d-space-text-effect-online-768", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Space text" }] },
-  { id: "sand3d", name: "Sand 3D Text", slug: "create-3d-sand-text-effects-online-771", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Sand text" }] },
-  { id: "snow3d", name: "Snow 3D Text", slug: "create-3d-snow-text-effects-online-772", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Snow text" }] },
-  { id: "papercut3d", name: "Paper Cut 3D Text", slug: "create-paper-cut-3d-text-effects-online-766", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Paper text" }] },
-  { id: "balloon3d", name: "Balloon 3D Text", slug: "create-balloon-3d-text-effects-online-765", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Balloon text" }] },
+  { id: "space3d", name: "Space 3D Text", slug: "latest-space-3d-text-effect-online-559", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Space text" }, { name: "text2", type: "text", placeholder: "Text Effect" }] },
+  { id: "sand3d", name: "Sand 3D Text", slug: "realistic-3d-sand-text-effect-online-580", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Sand text" }] },
+  { id: "snow3d", name: "Snow 3D Text", slug: "create-a-snow-3d-text-effect-free-online-621", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Snow text" }] },
+  { id: "papercut3d", name: "Paper Cut 3D Text", slug: "free-online-art-paper-cut-text-effects-695", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Paper text" }] },
+  { id: "balloon3d", name: "Balloon 3D Text", slug: "balloon-text-effects-online-105", category: "3d-effect", params: [{ name: "text", type: "text", placeholder: "Balloon text" }] },
 
-  { id: "christmas3d", name: "Christmas 3D Text", slug: "create-christmas-3d-text-effects-online-780", category: "christmas", params: [{ name: "text", type: "text", placeholder: "Merry Xmas" }] },
+  { id: "christmas3d", name: "Christmas 3D Text", slug: "christmas-effect-by-name-376", category: "christmas", params: [{ name: "text", type: "text", placeholder: "Merry Xmas" }] },
   { id: "christmas-sparkles", name: "Sparkles Christmas Text", slug: "create-sparkles-3d-christmas-text-effect-online-727", category: "christmas", params: [{ name: "text", type: "text", placeholder: "Christmas text" }] },
   { id: "christmas-snow3d", name: "Christmas Snow 3D Text", slug: "create-a-beautiful-3d-christmas-snow-text-effect-793", category: "christmas", params: [{ name: "text", type: "text", placeholder: "Christmas text" }] },
   { id: "christmas-frozen", name: "Frozen Christmas Text", slug: "create-a-frozen-christmas-text-effect-online-792", category: "christmas", params: [{ name: "text", type: "text", placeholder: "Frozen Xmas" }] },
@@ -117,13 +117,13 @@ export const EPHOTO_EFFECTS: EphotoEffect[] = [
   { id: "newyear-gold", name: "New Year Gold Text", slug: "christmas-and-new-year-glittering-3d-golden-text-effect-794", category: "new-year", params: [{ name: "text", type: "text", placeholder: "Happy New Year" }] },
 
   { id: "pubglogo", name: "PUBG Logo Maker", slug: "pubg-logo-maker-cute-character-online-617", category: "game-effect", params: [{ name: "text", type: "text", placeholder: "Your name" }] },
-  { id: "valorantbanner", name: "Valorant YouTube Banner", slug: "create-valorant-banner-youtube-online-588", category: "game-effect", params: [{ name: "text", type: "text", placeholder: "Channel name" }] },
+  { id: "valorantbanner", name: "Valorant YouTube Banner", slug: "create-valorant-banner-youtube-online-588", category: "game-effect", params: [{ name: "text", type: "text", placeholder: "Channel name" }, { name: "text2", type: "text", placeholder: "Games" }, { name: "text3", type: "text", placeholder: "@handle" }] },
 
-  { id: "birthday3d", name: "Birthday 3D Text", slug: "create-happy-birthday-3d-text-effects-online-777", category: "happy-birthday", params: [{ name: "text", type: "text", placeholder: "Happy Birthday" }] },
+  { id: "birthday3d", name: "Birthday 3D Text", slug: "create-birthday-cards-by-3d-names-373", category: "happy-birthday", params: [{ name: "text", type: "text", placeholder: "Happy Birthday" }] },
   { id: "pubgbirthday", name: "PUBG Birthday Cake", slug: "write-name-on-pubg-birthday-cake-images-522", category: "happy-birthday", params: [{ name: "text", type: "text", placeholder: "Your name" }] },
   { id: "flowerbirthday", name: "Flower Birthday Cake", slug: "write-name-on-flower-birthday-cake-pics-472", category: "happy-birthday", params: [{ name: "text", type: "text", placeholder: "Your name" }] },
 
-  { id: "fire", name: "Fire Text Effect", slug: "fire-text-effect-144", category: "fire-effects", params: [{ name: "text", type: "text", placeholder: "Fire text" }] },
+  { id: "fire", name: "Fire Text Effect", slug: "flame-lettering-effect-372", category: "fire-effects", params: [{ name: "text", type: "text", placeholder: "Fire text" }] },
   { id: "flamelettering", name: "Flame Lettering", slug: "flame-lettering-effect-372", category: "fire-effects", params: [{ name: "text", type: "text", placeholder: "Flame text" }] },
 
   { id: "horrorcemetery", name: "Horror Cemetery Name", slug: "write-your-name-on-horror-cemetery-gate-597", category: "halloween", params: [{ name: "text", type: "text", placeholder: "Your name" }] },
@@ -161,9 +161,16 @@ export async function generateEphoto(effectSlug: string, texts: string[]): Promi
     const buildServer = buildServerMatch[1];
     const buildServerId = buildServerIdMatch?.[1] || "1";
 
+    const radioMatch = pageHtml.match(/type="radio"[^>]+name="([^"]+)"[^>]+value="([^"]+)"/);
+    const radioName = radioMatch?.[1] || null;
+    const radioValue = radioMatch?.[2] || null;
+
     const formData = new URLSearchParams();
     for (const t of texts) {
       formData.append("text[]", t);
+    }
+    if (radioName && radioValue) {
+      formData.append(radioName, radioValue);
     }
     formData.append("token", token);
     formData.append("build_server", buildServer);
@@ -211,6 +218,13 @@ export async function generateEphoto(effectSlug: string, texts: string[]): Promi
     if (Array.isArray(formValue.text)) {
       for (const t of formValue.text) {
         createData.append("text[]", t);
+      }
+    }
+    for (const [key, val] of Object.entries(formValue)) {
+      if (key.startsWith("radio") && val !== null && typeof val === "object") {
+        for (const [subKey, subVal] of Object.entries(val as Record<string, string>)) {
+          createData.append(`${key}[${subKey}]`, subVal);
+        }
       }
     }
     createData.append("token", formValue.token || "");

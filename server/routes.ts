@@ -608,7 +608,7 @@ export async function registerRoutes(
 
   app.post("/api/ephoto/generate", async (req, res) => {
     try {
-      const { effect, text, text2 } = req.body;
+      const { effect, text, ...restBody } = req.body;
       if (!effect || !text) {
         return res.status(400).json({
           success: false,
@@ -616,7 +616,12 @@ export async function registerRoutes(
         });
       }
 
-      const texts = text2 ? [text, text2] : [text];
+      const texts: string[] = [text];
+      for (let i = 2; i <= 10; i++) {
+        const extra = restBody[`text${i}`];
+        if (extra) texts.push(extra);
+        else break;
+      }
       const result = await generateEphoto(effect, texts);
       return res.json(result);
     } catch (error: any) {
