@@ -1,6 +1,22 @@
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
+const BROWSER_HEADERS = {
+  "User-Agent": USER_AGENT,
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+  "Accept-Language": "en-US,en;q=0.9",
+  "Accept-Encoding": "gzip, deflate, br",
+  "Connection": "keep-alive",
+  "Upgrade-Insecure-Requests": "1",
+  "sec-ch-ua": '"Not A(Brand";v="99", "Google Chrome";v="131", "Chromium";v="131"',
+  "sec-ch-ua-mobile": "?0",
+  "sec-ch-ua-platform": '"Windows"',
+  "Sec-Fetch-Site": "same-origin",
+  "Sec-Fetch-Mode": "navigate",
+  "Sec-Fetch-User": "?1",
+  "Sec-Fetch-Dest": "document",
+};
+
 export interface PhotoFuniaEffect {
   id: string;
   name: string;
@@ -29,12 +45,12 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
 }
 
 export const PHOTOFUNIA_EFFECTS: PhotoFuniaEffect[] = [
-  { id: "smokeflare", name: "Smoke Flare", slug: "smoke-flare", category: "halloween", inputType: "img", fields: [{ name: "image", type: "image", label: "Photo" }] },
+  { id: "smokeflare", name: "Smoke Flare", slug: "smoke-flare", category: "halloween", inputType: "img", fields: [{ name: "image", type: "image", label: "Face Photo" }] },
   { id: "nightmarewriting", name: "Nightmare Writing", slug: "nightmare-writing", category: "halloween", inputType: "txt", fields: [{ name: "text", type: "text", label: "Text", placeholder: "Nightmare" }] },
-  { id: "lightning", name: "Lightning", slug: "lightning", category: "halloween", inputType: "img", fields: [{ name: "image", type: "image", label: "Photo" }] },
+  { id: "lightning", name: "Lightning", slug: "lightning", category: "halloween", inputType: "img", fields: [{ name: "image", type: "image", label: "Face Photo" }] },
   { id: "cemeterygates", name: "Cemetery Gates", slug: "cemetery-gates", category: "halloween", inputType: "txt", fields: [{ name: "text", type: "text", label: "Text", placeholder: "RIP" }] },
-  { id: "summoningspirits", name: "Summoning Spirits", slug: "summoning-spirits", category: "halloween", inputType: "img", fields: [{ name: "image", type: "image", label: "Photo" }] },
-  { id: "ghostwood", name: "Ghost Wood", slug: "ghostwood", category: "halloween", inputType: "img", fields: [{ name: "image", type: "image", label: "Photo" }] },
+  { id: "summoningspirits", name: "Summoning Spirits", slug: "summoning-spirits", category: "halloween", inputType: "img", fields: [{ name: "image", type: "image", label: "Face Photo" }] },
+  { id: "ghostwood", name: "Ghost Wood", slug: "ghostwood", category: "halloween", inputType: "img", fields: [{ name: "image", type: "image", label: "Face Photo" }] },
 
   { id: "autumn", name: "Autumn", slug: "autumn", category: "filters", inputType: "img", fields: [{ name: "image", type: "image", label: "Photo" }] },
   { id: "jade", name: "Jade", slug: "jade", category: "filters", inputType: "img", fields: [{ name: "image", type: "image", label: "Photo" }] },
@@ -215,26 +231,40 @@ function extractCookies(res: Response): string {
 
 async function getPhotofuniaSession(effectSlug: string): Promise<string> {
   try {
-    const res = await fetchWithTimeout(`https://photofunia.com/effects/${effectSlug}`, {
-      headers: { "User-Agent": USER_AGENT },
+    const res = await fetchWithTimeout(`https://photofunia.com/categories/all_effects`, {
+      headers: {
+        ...BROWSER_HEADERS,
+        "Referer": "https://photofunia.com/",
+      },
     });
-    return extractCookies(res);
+    const cookies = extractCookies(res);
+
+    if (!cookies) {
+      const res2 = await fetchWithTimeout(`https://photofunia.com/`, {
+        headers: BROWSER_HEADERS,
+      });
+      return extractCookies(res2);
+    }
+
+    return cookies;
   } catch {
     return "";
   }
 }
 
-async function uploadImageToPhotofunia(imageUrl: string, cookies: string, effectSlug: string): Promise<{ key: string | null; cookies: string }> {
+async function uploadImageToPhotofunia(imageUrl: string, cookies: string, effectSlug: string): Promise<{ key: string | null; cookies: string; error?: string }> {
   try {
     const imgRes = await fetchWithTimeout(imageUrl, {
       headers: {
         "User-Agent": USER_AGENT,
         "Accept": "image/*,*/*",
+        "Accept-Language": "en-US,en;q=0.9",
       },
+      redirect: "follow",
     });
     if (!imgRes.ok) {
       console.log(`[photofunia] Failed to fetch image: ${imgRes.status} ${imgRes.statusText}`);
-      return { key: null, cookies };
+      return { key: null, cookies, error: `Could not download the image (HTTP ${imgRes.status}). Make sure the URL is publicly accessible.` };
     }
 
     const contentType = imgRes.headers.get("content-type") || "image/jpeg";
@@ -260,9 +290,17 @@ async function uploadImageToPhotofunia(imageUrl: string, cookies: string, effect
       method: "POST",
       headers: {
         "User-Agent": USER_AGENT,
+        "Accept": "*/*",
+        "Accept-Language": "en-US,en;q=0.9",
         "Content-Type": `multipart/form-data; boundary=${boundary}`,
-        "Referer": `https://photofunia.com/effects/${effectSlug}`,
+        "Referer": `https://photofunia.com/categories/all_effects`,
         "Origin": "https://photofunia.com",
+        "sec-ch-ua": '"Not A(Brand";v="99", "Google Chrome";v="131", "Chromium";v="131"',
+        "sec-ch-ua-mobile": "?0",
+        "Sec-Fetch-Site": "same-origin",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Dest": "empty",
+        "X-Requested-With": "XMLHttpRequest",
         ...(cookies ? { "Cookie": cookies } : {}),
       },
       body: body,
@@ -273,15 +311,22 @@ async function uploadImageToPhotofunia(imageUrl: string, cookies: string, effect
 
     if (!uploadRes.ok) {
       console.log(`[photofunia] Upload response: ${uploadRes.status}`);
-      return { key: null, cookies: mergedCookies };
+      if (uploadRes.status === 403) {
+        return { key: null, cookies: mergedCookies, error: "PhotoFunia is temporarily unavailable or rate-limited. Please try again in a moment." };
+      }
+      return { key: null, cookies: mergedCookies, error: `PhotoFunia image upload failed (HTTP ${uploadRes.status}). Please try again.` };
     }
 
     const uploadData = await uploadRes.json() as any;
+    if (uploadData?.error) {
+      const pfErr = uploadData.error?.description || uploadData.error?.key || "Unknown upload error";
+      return { key: null, cookies: mergedCookies, error: `PhotoFunia rejected the image: ${pfErr}` };
+    }
     const key = uploadData?.response?.key || uploadData?.key || null;
     return { key, cookies: mergedCookies };
   } catch (err: any) {
     console.log(`[photofunia] Image upload failed: ${err.message}`);
-    return { key: null, cookies };
+    return { key: null, cookies, error: `Image upload failed: ${err.message}` };
   }
 }
 
@@ -320,7 +365,7 @@ export async function generatePhotofunia(
       imageKey = uploadResult.key;
       sessionCookies = uploadResult.cookies;
       if (!imageKey) {
-        return { success: false, creator: CREATOR, error: "Failed to upload image to PhotoFunia. Make sure the image URL is accessible and points to a valid image." };
+        return { success: false, creator: CREATOR, error: uploadResult.error || "Failed to upload image to PhotoFunia. Make sure the image URL is accessible and points to a valid image." };
       }
     }
 
@@ -348,9 +393,17 @@ export async function generatePhotofunia(
       method: "POST",
       headers: {
         "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
         "Content-Type": `multipart/form-data; boundary=${boundary}`,
-        "Referer": `https://photofunia.com/effects/${effect.slug}`,
+        "Referer": `https://photofunia.com/categories/all_effects`,
         "Origin": "https://photofunia.com",
+        "sec-ch-ua": '"Not A(Brand";v="99", "Google Chrome";v="131", "Chromium";v="131"',
+        "sec-ch-ua-mobile": "?0",
+        "Sec-Fetch-Site": "same-origin",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-User": "?1",
+        "Sec-Fetch-Dest": "document",
         ...(sessionCookies ? { "Cookie": sessionCookies } : {}),
       },
       body: bodyStr,
@@ -363,27 +416,53 @@ export async function generatePhotofunia(
       if (!location) {
         return { success: false, creator: CREATOR, error: "No redirect location from PhotoFunia." };
       }
-      resultPageUrl = location.startsWith("http") ? location : `https://photofunia.com${location}`;
+      const locationFull = location.startsWith("http") ? location : `https://photofunia.com${location}`;
+
+      const errorMatch = locationFull.match(/[?&]e=([^&#]+)/);
+      if (errorMatch) {
+        const errorCode = decodeURIComponent(errorMatch[1]);
+        const errorMessages: Record<string, string> = {
+          "no_faces": "No face detected in the image. This effect requires a photo with a clearly visible face.",
+          "wrong_size": "The image size is not suitable. Please try a larger or higher quality image.",
+          "upload_error": "Failed to process the uploaded image. Please try a different image.",
+          "error": "PhotoFunia could not process this effect. Please try again.",
+          "too_small": "The image is too small. Please use a larger image.",
+          "bad_image": "The image could not be processed. Please use a different image format or URL.",
+        };
+        return { success: false, creator: CREATOR, error: errorMessages[errorCode] || `PhotoFunia returned an error: ${errorCode}` };
+      }
+
+      resultPageUrl = locationFull;
+    } else if (postRes.status === 403) {
+      return { success: false, creator: CREATOR, error: "PhotoFunia is temporarily unavailable or rate-limited. Please try again in a moment." };
     } else {
-      return { success: false, creator: CREATOR, error: `PhotoFunia returned status ${postRes.status} instead of redirect.` };
+      return { success: false, creator: CREATOR, error: `PhotoFunia returned unexpected status ${postRes.status}. Please try again.` };
     }
 
     const resultRes = await fetchWithTimeout(resultPageUrl, {
-      headers: { "User-Agent": USER_AGENT },
+      headers: {
+        "User-Agent": USER_AGENT,
+        ...(sessionCookies ? { "Cookie": sessionCookies } : {}),
+      },
     });
     const resultHtml = await resultRes.text();
 
-    const imageMatch = resultHtml.match(/https:\/\/u\.photofunia\.com\/[^"'\s]+_r\.jpg/);
-    if (imageMatch) {
-      return { success: true, creator: CREATOR, effectName: effect.name, imageUrl: imageMatch[0] };
+    const resultImageMatch = resultHtml.match(/https:\/\/u\.photofunia\.com\/[^"'\s<>]+_r\.[a-z]{3,4}/i);
+    if (resultImageMatch) {
+      return { success: true, creator: CREATOR, effectName: effect.name, imageUrl: resultImageMatch[0] };
     }
 
-    const anyImage = resultHtml.match(/https:\/\/u\.photofunia\.com\/[^"'\s]+\.jpg/);
+    const anyResultImage = resultHtml.match(/https:\/\/u\.photofunia\.com\/[^"'\s<>]+\/results\/[^"'\s<>]+\.[a-z]{3,4}/i);
+    if (anyResultImage) {
+      return { success: true, creator: CREATOR, effectName: effect.name, imageUrl: anyResultImage[0] };
+    }
+
+    const anyImage = resultHtml.match(/https:\/\/u\.photofunia\.com\/[^"'\s<>]+\.[a-z]{3,4}/i);
     if (anyImage) {
       return { success: true, creator: CREATOR, effectName: effect.name, imageUrl: anyImage[0] };
     }
 
-    return { success: false, creator: CREATOR, error: "Could not extract result image from PhotoFunia. The effect may have failed to process." };
+    return { success: false, creator: CREATOR, error: "Could not extract result image from PhotoFunia. The effect may have changed or is temporarily unavailable." };
   } catch (err: any) {
     return { success: false, creator: CREATOR, error: err.message || "PhotoFunia generation failed" };
   }
