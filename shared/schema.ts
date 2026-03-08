@@ -181,6 +181,31 @@ export interface EffectEntry {
   required: string;
 }
 
+export const PHOTOFUNIA_SUBCATEGORIES = [
+  { id: "valentine", name: "Valentine's Day" },
+  { id: "easter", name: "Easter" },
+  { id: "christmas", name: "Christmas" },
+  { id: "halloween", name: "Halloween" },
+  { id: "filters", name: "Filters" },
+  { id: "lab", name: "Lab" },
+  { id: "cards", name: "Cards" },
+  { id: "posters", name: "Posters" },
+  { id: "galleries", name: "Galleries" },
+  { id: "photography", name: "Photography" },
+  { id: "faces", name: "Faces" },
+  { id: "billboards", name: "Billboards" },
+  { id: "celebrities", name: "Celebrities" },
+  { id: "frames", name: "Frames" },
+  { id: "drawings", name: "Drawings" },
+  { id: "vintage", name: "Vintage" },
+  { id: "misc", name: "Misc" },
+  { id: "magazines", name: "Magazines" },
+  { id: "professions", name: "Professions" },
+  { id: "movies", name: "Movies" },
+  { id: "tv", name: "TV" },
+  { id: "books", name: "Books" },
+];
+
 export const EPHOTO_SUBCATEGORIES = [
   { id: "text-effects", name: "Text Effects" },
   { id: "3d-effect", name: "3D Effect" },
@@ -500,6 +525,7 @@ const photofuniaEndpoints: ApiEndpoint[] = photofuniaEffectsList.map(e => {
     format: "json",
     category: "photofunia",
     provider: "PhotoFunia",
+    subcategory: e.category,
   };
 });
 
