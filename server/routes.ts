@@ -3,6 +3,7 @@ import { type Server } from "http";
 import { searchSongs, getDownloadInfo, extractVideoId } from "./scraper";
 import { registerAIRoutes } from "./ai-routes";
 import { downloadTikTok } from "../lib/downloaders/tiktok";
+import { downloadSnapchat } from "../lib/downloaders/snapchat";
 import { downloadInstagram } from "../lib/downloaders/instagram";
 import { downloadYouTube } from "../lib/downloaders/youtube";
 import { downloadFacebook } from "../lib/downloaders/facebook";
@@ -415,6 +416,22 @@ export async function registerRoutes(
       });
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message || "TikTok info fetch failed" });
+    }
+  });
+
+  app.get("/api/download/snapchat", async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url || url.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Query parameter 'url' is required. Provide a Snapchat story, spotlight, or profile URL.",
+        });
+      }
+      const result = await downloadSnapchat(url);
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "Snapchat download failed" });
     }
   });
 

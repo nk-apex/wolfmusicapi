@@ -13,8 +13,14 @@ interface TikTokResult {
 }
 
 async function getToken(): Promise<{ tt: string; furl: string }> {
-  const res = await fetch("https://ssstik.io/en-1", {
-    headers: { "User-Agent": USER_AGENT },
+  const res = await fetch("https://ssstik.io/", {
+    headers: {
+      "User-Agent": USER_AGENT,
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Encoding": "identity",
+      "Accept-Language": "en-US,en;q=0.9",
+    },
+    redirect: "follow",
   });
   const html = await res.text();
 
@@ -45,19 +51,36 @@ export async function downloadTikTok(url: string): Promise<TikTokResult> {
       headers: {
         "User-Agent": USER_AGENT,
         "Origin": "https://ssstik.io",
-        "Referer": "https://ssstik.io/en-1",
+        "Referer": "https://ssstik.io/",
         "HX-Request": "true",
         "HX-Target": "target",
-        "HX-Current-URL": "https://ssstik.io/en-1",
+        "HX-Current-URL": "https://ssstik.io/",
         "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "text/html,application/xhtml+xml,*/*",
+        "Accept-Encoding": "identity",
+        "Accept-Language": "en-US,en;q=0.9",
       },
       body: formData.toString(),
     });
 
     const html = await res.text();
 
-    if (html.includes("error") && html.includes("invalid")) {
-      return { success: false, error: "Invalid TikTok URL. Please provide a valid TikTok video link." };
+    if (!html || html.trim().length < 50) {
+      return { success: false, error: "Empty response from TikTok downloader. The service may be temporarily unavailable." };
+    }
+
+    if (
+      html.includes("panel critical") ||
+      html.includes("currently unavailable") ||
+      html.includes("Video currently unavailable") ||
+      html.includes("changed something") ||
+      html.includes("Error code:") ||
+      (html.includes("error") && html.includes("invalid"))
+    ) {
+      const errMatch = html.match(/Error code[^<]*<\/b>\s*([^<]*)/i) ||
+                       html.match(/<p>([^<]{10,200})<\/p>/);
+      const errMsg = errMatch?.[1]?.trim() || "Video unavailable or TikTok API error";
+      return { success: false, error: errMsg };
     }
 
     const links: string[] = [];
@@ -66,14 +89,18 @@ export async function downloadTikTok(url: string): Promise<TikTokResult> {
     while ((linkMatch = linkRegex.exec(html)) !== null) {
       links.push(linkMatch[1]);
     }
+
     const titleMatch = html.match(/<p[^>]*class="[^"]*maintext[^"]*"[^>]*>([^<]+)/i) ||
                        html.match(/<strong[^>]*class="[^"]*maintext[^"]*"[^>]*>([^<]+)/i) ||
-                       html.match(/<p[^>]*>([^<]{10,100})<\/p>/);
+                       html.match(/<h2[^>]*>([^<]{3,150})<\/h2>/i);
     const authorMatch = html.match(/@([a-zA-Z0-9_.]+)/);
 
-    const videoUrl = links.find(l => l.includes("tikcdn") && !l.includes("/m/")) || links[0];
-    const videoNoWm = links.find(l => l.includes("tikcdn") && l.includes("/m/"));
-    const audioUrl = links.find(l => l.includes("music") || l.includes("mp3") || l.includes("audio"));
+    const tikcdnLinks = links.filter(l => l.includes("tikcdn.io"));
+    const videoUrl = tikcdnLinks.find(l => !l.includes("/m/") && !l.includes("/a/") && !l.includes("/p/")) || tikcdnLinks[0];
+    const videoNoWm = tikcdnLinks.find(l => l.includes("/m/")) || videoUrl;
+    const thumbnailUrl = tikcdnLinks.find(l => l.includes("/p/"));
+    const audioUrl = tikcdnLinks.find(l => l.includes("/mp3/") || l.includes("/audio/") || l.includes("/music/")) ||
+                     links.find(l => l.includes("mp3") || l.includes("music") || l.includes("audio"));
 
     if (!videoUrl) {
       return { success: false, error: "Could not extract download links. The video may be private or unavailable." };
@@ -87,6 +114,7 @@ export async function downloadTikTok(url: string): Promise<TikTokResult> {
       videoUrl,
       videoUrlNoWatermark: videoNoWm || videoUrl,
       audioUrl: audioUrl || undefined,
+      thumbnail: thumbnailUrl || undefined,
     };
   } catch (error: any) {
     return { success: false, error: `TikTok download failed: ${error.message}` };
