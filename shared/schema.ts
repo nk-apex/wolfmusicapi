@@ -115,6 +115,7 @@ const aiToolEndpoints: ApiEndpoint[] = [
   { path: "/api/ai/code", method: "POST", description: "AI code generation assistant", params: [{ name: "prompt", type: "string", required: true, description: "Code task description" }, { name: "language", type: "string", required: false, description: "Programming language (e.g. python, javascript)" }], format: "json", category: "ai-tools", provider: "ChatEverywhere" },
   { path: "/api/ai/scanner", method: "POST", description: "AI content scanner - detect if text is AI-generated or human-written", params: [{ name: "text", type: "string", required: true, description: "Text to scan for AI detection" }], format: "json", category: "ai-tools", provider: "ChatEverywhere" },
   { path: "/api/ai/humanizer", method: "POST", description: "AI text humanizer - rewrite AI-generated text to sound human-written", params: [{ name: "text", type: "string", required: true, description: "AI-generated text to humanize" }], format: "json", category: "ai-tools", provider: "ChatEverywhere" },
+  { path: "/api/ai/removebg", method: "POST", description: "Remove image background instantly — returns transparent PNG as base64 and hosted URL via catbox", params: [{ name: "image_url", type: "string", required: false, description: "URL of image to process (use this or image)" }, { name: "image", type: "string", required: false, description: "Base64-encoded image data (use this or image_url)" }], format: "json", category: "ai-tools", provider: "remove.bg" },
 ];
 
 const aiImageEndpoints: ApiEndpoint[] = [

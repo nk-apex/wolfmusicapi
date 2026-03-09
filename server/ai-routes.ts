@@ -306,6 +306,94 @@ export function registerAIRoutes(app: Express): void {
     }
   });
 
+  app.post("/api/ai/removebg", async (req: Request, res: Response) => {
+    const { image_url, image } = req.body;
+
+    if (!image_url && !image) {
+      return res.status(400).json({
+        success: false,
+        error: "Provide either 'image_url' (URL of image) or 'image' (base64-encoded image data).",
+      });
+    }
+
+    const apiKey = process.env.REMOVE_BG_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({
+        success: false,
+        error: "REMOVE_BG_API_KEY environment variable is not set. Get a free key (50 calls/month) at https://www.remove.bg/api",
+      });
+    }
+
+    try {
+      const form = new FormData();
+      if (image_url) {
+        form.append("image_url", image_url.trim());
+      } else {
+        const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+        const buffer = Buffer.from(base64Data, "base64");
+        const blob = new Blob([buffer], { type: "image/png" });
+        form.append("image_file", blob, "image.png");
+      }
+      form.append("size", "auto");
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 30000);
+
+      let bgRes: Response;
+      try {
+        bgRes = await fetch("https://api.remove.bg/v1.0/removebg", {
+          method: "POST",
+          headers: { "X-Api-Key": apiKey },
+          body: form,
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
+
+      if (!bgRes.ok) {
+        const errJson = await bgRes.json().catch(() => null);
+        const errMsg = errJson?.errors?.[0]?.title || `remove.bg API returned ${bgRes.status}`;
+        return res.status(bgRes.status).json({ success: false, error: errMsg });
+      }
+
+      const imageBuffer = Buffer.from(await bgRes.arrayBuffer());
+      const base64Result = imageBuffer.toString("base64");
+      const dataUrl = `data:image/png;base64,${base64Result}`;
+
+      let hostedUrl: string | null = null;
+      try {
+        const catboxForm = new FormData();
+        catboxForm.append("reqtype", "fileupload");
+        catboxForm.append("userhash", "");
+        catboxForm.append("fileToUpload", new Blob([imageBuffer], { type: "image/png" }), "removed-bg.png");
+        const catboxRes = await fetch("https://catbox.moe/user/api.php", { method: "POST", body: catboxForm });
+        if (catboxRes.ok) {
+          const text = await catboxRes.text();
+          if (text.startsWith("https://")) hostedUrl = text.trim();
+        }
+      } catch {}
+
+      const credits = bgRes.headers.get("X-Credits-Charged");
+      const creditsRemaining = bgRes.headers.get("X-Api-Credits-Remaining");
+
+      return res.json({
+        success: true,
+        creator: "APIs by Silent Wolf | A tech explorer",
+        provider: "remove.bg",
+        imageUrl: hostedUrl,
+        base64: dataUrl,
+        creditsUsed: credits ? Number(credits) : null,
+        creditsRemaining: creditsRemaining ? Number(creditsRemaining) : null,
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        error: error?.name === "AbortError" ? "Request timed out after 30 seconds" : error.message,
+      });
+    }
+  });
+
   app.get("/api/ai/image/pixabay", async (req: Request, res: Response) => {
     const q = req.query.q as string;
     if (!q) return res.status(400).json({ success: false, error: "Parameter 'q' is required." });

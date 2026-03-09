@@ -116,6 +116,7 @@ bass, bassboost, robot, chipmunk, deep, echo, reverb, nightcore, slowed, 8d, vap
 - `SPOTDOWN_API_KEY` - Spotify download API key (has fallback default)
 - `YOUTUBE_API_KEY` - YouTube trending API key (optional, falls back to search)
 - `DVLA_API_KEY` - Required for number plate lookup (`/api/stalk/numberplate`). Free key at https://developer-portal.driver-vehicle-licensing.api.gov.uk/
+- `REMOVE_BG_API_KEY` - Required for background removal (`/api/ai/removebg`). Free key (50 calls/month) at https://www.remove.bg/api
 
 ## Branding
 - Name: WOLFAPIS (WOLF in green #00ff00, APIS in white)
