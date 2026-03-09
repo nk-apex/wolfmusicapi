@@ -55,7 +55,7 @@ export const apiCategories = [
   { id: "spotify", name: "Spotify", description: "Search and download Spotify tracks as MP3", icon: "Music2" },
   { id: "shazam", name: "Shazam", description: "Search songs and recognize music from audio", icon: "AudioLines" },
   { id: "ephoto", name: "Ephoto360", description: "Generate text effects and artistic images", icon: "Sparkles" },
-  { id: "photofunia", name: "PhotoFunia", description: "100+ photo effects, frames, filters and text art", icon: "ImagePlus" },
+  { id: "photofunia", name: "PhotoFunia", description: "340+ photo effects across 19 categories: filters, billboards, lab, cards, frames, posters and more", icon: "ImagePlus" },
   { id: "stalker", name: "Stalker", description: "Profile lookup and OSINT tools", icon: "Eye" },
   { id: "anime", name: "Anime", description: "Waifu, neko, and anime reaction images", icon: "Cat" },
   { id: "fun", name: "Fun", description: "Jokes, quotes, pickup lines, and fun text content", icon: "Laugh" },
@@ -699,11 +699,18 @@ const ephotoEndpoints: ApiEndpoint[] = ephotoEffectsList.map(e => ({
 
 const photofuniaEndpoints: ApiEndpoint[] = photofuniaEffectsList.map(e => {
   const params: ApiParam[] = [];
-  if (e.required.includes("text")) params.push({ name: "text", type: "string", required: true, description: "Text input" });
-  if (e.required.includes("imageUrl")) params.push({ name: "imageUrl", type: "string", required: true, description: "Image URL" });
-  if (e.required.includes("channel")) params.push({ name: "channel", type: "string", required: false, description: "Channel name" });
-  if (e.required.includes("title1")) params.push({ name: "title1", type: "string", required: false, description: "Title" });
-  if (e.required.includes("title2")) params.push({ name: "title2", type: "string", required: false, description: "Headline" });
+  const reqParts = e.required.split(",").map(s => s.trim().replace(/\s*\(.*?\)/, "").trim()).filter(Boolean);
+  for (const part of reqParts) {
+    if (part === "imageUrl") params.push({ name: "imageUrl", type: "string", required: true, description: "Image URL" });
+    else if (part === "text") params.push({ name: "text", type: "string", required: true, description: "Text input" });
+    else if (part === "channel") params.push({ name: "channel", type: "string", required: false, description: "Channel name" });
+    else if (part === "title1") params.push({ name: "title1", type: "string", required: false, description: "Title line 1" });
+    else if (part === "title2") params.push({ name: "title2", type: "string", required: false, description: "Title line 2 / headline" });
+    else if (part === "message") params.push({ name: "message", type: "string", required: false, description: "Message text" });
+    else if (part === "donor") params.push({ name: "donor", type: "string", required: false, description: "Target photo URL (face swap)" });
+    else if (part === "Title") params.push({ name: "Title", type: "string", required: false, description: "Frame title text" });
+    else if (/^line\d+$/.test(part)) params.push({ name: part, type: "string", required: false, description: `Text line ${part.replace("line", "")}` });
+  }
   return {
     path: `/api/photofunia/${e.id}`,
     method: "GET" as const,

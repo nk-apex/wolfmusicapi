@@ -120,7 +120,7 @@ const heroData: Record<string, { tagline: string; title: string; description: st
   photofunia: {
     tagline: "PHOTO EFFECTS ENGINE",
     title: `${photofuniaEffectsList.length}+ Photo Effects`,
-    description: "Filters, frames, faces, billboards, posters, drawings, and artistic photo effects via PhotoFunia.",
+    description: "Filters, lab effects, billboards, cards, frames, faces, posters, drawings, magazines, galleries, and more via PhotoFunia.",
   },
   stalker: {
     tagline: "OSINT & PROFILE LOOKUP",
@@ -715,7 +715,7 @@ function WelcomePage({ onCategoryClick, onTryEndpoint }: { onCategoryClick: (id:
         searchQuery={globalSearch}
         setSearchQuery={setGlobalSearch}
         onSelectEndpoint={onTryEndpoint}
-        placeholder="Search all 500+ endpoints... (e.g. neon, fire, translate, sticker)"
+        placeholder={`Search all ${allEndpoints.length}+ endpoints... (e.g. neon, fire, translate, sticker)`}
       />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">

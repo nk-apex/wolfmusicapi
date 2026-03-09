@@ -1,7 +1,7 @@
 # WolfApis
 
 ## Overview
-A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 35+ AI chat models (including WormGPT, Replit AI), AI tools (translate, summarize, code, AI scanner, humanizer), AI image endpoints (7 providers: Unsplash, Lorem Picsum, LoremFlickr, Dog CEO, CATAAS, Bing Image Creator), music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook, Twitter/X, Snapchat — combined into one "Social Media" category with 15 endpoints), Spotify search/download, Shazam music recognition, Ephoto360 text effect generation (108 effects across 13 categories), PhotoFunia image effects (154 effects, 19 text-only), Text Effects (109 effects via CoolText), movie data (13 endpoints via OMDb/YTS), anime images (30 types), fun text content (37 categories), URL services (7 shorteners + ImgBB + Catbox image hosting), developer tools (21 utilities), security/ethical hacking tools (38 endpoints), sports data (24 endpoints via TheSportsDB), search APIs (10 endpoints), media converters (6 converter endpoints for WhatsApp bots), and audio effects (25 effects: bass, bassboost, robot, echo, nightcore, 8D, reverb, etc.). 640+ total endpoints across 21 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing, search bar with autocomplete for effect categories, and a documentation page with clickable expandable endpoint docs.
+A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access to 35+ AI chat models (including WormGPT, Replit AI), AI tools (translate, summarize, code, AI scanner, humanizer), AI image endpoints (7 providers: Unsplash, Lorem Picsum, LoremFlickr, Dog CEO, CATAAS, Bing Image Creator), music/media downloaders, social media downloaders (YouTube, TikTok, Instagram, Facebook, Twitter/X, Snapchat — combined into one "Social Media" category with 15 endpoints), Spotify search/download, Shazam music recognition, Ephoto360 text effect generation (108 effects across 13 categories), PhotoFunia image effects (342 effects across 19 categories), Text Effects (109 effects via CoolText), movie data (13 endpoints via OMDb/YTS), anime images (30 types), fun text content (37 categories), URL services (7 shorteners + ImgBB + Catbox image hosting), developer tools (21 utilities), security/ethical hacking tools (38 endpoints), sports data (24 endpoints via TheSportsDB), search APIs (10 endpoints), media converters (6 converter endpoints for WhatsApp bots), and audio effects (25 effects: bass, bassboost, robot, echo, nightcore, 8D, reverb, etc.). 860+ total endpoints across 21 categories. Features a cyberpunk-themed sidebar navigation UI with popup-based API testing, search bar with autocomplete for effect categories, and a documentation page with clickable expandable endpoint docs.
 
 ## Architecture
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui components
@@ -61,8 +61,8 @@ Search, recognize, track details
 ### Ephoto360 (2 endpoints, 108 effects)
 List effects, generate text effect image - card grid view. 13 categories: text-effects (44), 3d-effect (18), halloween (9), cover-facebook (7), happy-birthday (10), game-effect (6), christmas (5), fire-effects (2), love (3), animations (1), new-year (1), tattoo-effects (1), technology (1)
 
-### PhotoFunia (2 endpoints, 154 effects)
-List effects, generate photo effect - card grid view
+### PhotoFunia (2 endpoints, 342 effects)
+List effects, generate photo effect - card grid view. 19 categories: filters (31), billboards (62), lab (88), christmas (33), halloween (21), easter (9), faces (15), misc (16), posters (16), galleries (9), drawings (8), magazines (6), valentine (6), frames (5), celebrities (4), books (3), cards (5), photography (3), vintage (2)
 
 ### Social Media (14 endpoints)
 YouTube (download, MP3, MP4, info, search), TikTok (download, audio, info), Instagram (download, story), Facebook (download, reel), Twitter/X (download, info)
