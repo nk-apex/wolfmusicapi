@@ -11,6 +11,8 @@ const USER_AGENT =
 const MOBILE_UA =
   "Mozilla/5.0 (Linux; Android 11; SAMSUNG SM-G973U) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/14.2 Chrome/87.0.4280.141 Mobile Safari/537.36";
 
+// ─── Cobalt instance pool ────────────────────────────────────────────────────
+
 const COBALT_FALLBACK_INSTANCES = [
   "https://cobalt-api.meowing.de",
   "https://cobalt-backend.canine.tools",
@@ -24,11 +26,13 @@ let cobaltCache: { instances: string[]; expiresAt: number } | null = null;
 async function getCobaltInstances(): Promise<string[]> {
   if (cobaltCache && Date.now() < cobaltCache.expiresAt) return cobaltCache.instances;
   try {
-    const res = await fetchWithTimeout("https://instances.cobalt.best/api/instances.json", {
-      headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
-    }, 8000);
+    const res = await fetchWithTimeout(
+      "https://instances.cobalt.best/api/instances.json",
+      { headers: { "User-Agent": USER_AGENT, Accept: "application/json" } },
+      8000
+    );
     if (!res.ok) throw new Error(`status ${res.status}`);
-    const data = await res.json() as any[];
+    const data = (await res.json()) as any[];
     const instances = data
       .filter((i: any) => i.online && i.services?.instagram === true && i.cors && i.score >= 70)
       .sort((a: any, b: any) => (b.score || 0) - (a.score || 0))
@@ -39,9 +43,14 @@ async function getCobaltInstances(): Promise<string[]> {
       return instances;
     }
   } catch {}
-  cobaltCache = { instances: COBALT_FALLBACK_INSTANCES, expiresAt: Date.now() + 10 * 60 * 1000 };
+  cobaltCache = {
+    instances: COBALT_FALLBACK_INSTANCES,
+    expiresAt: Date.now() + 10 * 60 * 1000,
+  };
   return COBALT_FALLBACK_INSTANCES;
 }
+
+// ─── Cookies for yt-dlp ──────────────────────────────────────────────────────
 
 const COOKIES_PATHS = [
   path.join(process.cwd(), "cookies.txt"),
@@ -56,43 +65,7 @@ function getInstagramCookiesArg(): string {
   return "";
 }
 
-async function tryYtdlpInstagram(url: string): Promise<InstagramResult> {
-  const cookies = getInstagramCookiesArg();
-  try {
-    const cmd = `yt-dlp ${cookies} --no-warnings --dump-json --no-playlist '${url.replace(/'/g, "'\\''")}'`;
-    const { stdout } = await execAsync(cmd, { timeout: 30000, maxBuffer: 5 * 1024 * 1024 });
-    const lines = stdout.trim().split("\n").filter(Boolean);
-    const mediaItems: InstagramMedia[] = [];
-    let title = "";
-    let username = "";
-
-    for (const line of lines) {
-      try {
-        const data = JSON.parse(line);
-        title = title || data.title || data.description || "Instagram Media";
-        username = username || data.uploader || data.channel || "";
-        const mediaUrl = data.url || (data.formats && data.formats[data.formats.length - 1]?.url);
-        if (mediaUrl) {
-          const isVideo = (data.ext && data.ext !== "jpg" && data.ext !== "png") || data.vcodec !== "none";
-          mediaItems.push({ type: isVideo ? "video" : "image", url: mediaUrl, thumbnail: data.thumbnail });
-        }
-      } catch {}
-    }
-
-    if (mediaItems.length === 0) return { success: false, error: "yt-dlp returned no media" };
-    return {
-      success: true,
-      creator: "APIs by Silent Wolf | A tech explorer",
-      provider: "ytdlp",
-      title,
-      username,
-      media: mediaItems,
-    };
-  } catch (e: any) {
-    const msg = e.stderr?.toString() || e.message || "unknown error";
-    return { success: false, error: `yt-dlp: ${msg.substring(0, 200)}` };
-  }
-}
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface InstagramMedia {
   type: "image" | "video";
@@ -112,7 +85,13 @@ interface InstagramResult {
   provider?: string;
 }
 
-async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 15000): Promise<Response> {
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs = 15000
+): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -133,6 +112,137 @@ function extractShortcode(url: string): string | null {
   }
   return null;
 }
+
+// ─── Provider 1: Cobalt ──────────────────────────────────────────────────────
+
+async function tryCobaltInstagram(url: string): Promise<InstagramResult> {
+  const instances = await getCobaltInstances();
+  const errors: string[] = [];
+
+  for (const instance of instances) {
+    try {
+      const res = await fetchWithTimeout(
+        instance,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "User-Agent": USER_AGENT,
+          },
+          body: JSON.stringify({ url, downloadMode: "auto" }),
+        },
+        15000
+      );
+
+      if (res.status === 429 || res.status === 403 || res.status >= 500) {
+        errors.push(`${instance}: status ${res.status}`);
+        continue;
+      }
+
+      const data = (await res.json()) as any;
+
+      if (data.status === "error" || data.status === "rate-limit") {
+        const code = data.error?.code || data.text || "error";
+        if (code.includes("jwt")) {
+          errors.push(`${instance}: requires auth`);
+        } else {
+          errors.push(`${instance}: ${code}`);
+        }
+        continue;
+      }
+
+      const dlUrl = data.url || data.audio;
+      if (dlUrl) {
+        const isVideo =
+          !dlUrl.includes(".jpg") &&
+          !dlUrl.includes(".jpeg") &&
+          !dlUrl.includes(".png");
+        return {
+          success: true,
+          creator: "APIs by Silent Wolf | A tech explorer",
+          provider: "cobalt",
+          title: data.filename || "Instagram Media",
+          media: [{ type: isVideo ? "video" : "image", url: dlUrl }],
+        };
+      }
+
+      if ((data.status === "tunnel" || data.status === "redirect") && data.url) {
+        return {
+          success: true,
+          creator: "APIs by Silent Wolf | A tech explorer",
+          provider: "cobalt",
+          title: data.filename || "Instagram Media",
+          media: [{ type: "video", url: data.url }],
+        };
+      }
+
+      errors.push(`${instance}: no URL in response`);
+    } catch (e: any) {
+      errors.push(`${instance}: ${e.message}`);
+    }
+  }
+
+  cobaltCache = null;
+  return { success: false, error: `Cobalt failed: ${errors.join("; ")}` };
+}
+
+// ─── Provider 2: yt-dlp ──────────────────────────────────────────────────────
+
+async function tryYtdlpInstagram(url: string): Promise<InstagramResult> {
+  const cookies = getInstagramCookiesArg();
+  try {
+    const safeUrl = url.replace(/'/g, "'\\''");
+    const cmd = `yt-dlp ${cookies} --no-warnings --dump-json --no-playlist '${safeUrl}'`;
+    const { stdout } = await execAsync(cmd, {
+      timeout: 30000,
+      maxBuffer: 5 * 1024 * 1024,
+    });
+
+    const lines = stdout.trim().split("\n").filter(Boolean);
+    const mediaItems: InstagramMedia[] = [];
+    let title = "";
+    let username = "";
+
+    for (const line of lines) {
+      try {
+        const data = JSON.parse(line);
+        title = title || data.title || data.description || "Instagram Media";
+        username = username || data.uploader || data.channel || "";
+        const mediaUrl =
+          data.url ||
+          (data.formats && data.formats[data.formats.length - 1]?.url);
+        if (mediaUrl) {
+          const isVideo =
+            (data.ext && data.ext !== "jpg" && data.ext !== "png") ||
+            data.vcodec !== "none";
+          mediaItems.push({
+            type: isVideo ? "video" : "image",
+            url: mediaUrl,
+            thumbnail: data.thumbnail,
+          });
+        }
+      } catch {}
+    }
+
+    if (mediaItems.length === 0)
+      return { success: false, error: "yt-dlp returned no media" };
+
+    return {
+      success: true,
+      creator: "APIs by Silent Wolf | A tech explorer",
+      provider: "ytdlp",
+      title,
+      username,
+      media: mediaItems,
+    };
+  } catch (e: any) {
+    const msg = e.stderr?.toString() || e.message || "unknown error";
+    return { success: false, error: `yt-dlp: ${msg.substring(0, 200)}` };
+  }
+}
+
+// ─── Provider 3: Instagram GraphQL API ───────────────────────────────────────
 
 function buildGraphQLBody(shortcode: string): string {
   const params: Record<string, string> = {
@@ -196,25 +306,20 @@ async function tryGraphQLApi(shortcode: string): Promise<InstagramResult> {
       body: buildGraphQLBody(shortcode),
     });
 
-    if (res.status === 429 || res.status === 401) {
+    if (res.status === 429 || res.status === 401)
       return { success: false, error: "Rate limited by Instagram" };
-    }
-
-    if (!res.ok) {
+    if (!res.ok)
       return { success: false, error: `Instagram returned status ${res.status}` };
-    }
 
     const contentType = res.headers.get("content-type") || "";
-    if (!contentType.includes("json")) {
+    if (!contentType.includes("json"))
       return { success: false, error: "Instagram returned non-JSON response" };
-    }
 
     const data = await res.json();
     const mediaData = data?.data?.xdt_shortcode_media;
 
-    if (!mediaData) {
+    if (!mediaData)
       return { success: false, error: "Post not found or is private" };
-    }
 
     const media: InstagramMedia[] = [];
 
@@ -228,43 +333,30 @@ async function tryGraphQLApi(shortcode: string): Promise<InstagramResult> {
           : undefined,
       });
     } else if (mediaData.display_url) {
-      media.push({
-        type: "image",
-        url: mediaData.display_url,
-        thumbnail: mediaData.thumbnail_src,
-      });
+      media.push({ type: "image", url: mediaData.display_url });
     }
 
-    if (
-      mediaData.edge_sidecar_to_children?.edges &&
-      Array.isArray(mediaData.edge_sidecar_to_children.edges)
-    ) {
+    if (Array.isArray(mediaData.edge_sidecar_to_children?.edges)) {
       for (const edge of mediaData.edge_sidecar_to_children.edges) {
         const node = edge.node;
         if (node?.is_video && node?.video_url) {
-          media.push({
-            type: "video",
-            url: node.video_url,
-            thumbnail: node.display_url,
-          });
+          media.push({ type: "video", url: node.video_url, thumbnail: node.display_url });
         } else if (node?.display_url) {
-          media.push({
-            type: "image",
-            url: node.display_url,
-          });
+          media.push({ type: "image", url: node.display_url });
         }
       }
     }
 
-    if (media.length === 0) {
+    if (media.length === 0)
       return { success: false, error: "No downloadable media found in this post" };
-    }
 
     return {
       success: true,
       creator: "APIs by Silent Wolf | A tech explorer",
       provider: "graphql",
-      title: mediaData.title || mediaData.edge_media_to_caption?.edges?.[0]?.node?.text?.substring(0, 100) || "Instagram Media",
+      title:
+        mediaData.edge_media_to_caption?.edges?.[0]?.node?.text?.substring(0, 100) ||
+        "Instagram Media",
       username: mediaData.owner?.username,
       media,
       duration: mediaData.video_duration || undefined,
@@ -274,463 +366,7 @@ async function tryGraphQLApi(shortcode: string): Promise<InstagramResult> {
   }
 }
 
-async function trySnapSaveApi(url: string): Promise<InstagramResult> {
-  try {
-    const res = await fetchWithTimeout("https://snapsave.app/action.php?lang=en", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent": USER_AGENT,
-        Origin: "https://snapsave.app",
-        Referer: "https://snapsave.app/",
-      },
-      body: new URLSearchParams({ url: url.trim() }).toString(),
-    });
-
-    const responseText = await res.text();
-
-    const evalMatch = responseText.match(
-      new RegExp('eval\\(function\\(h,u,n,t,e,r\\)\\{.*?\\}\\("(.*?)","?(\\d+)"?,"(.*?)",(\\d+),(\\d+),(\\d+)\\)\\)', 's')
-    );
-
-    if (!evalMatch) {
-      return { success: false, error: "SnapSave returned unexpected format" };
-    }
-
-    const [, h, , n, tStr, eStr] = evalMatch;
-    const t = parseInt(tStr);
-    const e = parseInt(eStr);
-    const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/";
-
-    const convertBase = (d: string, fromBase: number, toBase: number): string => {
-      const g = chars.split("");
-      const h2 = g.slice(0, fromBase);
-      const i = g.slice(0, toBase);
-      let j = d
-        .split("")
-        .reverse()
-        .reduce((a: number, b: string, c: number) => {
-          if (h2.indexOf(b) !== -1) return a + h2.indexOf(b) * Math.pow(fromBase, c);
-          return a;
-        }, 0);
-      let k = "";
-      while (j > 0) {
-        k = i[j % toBase] + k;
-        j = (j - (j % toBase)) / toBase;
-      }
-      return k || "0";
-    }
-
-    let decoded = "";
-    for (let i = 0; i < h.length; i++) {
-      let s = "";
-      while (h[i] !== n[e]) {
-        s += h[i];
-        i++;
-      }
-      for (let j = 0; j < n.length; j++) s = s.replace(new RegExp(n[j], "g"), j.toString());
-      decoded += String.fromCharCode(parseInt(convertBase(s, e, 10)) - t);
-    }
-    try {
-      decoded = decodeURIComponent(escape(decoded));
-    } catch {}
-
-    if (decoded.includes("error_api_get_instagram") || decoded.includes("Error:") || decoded.includes("Unable to connect")) {
-      return { success: false, error: "SnapSave could not connect to Instagram" };
-    }
-
-    const linkRegex = /href="(https?:\/\/[^"]*(?:scontent|cdninstagram|fbcdn)[^"]*)"/gi;
-    const links: string[] = [];
-    let m;
-    while ((m = linkRegex.exec(decoded)) !== null) links.push(m[1]);
-
-    const srcRegex = /src="(https?:\/\/[^"]*(?:scontent|cdninstagram|fbcdn)[^"]*)"/gi;
-    while ((m = srcRegex.exec(decoded)) !== null) links.push(m[1]);
-
-    if (links.length === 0) {
-      return { success: false, error: "SnapSave returned no download links" };
-    }
-
-    const media: InstagramMedia[] = links.map((link) => ({
-      type: link.includes(".mp4") || link.includes("video") ? "video" as const : "image" as const,
-      url: link.replace(/&amp;/g, "&"),
-    }));
-
-    return {
-      success: true,
-      creator: "APIs by Silent Wolf | A tech explorer",
-      provider: "snapsave",
-      title: "Instagram Media",
-      media,
-    };
-  } catch {
-    return { success: false, error: "SnapSave unavailable" };
-  }
-}
-
-async function tryFastDlApi(url: string): Promise<InstagramResult> {
-  try {
-    const res = await fetchWithTimeout("https://api-wh.fastdl.app/api/convert", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent": USER_AGENT,
-        Origin: "https://fastdl.app",
-        Referer: "https://fastdl.app/en2",
-        Accept: "application/json",
-      },
-      body: new URLSearchParams({ sf_url: url.trim() }).toString(),
-    });
-
-    const text = await res.text();
-    if (!text || text.trim().length === 0) {
-      return { success: false, error: "FastDL returned empty response" };
-    }
-
-    let data: any;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return { success: false, error: "FastDL returned invalid response" };
-    }
-
-    if (!data || data.success === false) {
-      return { success: false, error: data?.message || "FastDL failed" };
-    }
-
-    const info = data?.info;
-    if (typeof info === "string" && (info.includes("error") || info.includes("invalid_request"))) {
-      return { success: false, error: "FastDL returned error" };
-    }
-
-    return parseFastDlResponse(data, "fastdl");
-  } catch {
-    return { success: false, error: "FastDL unavailable" };
-  }
-}
-
-function parseFastDlResponse(data: any, provider: string): InstagramResult {
-  const media: InstagramMedia[] = [];
-
-  if (data.url_list && Array.isArray(data.url_list)) {
-    for (const item of data.url_list) {
-      if (typeof item === "string") {
-        const isVideo = item.includes(".mp4") || item.includes("video");
-        media.push({ type: isVideo ? "video" : "image", url: item });
-      } else if (item?.url) {
-        media.push({
-          type: item.type || (item.url.includes(".mp4") ? "video" : "image"),
-          url: item.url,
-          thumbnail: item.thumbnail,
-        });
-      }
-    }
-  }
-
-  if (media.length === 0 && data.url) {
-    media.push({
-      type: data.url.includes(".mp4") ? "video" : "image",
-      url: data.url,
-    });
-  }
-
-  if (media.length === 0) {
-    return { success: false, error: "No downloadable media found" };
-  }
-
-  return {
-    success: true,
-    creator: "APIs by Silent Wolf | A tech explorer",
-    provider,
-    title: data.meta?.title || data.title || "Instagram Media",
-    username: data.meta?.source_url?.match(/@?([a-zA-Z0-9_.]+)/)?.[1] || data.username,
-    media,
-  };
-}
-
-async function tryFastDlJsonApi(url: string): Promise<InstagramResult> {
-  try {
-    const res = await fetchWithTimeout("https://fastdl.app/api/convert", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": USER_AGENT,
-        Origin: "https://fastdl.app",
-        Referer: "https://fastdl.app/en2",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ url: url.trim() }),
-    });
-
-    const text = await res.text();
-    if (!text || text.trim().length === 0) {
-      return { success: false, error: "FastDL JSON API returned empty response" };
-    }
-
-    let data: any;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return { success: false, error: "FastDL JSON API returned invalid response" };
-    }
-
-    if (data.success === false || (!data.url_list && !data.url)) {
-      return { success: false, error: data.message || "FastDL JSON API failed" };
-    }
-
-    return parseFastDlResponse(data, "fastdl-json");
-  } catch {
-    return { success: false, error: "FastDL JSON API unavailable" };
-  }
-}
-
-async function trySaveFromApi(url: string): Promise<InstagramResult> {
-  try {
-    const headers: Record<string, string> = {
-      "User-Agent": USER_AGENT,
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/json, text/javascript, */*; q=0.01",
-      Origin: "https://en.savefrom.net",
-      Referer: "https://en.savefrom.net/",
-    };
-
-    const res = await fetchWithTimeout("https://worker.sf-tools.com/savefrom.php", {
-      method: "POST",
-      headers,
-      body: new URLSearchParams({
-        sf_url: url.trim(),
-        sf_submit: "",
-        new: "2",
-        lang: "en",
-        app: "",
-        country: "en",
-        os: "Windows",
-        browser: "Chrome",
-        channel: "main",
-        sf_page: "https://en.savefrom.net/",
-      }).toString(),
-    });
-
-    const text = await res.text();
-    if (!text || text.trim().length === 0) {
-      return { success: false, error: "SaveFrom returned empty response" };
-    }
-
-    let data: any;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return { success: false, error: "SaveFrom returned invalid response" };
-    }
-
-    const media: InstagramMedia[] = [];
-
-    if (Array.isArray(data)) {
-      for (const item of data) {
-        if (item.url && (item.url.includes("instagram") || item.url.includes("cdninstagram") || item.url.includes("fbcdn"))) {
-          media.push({
-            type: item.type === "video" || item.url.includes(".mp4") ? "video" : "image",
-            url: item.url,
-            quality: item.quality,
-          });
-        }
-      }
-    } else if (data.url) {
-      media.push({
-        type: data.url.includes(".mp4") ? "video" : "image",
-        url: data.url,
-      });
-    }
-
-    if (media.length === 0) {
-      return { success: false, error: "SaveFrom returned no download links" };
-    }
-
-    return {
-      success: true,
-      creator: "APIs by Silent Wolf | A tech explorer",
-      provider: "savefrom",
-      title: data.meta?.title || "Instagram Media",
-      media,
-    };
-  } catch {
-    return { success: false, error: "SaveFrom unavailable" };
-  }
-}
-
-async function tryCobaltInstagram(url: string): Promise<InstagramResult> {
-  const instances = await getCobaltInstances();
-  const errors: string[] = [];
-
-  for (const instance of instances) {
-    try {
-      const res = await fetchWithTimeout(instance, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "User-Agent": USER_AGENT,
-        },
-        body: JSON.stringify({ url, downloadMode: "auto" }),
-      }, 15000);
-
-      if (res.status === 429 || res.status === 403 || res.status >= 500) {
-        errors.push(`${instance}: status ${res.status}`);
-        continue;
-      }
-
-      const data = await res.json() as any;
-
-      if (data.status === "error" || data.status === "rate-limit") {
-        errors.push(`${instance}: ${data.error?.code || data.text || "error"}`);
-        continue;
-      }
-
-      const dlUrl = data.url || data.audio;
-      if (dlUrl) {
-        const isVideo = !dlUrl.includes(".jpg") && !dlUrl.includes(".jpeg") && !dlUrl.includes(".png");
-        return {
-          success: true,
-          creator: "APIs by Silent Wolf | A tech explorer",
-          provider: "cobalt",
-          title: data.filename || "Instagram Media",
-          media: [{ type: isVideo ? "video" : "image", url: dlUrl }],
-        };
-      }
-
-      if ((data.status === "tunnel" || data.status === "redirect") && data.url) {
-        return {
-          success: true,
-          creator: "APIs by Silent Wolf | A tech explorer",
-          provider: "cobalt",
-          title: data.filename || "Instagram Media",
-          media: [{ type: "video", url: data.url }],
-        };
-      }
-
-      errors.push(`${instance}: no URL in response`);
-    } catch (e: any) {
-      errors.push(`${instance}: ${e.message}`);
-    }
-  }
-
-  cobaltCache = null;
-  return { success: false, error: `Cobalt: ${errors.join("; ")}` };
-}
-
-function parseRuhendMedia(data: any[]): InstagramMedia[] {
-  return data
-    .filter((item: any) => item?.url)
-    .map((item: any) => ({
-      type: (
-        item.type === "video" ||
-        (typeof item.url === "string" &&
-          (item.url.includes(".mp4") || item.url.includes("video")))
-      )
-        ? "video" as const
-        : "image" as const,
-      url: item.url,
-      thumbnail: item.thumbnail || item.thumb || undefined,
-      quality: item.quality || item.resolution || undefined,
-    }));
-}
-
-async function tryRuhendScraper(url: string): Promise<InstagramResult> {
-  const endpoints = [
-    {
-      name: "igdownloader",
-      fetch: () =>
-        fetchWithTimeout("https://v3.igdownloader.app/api/downloader", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "User-Agent": USER_AGENT,
-            Accept: "application/json",
-            Origin: "https://igdownloader.app",
-            Referer: "https://igdownloader.app/",
-          },
-          body: JSON.stringify({ url, version: "v3" }),
-        }, 15000),
-      parse: async (res: Response) => {
-        const data = await res.json() as any;
-        const items: any[] = data?.data ?? data?.medias ?? [];
-        return items;
-      },
-    },
-    {
-      name: "saveig",
-      fetch: () =>
-        fetchWithTimeout(`https://saveig.app/api/ajaxSearch`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": USER_AGENT,
-            Accept: "application/json",
-            Origin: "https://saveig.app",
-            Referer: "https://saveig.app/",
-          },
-          body: new URLSearchParams({ q: url, t: "media", lang: "en" }).toString(),
-        }, 15000),
-      parse: async (res: Response) => {
-        const data = await res.json() as any;
-        const items: any[] = data?.data ?? [];
-        return items;
-      },
-    },
-    {
-      name: "instagramdownloader",
-      fetch: () =>
-        fetchWithTimeout(`https://instagramdownloader.cc/api/download?url=${encodeURIComponent(url)}`, {
-          headers: {
-            "User-Agent": USER_AGENT,
-            Accept: "application/json",
-            Referer: "https://instagramdownloader.cc/",
-          },
-        }, 15000),
-      parse: async (res: Response) => {
-        const data = await res.json() as any;
-        const items: any[] = data?.data?.medias ?? data?.data ?? [];
-        return items;
-      },
-    },
-  ];
-
-  const errors: string[] = [];
-
-  for (const endpoint of endpoints) {
-    try {
-      const res = await endpoint.fetch();
-      if (!res.ok) {
-        errors.push(`${endpoint.name}: HTTP ${res.status}`);
-        continue;
-      }
-
-      const items = await endpoint.parse(res);
-      if (!items || items.length === 0) {
-        errors.push(`${endpoint.name}: no media returned`);
-        continue;
-      }
-
-      const media = parseRuhendMedia(items);
-      if (media.length === 0) {
-        errors.push(`${endpoint.name}: no valid URLs`);
-        continue;
-      }
-
-      return {
-        success: true,
-        creator: "APIs by Silent Wolf | A tech explorer",
-        provider: `ruhend-${endpoint.name}`,
-        title: "Instagram Media",
-        media,
-      };
-    } catch (e: any) {
-      errors.push(`${endpoint.name}: ${e.message}`);
-    }
-  }
-
-  return { success: false, error: `ruhend scraper: ${errors.join(" | ")}` };
-}
+// ─── Main export ─────────────────────────────────────────────────────────────
 
 export async function downloadInstagram(url: string): Promise<InstagramResult> {
   const shortcode = extractShortcode(url);
@@ -743,14 +379,9 @@ export async function downloadInstagram(url: string): Promise<InstagramResult> {
   }
 
   const providers: Array<{ name: string; fn: () => Promise<InstagramResult> }> = [
-    { name: "cobalt", fn: () => tryCobaltInstagram(url) },
-    { name: "ruhend", fn: () => tryRuhendScraper(url) },
-    { name: "ytdlp", fn: () => tryYtdlpInstagram(url) },
+    { name: "cobalt",  fn: () => tryCobaltInstagram(url) },
+    { name: "ytdlp",   fn: () => tryYtdlpInstagram(url) },
     { name: "graphql", fn: () => tryGraphQLApi(shortcode) },
-    { name: "snapsave", fn: () => trySnapSaveApi(url) },
-    { name: "fastdl", fn: () => tryFastDlApi(url) },
-    { name: "fastdl-json", fn: () => tryFastDlJsonApi(url) },
-    { name: "savefrom", fn: () => trySaveFromApi(url) },
   ];
 
   const errors: string[] = [];
@@ -767,7 +398,7 @@ export async function downloadInstagram(url: string): Promise<InstagramResult> {
       console.log(`[instagram] Provider ${provider.name} failed: ${result.error}`);
     } catch (err: any) {
       errors.push(`${provider.name}: ${err.message}`);
-      console.log(`[instagram] Provider ${provider.name} crashed: ${err.message}`);
+      console.log(`[instagram] Provider ${provider.name} threw: ${err.message}`);
     }
   }
 
@@ -775,7 +406,7 @@ export async function downloadInstagram(url: string): Promise<InstagramResult> {
     success: false,
     creator: "APIs by Silent Wolf | A tech explorer",
     error:
-      "Instagram is currently blocking all download services. This is a known issue — Instagram has recently tightened their anti-scraping protections. Please try again later.",
+      "Could not download this Instagram post. It may be private, deleted, or temporarily unavailable.",
     details: errors.join(" | "),
   } as any;
 }
