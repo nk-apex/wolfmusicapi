@@ -9,6 +9,7 @@ A multi-provider API hub (branded as WOLFAPIS v4.0) that provides unified access
 - **AI Proxy**: `server/ai-routes.ts` - 35 AI chat endpoints via chateverywhere.app + OpenAI (GPT-4/4o), plus translate/summarize/code/scanner/humanizer tools and 7 image endpoints (including Bing Image Creator)
 - **Music Scraping**: `lib/scraper.ts` - YouTube music search via yt-dlp, download via yt-dlp + y2mate/cobalt/vevioz/savefrom/cnvmp3 fallbacks
 - **Social Media Downloaders**: `lib/downloaders/` - YouTube, TikTok (ssstik.io), Instagram, Facebook, Twitter/X, Snapchat (snapmate.io) video downloaders (15 endpoints combined)
+- **Instagram Provider Chain**: cobalt (dynamic instance list from instances.cobalt.best, Instagram-capable, CORS-enabled) → ruhend (igdownloader.app, saveig.app, instagramdownloader.cc) → ytdlp (yt-dlp with cookies.txt) → graphql → snapsave → fastdl → fastdl-json → savefrom. NOTE: All providers fail on Replit datacenter IPs (Instagram blocks them); works on VPS with non-datacenter IP + cookies.txt
 - **Snapchat Downloader**: `lib/downloaders/snapchat.ts` - Snapchat stories/spotlights/profiles via snapmate.io scraper
 - **Spotify**: `lib/downloaders/spotify.ts` - Search and download via spotdown.org API with iTunes fallback
 - **Shazam**: `lib/downloaders/shazam.ts` - Shazam search + song recognition via reverse-engineered API
