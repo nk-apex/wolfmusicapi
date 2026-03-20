@@ -2244,5 +2244,45 @@ export async function registerRoutes(
     return res.json(data);
   });
 
+  app.get("/proxy", async (req, res) => {
+    const BOTKEY = "wolfbot_bypass_2024";
+    if (req.query.botkey !== BOTKEY) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const url = req.query.url as string;
+    if (!url) {
+      return res.status(400).json({ error: "Missing url param" });
+    }
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept": "*/*",
+          "Referer": "https://www.youtube.com/",
+        },
+        redirect: "follow",
+      });
+      if (!response.ok) {
+        return res.status(response.status).json({ error: `Upstream returned ${response.status}` });
+      }
+      const contentType = response.headers.get("content-type") || "application/octet-stream";
+      const contentLength = response.headers.get("content-length");
+      res.setHeader("Content-Type", contentType);
+      if (contentLength) res.setHeader("Content-Length", contentLength);
+      res.setHeader("Cache-Control", "no-cache");
+      if (!response.body) {
+        return res.status(502).json({ error: "No response body from upstream" });
+      }
+      const { Readable } = await import("stream");
+      const nodeStream = Readable.fromWeb(response.body as import("stream/web").ReadableStream);
+      nodeStream.pipe(res);
+      nodeStream.on("error", (err) => {
+        if (!res.headersSent) res.status(500).json({ error: err.message });
+      });
+    } catch (err: any) {
+      if (!res.headersSent) res.status(500).json({ error: err.message });
+    }
+  });
+
   return httpServer;
 }
