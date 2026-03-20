@@ -10,8 +10,8 @@ export default function PageLoader() {
   const show = () => {
     setFading(false);
     setVisible(true);
-    const fadeTimer = setTimeout(() => setFading(true), 700);
-    const hideTimer = setTimeout(() => setVisible(false), 1000);
+    const fadeTimer = setTimeout(() => setFading(true), 1500);
+    const hideTimer = setTimeout(() => setVisible(false), 2000);
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(hideTimer);
@@ -37,7 +37,7 @@ export default function PageLoader() {
         justifyContent: "center",
         gap: "20px",
         opacity: fading ? 0 : 1,
-        transition: "opacity 0.3s ease",
+        transition: "opacity 0.5s ease",
         pointerEvents: fading ? "none" : "all",
       }}
     >
