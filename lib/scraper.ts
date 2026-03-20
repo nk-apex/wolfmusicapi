@@ -790,11 +790,11 @@ type ConvertProvider = {
 };
 
 const mp3Providers: ConvertProvider[] = [
-  { name: "ytdlp",     fn: ytdlpConvert },
+  { name: "y2mate",    fn: y2mateConvert },
   { name: "fabdl",     fn: fabdlConvert },
+  { name: "ytdlp",     fn: ytdlpConvert },
   { name: "cobalt",    fn: cobaltConvert },
   { name: "piped",     fn: pipedConvert },
-  { name: "y2mate",    fn: y2mateConvert },
   { name: "ytdlpFile", fn: ytdlpFileConvert },
 ];
 
