@@ -2245,10 +2245,6 @@ export async function registerRoutes(
   });
 
   app.get("/proxy", async (req, res) => {
-    const BOTKEY = "wolfbot_bypass_2024";
-    if (req.query.botkey !== BOTKEY) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
     const url = req.query.url as string;
     if (!url) {
       return res.status(400).json({ error: "Missing url param" });
