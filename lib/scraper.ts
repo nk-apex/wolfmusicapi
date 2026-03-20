@@ -203,6 +203,10 @@ async function ytdlpConvert(
   if (!downloadUrl || !downloadUrl.startsWith("http"))
     throw new Error(`yt-dlp: invalid URL (${downloadUrl?.substring(0, 100)})`);
 
+  // Reject HLS/m3u8 playlist URLs — bots and most players can't use them as direct downloads
+  if (downloadUrl.includes(".m3u8") || downloadUrl.includes("/manifest/hls"))
+    throw new Error(`yt-dlp: returned HLS stream URL, not a direct download link`);
+
   return { downloadUrl, title };
 }
 
