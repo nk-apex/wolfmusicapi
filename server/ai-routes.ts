@@ -105,24 +105,20 @@ const chatEndpoints: ChatEndpointConfig[] = [
 
 export function registerAIRoutes(app: Express): void {
   for (const ep of chatEndpoints) {
-    app.get(ep.path, (_req: Request, res: Response) => {
-      return res.json({
-        endpoint: ep.path,
-        method: "POST",
-        description: `${ep.label} AI Chat endpoint. Send a POST request with a JSON body.`,
-        usage: {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: { prompt: "Your message here", system: "(optional) Custom system prompt" },
-        },
-        example: `curl -X POST ${ep.path} -H "Content-Type: application/json" -d '{"prompt":"Hello!"}'`,
-      });
-    });
+    const handleAI = async (req: Request, res: Response) => {
+      const prompt = (req.body?.prompt || req.query.prompt || req.query.q || req.query.text) as string;
+      const system = (req.body?.system || req.query.system) as string | undefined;
 
-    app.post(ep.path, async (req: Request, res: Response) => {
-      const { prompt, system } = req.body;
       if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-        return res.status(400).json({ success: false, error: "Parameter 'prompt' is required." });
+        return res.json({
+          endpoint: ep.path,
+          method: "GET or POST",
+          description: `${ep.label} AI Chat endpoint.`,
+          usage: {
+            GET: `${ep.path}?prompt=Your message here`,
+            POST: { body: { prompt: "Your message here", system: "(optional) Custom system prompt" } },
+          },
+        });
       }
 
       try {
@@ -145,7 +141,10 @@ export function registerAIRoutes(app: Express): void {
       } catch (error: any) {
         return res.status(500).json({ success: false, error: error.message, provider: ep.provider });
       }
-    });
+    };
+
+    app.get(ep.path, handleAI);
+    app.post(ep.path, handleAI);
   }
 
   app.get("/api/ai/image/dall-e", (_req: Request, res: Response) => {
