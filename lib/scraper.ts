@@ -687,6 +687,23 @@ export async function checkVideo(videoId: string) {
   }
 }
 
+// ─── Title resolver ──────────────────────────────────────────────────────────
+
+async function fetchRealTitle(videoId: string): Promise<string | null> {
+  try {
+    const res = await fetchWithTimeout(
+      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
+      { headers: { "User-Agent": USER_AGENT } },
+      8000
+    );
+    if (!res.ok) return null;
+    const data = await res.json() as any;
+    return data?.title || null;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Provider chain ───────────────────────────────────────────────────────────
 
 type ConvertProvider = {
@@ -714,6 +731,10 @@ export async function getDownloadInfo(url: string, format: "mp3" | "mp4" = "mp3"
   const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
   const errors: string[] = [];
 
+  const isFallbackTitle = (t: string) => !t || /^video_[a-zA-Z0-9_-]{11}$/.test(t) || t === "Unknown";
+
+  const titlePromise = fetchRealTitle(videoId);
+
   const healthyProviders = providers.filter((p) => isProviderHealthy(p.name));
   const unhealthy = providers.filter((p) => !isProviderHealthy(p.name));
   if (unhealthy.length > 0)
@@ -726,6 +747,10 @@ export async function getDownloadInfo(url: string, format: "mp3" | "mp4" = "mp3"
       console.log(`[scraper] Trying provider: ${provider.name} for ${videoId} (${format})`);
       const result = await provider.fn(videoId, format);
 
+      if (!result.downloadUrl || !result.downloadUrl.startsWith("http")) {
+        throw new Error(`${provider.name}: empty or invalid download URL`);
+      }
+
       const isHls =
         result.downloadUrl.includes(".m3u8") ||
         result.downloadUrl.includes("manifest");
@@ -733,9 +758,14 @@ export async function getDownloadInfo(url: string, format: "mp3" | "mp4" = "mp3"
 
       recordProviderSuccess(provider.name);
 
+      let title = result.title;
+      if (isFallbackTitle(title)) {
+        title = (await titlePromise) || title || "Unknown";
+      }
+
       return {
         success: true,
-        title: result.title || "Unknown",
+        title,
         videoId,
         format,
         quality: format === "mp3" ? audioQuality : "360p",
