@@ -58,6 +58,33 @@ export async function registerRoutes(
     }
   });
 
+  function px(baseUrl: string, url: string | undefined): string | null {
+    if (!url || !url.startsWith("http")) return null;
+    return `${baseUrl}/proxy?url=${encodeURIComponent(url)}`;
+  }
+
+  function addMediaProxyUrls(baseUrl: string, result: any): any {
+    if (!result || !result.success) return result;
+    const out = { ...result };
+    // TikTok
+    if (out.videoUrl) out.videoProxyUrl = px(baseUrl, out.videoUrl);
+    if (out.videoUrlNoWatermark) out.videoNoWatermarkProxyUrl = px(baseUrl, out.videoUrlNoWatermark);
+    if (out.audioUrl) out.audioProxyUrl = px(baseUrl, out.audioUrl);
+    // Facebook
+    if (out.sdUrl) out.sdProxyUrl = px(baseUrl, out.sdUrl);
+    if (out.hdUrl) out.hdProxyUrl = px(baseUrl, out.hdUrl);
+    // Snapchat
+    if (out.thumbnailUrl) out.thumbnailProxyUrl = px(baseUrl, out.thumbnailUrl);
+    if (Array.isArray(out.mediaUrls)) out.mediaProxyUrls = out.mediaUrls.map((u: string) => px(baseUrl, u));
+    // Instagram / Twitter: media[] array
+    if (Array.isArray(out.media)) {
+      out.media = out.media.map((item: any) => ({ ...item, proxyUrl: px(baseUrl, item.url) }));
+    }
+    // Generic downloadUrl (any other endpoint)
+    if (out.downloadUrl && out.downloadUrl.startsWith("http")) out.proxyUrl = px(baseUrl, out.downloadUrl);
+    return out;
+  }
+
   function buildUrls(baseUrl: string, result: any): { proxyUrl: string | null; fileUrl: string | null } {
     const rawUrl: string = result.downloadUrl || "";
     if (rawUrl.startsWith("local://")) {
@@ -271,7 +298,7 @@ export async function registerRoutes(
         });
       }
       const result = await downloadTikTok(url);
-      return res.json(result);
+      return res.json(addMediaProxyUrls(baseUrl, result));
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message || "TikTok download failed" });
     }
@@ -287,7 +314,7 @@ export async function registerRoutes(
         });
       }
       const result = await downloadInstagram(url);
-      return res.json(result);
+      return res.json(addMediaProxyUrls(baseUrl, result));
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message || "Instagram download failed" });
     }
@@ -330,7 +357,7 @@ export async function registerRoutes(
         });
       }
       const result = await downloadFacebook(url);
-      return res.json(result);
+      return res.json(addMediaProxyUrls(baseUrl, result));
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message || "Facebook download failed" });
     }
@@ -346,7 +373,7 @@ export async function registerRoutes(
         });
       }
       const result = await downloadFacebook(url);
-      return res.json(result);
+      return res.json(addMediaProxyUrls(baseUrl, result));
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message || "Facebook Reel download failed" });
     }
