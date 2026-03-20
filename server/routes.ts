@@ -84,9 +84,13 @@ export async function registerRoutes(
         const firstResult = searchResults.items[0];
         const videoUrl = `https://www.youtube.com/watch?v=${firstResult.id}`;
         const result = await getDownloadInfo(videoUrl, format);
+        const proxyUrl = result.downloadUrl
+          ? `${baseUrl}/proxy?url=${encodeURIComponent(result.downloadUrl as string)}`
+          : null;
 
         return res.json({
           ...result,
+          proxyUrl,
           creator: "APIs by Silent Wolf | A tech explorer",
           searchQuery: url,
           searchResult: {
@@ -98,8 +102,13 @@ export async function registerRoutes(
       }
 
       const result = await getDownloadInfo(url, format);
+      const proxyUrl = result.downloadUrl
+        ? `${baseUrl}/proxy?url=${encodeURIComponent(result.downloadUrl as string)}`
+        : null;
+
       return res.json({
         ...result,
+        proxyUrl,
         creator: "APIs by Silent Wolf | A tech explorer",
       });
     } catch (error: any) {
