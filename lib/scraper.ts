@@ -229,7 +229,7 @@ async function ytdlpConvert(
       : "best[height<=720][ext=mp4]/best[height<=720][vcodec!=none][acodec!=none]/best[ext=mp4]/best";
 
   const cookiesArg = ytdlpCookies();
-  const cmd = `yt-dlp ${cookiesArg} --no-warnings --extractor-args "youtube:player_client=android_music,android,ios,mweb,web" --socket-timeout 30 --print title -f "${formatArg}" -g "${youtubeUrl}" 2>&1`;
+  const cmd = `yt-dlp ${cookiesArg} --no-warnings --force-ipv4 --extractor-args "youtube:player_client=android_music,android,tv_embedded,ios,mweb,web" --socket-timeout 30 --add-header "Accept-Language:en-US,en;q=0.9" --print title -f "${formatArg}" -g "${youtubeUrl}" 2>&1`;
 
   let stdout: string;
   try {
@@ -272,9 +272,10 @@ async function fabdlConvert(
         "User-Agent": USER_AGENT,
         Accept: "application/json",
         Referer: "https://fabdl.com/",
+        "Accept-Language": "en-US,en;q=0.9",
       },
     },
-    20000
+    45000
   );
 
   if (!res.ok) throw new Error(`fabdl: HTTP ${res.status}`);
@@ -310,7 +311,64 @@ async function fabdlConvert(
   throw new Error("fabdl: no download URL in response");
 }
 
-// ─── Provider 3: Cobalt (dynamic instances) ───────────────────────────────────
+// ─── Provider 3: Invidious ────────────────────────────────────────────────────
+// Invidious instances proxy YouTube content through their own servers.
+// Using local=true, they stream the video directly to the client — completely
+// bypassing the VPS's IP being blocked by YouTube for music/label content.
+
+const INVIDIOUS_INSTANCES = [
+  "https://invidious.privacyredirect.com",
+  "https://inv.tux.pizza",
+  "https://yt.cdaut.de",
+  "https://invidious.fdn.fr",
+  "https://invidious.io.lol",
+  "https://invidious.lunar.icu",
+  "https://yewtu.be",
+  "https://iv.datura.network",
+];
+
+async function invidiousConvert(
+  videoId: string,
+  format: "mp3" | "mp4"
+): Promise<{ downloadUrl: string; title: string }> {
+  const errors: string[] = [];
+
+  for (const inst of INVIDIOUS_INSTANCES) {
+    try {
+      const r = await fetchWithTimeout(
+        `${inst}/api/v1/videos/${videoId}?fields=title,formatStreams,adaptiveFormats`,
+        { headers: { Accept: "application/json", "User-Agent": USER_AGENT } },
+        14000
+      );
+      if (!r.ok) { errors.push(`${inst}: HTTP ${r.status}`); continue; }
+      const data = await r.json() as any;
+      const title: string = data.title || `video_${videoId}`;
+
+      if (format === "mp4") {
+        const streams: any[] = data.formatStreams || [];
+        const best = streams
+          .filter((s: any) => s.type?.includes("video/mp4") || s.container === "mp4")
+          .sort((a: any, b: any) => (parseInt(b.qualityLabel) || 0) - (parseInt(a.qualityLabel) || 0))[0];
+        if (best?.itag) {
+          // local=true → Invidious proxies the stream through its own server, no IP lock
+          return { downloadUrl: `${inst}/latest_version?id=${videoId}&itag=${best.itag}&local=true`, title };
+        }
+      } else {
+        const streams: any[] = data.adaptiveFormats || [];
+        const best = streams
+          .filter((s: any) => s.type?.includes("audio/") && (s.audioChannels || 0) > 0)
+          .sort((a: any, b: any) => (b.bitrate || 0) - (a.bitrate || 0))[0];
+        if (best?.itag) {
+          return { downloadUrl: `${inst}/latest_version?id=${videoId}&itag=${best.itag}&local=true`, title };
+        }
+      }
+      errors.push(`${inst}: no suitable format`);
+    } catch (e: any) { errors.push(`${inst}: ${e.message}`); }
+  }
+  throw new Error(`Invidious: all instances failed: ${errors.slice(0, 3).join("; ")}`);
+}
+
+// ─── Provider 4: Cobalt (dynamic instances) ───────────────────────────────────
 
 let cobaltInstancesCache: { instances: string[]; expiresAt: number } | null = null;
 
@@ -778,15 +836,13 @@ async function ytdlpFileConvert(
       ? "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best[acodec!=none]/best"
       : "best[height<=720][ext=mp4]/best[height<=720]/best[ext=mp4]/best";
 
-  // android_music targets YouTube Music and bypasses label/music-content bot detection
-  // that android client alone can't handle on datacenter IPs.
-  // --add-header flags simulate a real browser HTTP environment.
   const cmd = [
     `yt-dlp`,
     cookiesArg,
     `--no-warnings`,
     `--no-simulate`,
-    `--extractor-args "youtube:player_client=android_music,android,ios,mweb,web"`,
+    `--force-ipv4`,
+    `--extractor-args "youtube:player_client=android_music,android,tv_embedded,ios,mweb,web"`,
     `--socket-timeout 30`,
     `--add-header "Accept-Language:en-US,en;q=0.9"`,
     `--add-header "DNT:1"`,
@@ -846,25 +902,26 @@ type ConvertProvider = {
 };
 
 const mp3Providers: ConvertProvider[] = [
-  { name: "y2mate",    fn: y2mateConvert },
-  { name: "fabdl",     fn: fabdlConvert },
-  { name: "ytdlp",     fn: ytdlpConvert },
-  { name: "cobalt",    fn: cobaltConvert },
-  { name: "piped",     fn: pipedConvert },
-  { name: "ytdlpFile", fn: ytdlpFileConvert },
+  { name: "ytdlpFile",  fn: ytdlpFileConvert },
+  { name: "invidious",  fn: invidiousConvert },
+  { name: "y2mate",     fn: y2mateConvert },
+  { name: "fabdl",      fn: fabdlConvert },
+  { name: "ytdlp",      fn: ytdlpConvert },
+  { name: "cobalt",     fn: cobaltConvert },
+  { name: "piped",      fn: pipedConvert },
 ];
 
-// MP4 puts ytdlpFile first — it downloads the actual file server-side,
-// returning a /files/ URL that is never IP-locked.
-// fabdl/cobalt/piped return YouTube CDN URLs locked to their own servers' IPs,
-// so the proxy cannot re-serve them. ytdlpFile avoids this entirely.
+// MP4: ytdlpFile first (server-side local file, best quality, no IP-lock).
+// Invidious second — proxies through Invidious servers, bypasses VPS datacenter
+// IP blocks from YouTube without needing cookies.
 const mp4Providers: ConvertProvider[] = [
-  { name: "ytdlpFile", fn: ytdlpFileConvert },
-  { name: "ytdlp",     fn: ytdlpConvert },
-  { name: "cobalt",    fn: cobaltConvert },
-  { name: "piped",     fn: pipedConvert },
-  { name: "fabdl",     fn: fabdlConvert },
-  { name: "y2mate",    fn: y2mateConvert },
+  { name: "ytdlpFile",  fn: ytdlpFileConvert },
+  { name: "invidious",  fn: invidiousConvert },
+  { name: "ytdlp",      fn: ytdlpConvert },
+  { name: "fabdl",      fn: fabdlConvert },
+  { name: "cobalt",     fn: cobaltConvert },
+  { name: "piped",      fn: pipedConvert },
+  { name: "y2mate",     fn: y2mateConvert },
 ];
 
 export async function getDownloadInfo(url: string, format: "mp3" | "mp4" = "mp3") {

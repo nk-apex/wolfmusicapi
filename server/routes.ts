@@ -2252,7 +2252,7 @@ export async function registerRoutes(
 
     const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
 
-    const [ytdlp, fabdl, cobalt, piped, y2mate, tiktok, igraphql, spotify, shazam] =
+    const [ytdlp, fabdl, cobalt, piped, y2mate, invidious, tiktok, igraphql, spotify, shazam] =
       await Promise.all([
         // ytdlp — check binary exists
         (async () => {
@@ -2272,6 +2272,8 @@ export async function registerRoutes(
         probeUrl("https://piped-instances.kavin.rocks/", { headers: { "User-Agent": UA } }),
         // y2mate — check auth page
         probeUrl("https://v1.y2mate.nu/", { headers: { "User-Agent": UA } }),
+        // invidious — check primary instance
+        probeUrl("https://invidious.privacyredirect.com/api/v1/stats", { headers: { "User-Agent": UA } }),
         // tiktok (ssstik) — check API
         probeUrl("https://ssstik.io/", { headers: { "User-Agent": UA } }),
         // instagram graphql — quick check
@@ -2290,6 +2292,7 @@ export async function registerRoutes(
         music: {
           providers: {
             ytdlp: { active: ytdlp, label: "yt-dlp" },
+            invidious: { active: invidious, label: "Invidious" },
             fabdl: { active: fabdl, label: "FabDL" },
             cobalt: { active: cobalt, label: "Cobalt" },
             piped: { active: piped, label: "Piped" },
