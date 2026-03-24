@@ -756,7 +756,7 @@ function WelcomePage({ onCategoryClick, onTryEndpoint, mediaStatus }: { onCatego
             <span className="text-[11px] font-mono px-2.5 py-1 rounded" style={{
               border: "1px solid rgba(0,255,0,0.12)",
               color: "rgba(255,255,255,0.35)",
-            }}>v4.0</span>
+            }}>v1.0.0</span>
           </div>
         </div>
       </div>
@@ -1174,7 +1174,7 @@ function DocumentationPage({ onNavigateToCategory }: { onNavigateToCategory?: (c
             All APIs are free to use with no API key required.
           </p>
           <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-            Version <span style={{ color: "#00ff00" }}>4.0</span> | {allEndpoints.length}+ endpoints | {apiCategories.length} categories
+            Version <span style={{ color: "#00ff00" }}>1.0.0</span> | {allEndpoints.length}+ endpoints | {apiCategories.length} categories
           </p>
         </div>
       </div>

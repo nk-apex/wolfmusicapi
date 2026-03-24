@@ -200,6 +200,86 @@ export async function registerRoutes(
   app.get("/download/video", downloadHandler("mp4"));
   app.get("/download/hd", downloadHandler("mp4"));
 
+  app.get("/download/ytmp5", async (req: any, res: any) => {
+    try {
+      let url = (req.query.url as string) || (req.query.q as string) || (req.query.name as string);
+      if (!url || url.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Provide 'url' (YouTube link) or 'q'/'name' (song name) as a query parameter.",
+        });
+      }
+
+      url = url.trim();
+      const host = req.get("host") || "";
+      const protocol = req.protocol || "https";
+      const baseUrl = `${protocol}://${host}`;
+
+      if (!isYouTubeUrl(url)) {
+        const searchResults = await searchSongs(url);
+        if (!searchResults.items || searchResults.items.length === 0) {
+          return res.status(404).json({
+            success: false,
+            error: `No results found for "${url}". Try a different search term.`,
+          });
+        }
+        url = `https://www.youtube.com/watch?v=${searchResults.items[0].id}`;
+      }
+
+      const [mp3Result, mp4Result] = await Promise.allSettled([
+        getDownloadInfo(url, "mp3"),
+        getDownloadInfo(url, "mp4"),
+      ]);
+
+      const mp3 = mp3Result.status === "fulfilled" ? mp3Result.value : null;
+      const mp4 = mp4Result.status === "fulfilled" ? mp4Result.value : null;
+
+      const buildEntry = (result: any, format: string) => {
+        if (!result || !result.success) {
+          return { success: false, error: result?.error || "Download failed" };
+        }
+        const rawUrl: string = result.downloadUrl || "";
+        let downloadUrl = rawUrl;
+        let proxyUrl: string | null = null;
+        if (rawUrl.startsWith("local://")) {
+          const filename = rawUrl.replace("local://", "");
+          downloadUrl = `${baseUrl}/files/${filename}`;
+          proxyUrl = downloadUrl;
+        } else if (rawUrl.startsWith("http")) {
+          proxyUrl = `${baseUrl}/proxy?url=${encodeURIComponent(rawUrl)}`;
+        }
+        return {
+          success: true,
+          title: result.title,
+          videoId: result.videoId,
+          format,
+          quality: result.quality,
+          downloadUrl,
+          proxyUrl,
+          provider: result.provider,
+          thumbnail: result.thumbnail,
+          youtubeUrl: result.youtubeUrl,
+        };
+      };
+
+      const title = mp3?.title || mp4?.title || "Unknown";
+      const videoId = mp3?.videoId || mp4?.videoId || extractVideoId(url) || "";
+
+      return res.json({
+        success: !!(mp3?.success || mp4?.success),
+        creator: "APIs by Silent Wolf | A tech explorer",
+        title,
+        videoId,
+        thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+        youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
+        mp3: buildEntry(mp3, "mp3"),
+        mp4: buildEntry(mp4, "mp4"),
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message || "Download failed" });
+    }
+  });
+
   app.get("/download/lyrics", async (req, res) => {
     try {
       const q = (req.query.q as string) || (req.query.name as string);
@@ -2183,7 +2263,7 @@ export async function registerRoutes(
     return res.json({
       success: true,
       creator: "APIs by Silent Wolf | A tech explorer",
-      version: "4.0",
+      version: "1.0.0",
       totalEndpoints: schemaEndpoints.length,
       categories: schemaCategories,
       endpoints: schemaEndpoints,
