@@ -31,6 +31,7 @@ import {
   cacheSet,
 } from "../lib/spotify-info";
 import { searchShazam, recognizeShazamFull, getTrackDetails } from "../lib/downloaders/shazam";
+import { searchImages } from "../lib/search/imageSearch";
 import { generateEphoto, listEphotoEffects, EPHOTO_EFFECTS } from "../lib/downloaders/ephoto360";
 import { generatePhotofunia, listPhotofuniaEffects } from "../lib/downloaders/photofunia";
 import { githubStalk, ipStalk, npmStalk, tiktokStalk, instagramStalk, twitterStalk, telegramStalk, numberPlateStalk } from "../lib/downloaders/stalker";
@@ -2547,6 +2548,19 @@ export async function registerRoutes(
       const data = await countryRes.json() as any[];
       return res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", results: data.slice(0, 5).map((c: any) => ({ name: c.name?.common, official: c.name?.official, capital: c.capital?.[0], population: c.population, region: c.region, subregion: c.subregion, languages: c.languages ? Object.values(c.languages) : [], currencies: c.currencies ? Object.values(c.currencies).map((cur: any) => cur.name) : [], flag: c.flags?.png, timezones: c.timezones })) });
     } catch (error: any) { return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message }); }
+  });
+
+  app.get("/api/search/images", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q || q.trim().length === 0) {
+        return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Missing 'q' parameter. Provide an image search keyword." });
+      }
+      const result = await searchImages(q.trim(), 10);
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message || "Image search failed" });
+    }
   });
 
   // ============== MOVIE ROUTES ==============
