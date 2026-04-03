@@ -486,6 +486,9 @@ export async function registerRoutes(
           error: "Query parameter 'url' is required. Provide a Facebook video URL.",
         });
       }
+      const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+      const host = req.headers["x-forwarded-host"] || req.headers.host;
+      const baseUrl = `${protocol}://${host}`;
       const result = await downloadFacebook(url);
       return res.json(addMediaProxyUrls(baseUrl, result));
     } catch (error: any) {
@@ -502,6 +505,9 @@ export async function registerRoutes(
           error: "Query parameter 'url' is required. Provide a Facebook Reel URL.",
         });
       }
+      const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+      const host = req.headers["x-forwarded-host"] || req.headers.host;
+      const baseUrl = `${protocol}://${host}`;
       const result = await downloadFacebook(url);
       return res.json(addMediaProxyUrls(baseUrl, result));
     } catch (error: any) {
