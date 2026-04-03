@@ -915,14 +915,14 @@ function DocumentationPage({ onNavigateToCategory }: { onNavigateToCategory?: (c
     {
       title: "WhatsApp Channel",
       description: "Follow our channel for announcements and API updates",
-      url: "https://whatsapp.com/channel/0029Vb6dn9nEQIaqEMNclK3Y",
+      url: "https://whatsapp.com/channel/0029Vb7Kd0h6GcGN1k8WYE0c",
       icon: Bell,
       color: "#25D366",
     },
     {
       title: "GitHub",
       description: "View source code, report issues, and contribute",
-      url: "https://github.com/7silent-wolf",
+      url: "https://github.com/sil3nt-wolf",
       icon: Code2,
       color: "#ffffff",
     },
@@ -1324,6 +1324,20 @@ export default function Home() {
   const [ephotoSubCategory, setEphotoSubCategory] = useState<string | null>(null);
   const [photofuniaExpanded, setPhotofuniaExpanded] = useState(false);
   const [photofuniaSubCategory, setPhotofuniaSubCategory] = useState<string | null>(null);
+  const [showSocialPopup, setShowSocialPopup] = useState(false);
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem("wolfapis_social_dismissed");
+    if (!dismissed) {
+      const t = setTimeout(() => setShowSocialPopup(true), 800);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
+  const handleDismissPopup = () => {
+    setShowSocialPopup(false);
+    localStorage.setItem("wolfapis_social_dismissed", "1");
+  };
 
   const { data: mediaStatus } = useQuery<MediaStatusData>({
     queryKey: ["/api/media/status"],
@@ -1831,7 +1845,7 @@ export default function Home() {
               </div>
               <Bell className="w-4 h-4 hidden sm:block" style={{ color: "rgba(255,255,255,0.3)" }} />
               <a
-                href="https://github.com/7silent-wolf"
+                href="https://github.com/sil3nt-wolf"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all"
@@ -1891,6 +1905,99 @@ export default function Home() {
           baseUrl={baseUrl}
           onClose={() => setTestEndpoint(null)}
         />
+      )}
+
+      {showSocialPopup && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
+          data-testid="overlay-social-popup"
+          onClick={handleDismissPopup}
+        >
+          <div
+            className="relative w-full max-w-sm rounded-2xl p-6 flex flex-col gap-5"
+            style={{
+              background: "#0a0a0a",
+              border: "1px solid rgba(0,255,0,0.25)",
+              boxShadow: "0 0 40px rgba(0,255,0,0.12), 0 20px 60px rgba(0,0,0,0.8)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+            data-testid="modal-social-popup"
+          >
+            <button
+              onClick={handleDismissPopup}
+              className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-lg transition-all hover:bg-white/10"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+              data-testid="button-close-popup"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(0,255,0,0.08)", border: "1px solid rgba(0,255,0,0.2)" }}>
+                <img src={wolfLogo} alt="WolfAPIs" className="w-6 h-6 object-contain" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold tracking-[0.2em]" style={{ color: "#00ff00", fontFamily: "'Orbitron', sans-serif" }}>SILENT WOLF</p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>Developer & API Builder</p>
+              </div>
+            </div>
+
+            <div className="h-px w-full" style={{ background: "rgba(0,255,0,0.1)" }} />
+
+            <div className="flex flex-col gap-3">
+              <a
+                href="https://github.com/sil3nt-wolf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-xl transition-all group"
+                style={{ background: "rgba(0,255,0,0.04)", border: "1px solid rgba(0,255,0,0.12)" }}
+                data-testid="link-popup-github"
+              >
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "rgba(0,255,0,0.08)" }}>
+                  <Github className="w-4 h-4" style={{ color: "#00ff00" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold" style={{ color: "#ffffff" }}>Follow on GitHub</p>
+                  <p className="text-[11px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>github.com/sil3nt-wolf — more projects</p>
+                </div>
+                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 opacity-40 group-hover:opacity-80 transition-opacity" style={{ color: "#00ff00" }} />
+              </a>
+
+              <a
+                href="https://whatsapp.com/channel/0029Vb7Kd0h6GcGN1k8WYE0c"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-xl transition-all group"
+                style={{ background: "rgba(37,211,102,0.04)", border: "1px solid rgba(37,211,102,0.15)" }}
+                data-testid="link-popup-whatsapp"
+              >
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "rgba(37,211,102,0.1)" }}>
+                  <MessageSquare className="w-4 h-4" style={{ color: "#25D366" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold" style={{ color: "#ffffff" }}>Follow my Channel</p>
+                  <p className="text-[11px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>WhatsApp — updates & announcements</p>
+                </div>
+                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 opacity-40 group-hover:opacity-80 transition-opacity" style={{ color: "#25D366" }} />
+              </a>
+            </div>
+
+            <button
+              onClick={handleDismissPopup}
+              className="w-full py-2.5 rounded-xl text-xs font-bold tracking-widest transition-all"
+              style={{
+                background: "rgba(0,255,0,0.08)",
+                border: "1px solid rgba(0,255,0,0.2)",
+                color: "#00ff00",
+                fontFamily: "'Orbitron', sans-serif",
+              }}
+              data-testid="button-dismiss-popup"
+            >
+              DISMISS
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
