@@ -1,0 +1,318 @@
+oot@silentwolf:/var/www/wolfmusicapi# pm2 logs --lines 50
+[TAILING] Tailing last 50 lines for [all] processes (change the value with --lines option)
+/root/.pm2/pm2.log last 50 lines:
+PM2        | 2026-03-24T13:30:34: PM2 log: App [wolflix:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-03-24T13:30:34: PM2 log: pid=1835469 msg=process killed
+PM2        | 2026-03-24T13:30:34: PM2 log: App [wolflix:0] starting in -fork mode-
+PM2        | 2026-03-24T13:30:34: PM2 log: App [wolflix:0] online
+PM2        | 2026-03-24T13:39:07: PM2 log: App [pairwolf:1] starting in -fork mode-
+PM2        | 2026-03-24T13:39:07: PM2 log: App [pairwolf:1] online
+PM2        | 2026-03-24T13:40:33: PM2 log: Stopping app:pairwolf id:1
+PM2        | 2026-03-24T13:40:33: PM2 log: App [pairwolf:1] exited with code [0] via signal [SIGINT]
+PM2        | 2026-03-24T13:40:33: PM2 log: pid=1836520 msg=process killed
+PM2        | 2026-03-24T13:40:33: PM2 log: App [pairwolf:2] starting in -fork mode-
+PM2        | 2026-03-24T13:40:33: PM2 log: App [pairwolf:2] online
+PM2        | 2026-03-24T14:49:30: PM2 log: Stopping app:wolflix id:0
+PM2        | 2026-03-24T14:49:30: PM2 log: App [wolflix:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-03-24T14:49:30: PM2 log: pid=1835903 msg=process killed
+PM2        | 2026-03-24T14:49:30: PM2 log: App [wolflix:0] starting in -fork mode-
+PM2        | 2026-03-24T14:49:30: PM2 log: App [wolflix:0] online
+PM2        | 2026-03-24T15:30:24: PM2 log: Process 0 in a stopped status, starting it
+PM2        | 2026-03-24T15:30:24: PM2 log: Stopping app:wolflix id:0
+PM2        | 2026-03-24T15:30:24: PM2 log: App [wolflix:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-03-24T15:30:24: PM2 log: pid=1840385 msg=process killed
+PM2        | 2026-03-24T15:30:24: PM2 log: App [wolflix:0] starting in -fork mode-
+PM2        | 2026-03-24T15:30:24: PM2 log: App [wolflix:0] online
+PM2        | 2026-03-24T16:16:08: PM2 log: Process 0 in a stopped status, starting it
+PM2        | 2026-03-24T16:16:08: PM2 log: Stopping app:wolflix id:0
+PM2        | 2026-03-24T16:16:08: PM2 log: App [wolflix:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-03-24T16:16:09: PM2 log: pid=1842063 msg=process killed
+PM2        | 2026-03-24T16:16:09: PM2 log: App [wolflix:0] starting in -fork mode-
+PM2        | 2026-03-24T16:16:09: PM2 log: App [wolflix:0] online
+PM2        | 2026-03-24T16:53:30: PM2 log: Process 0 in a stopped status, starting it
+PM2        | 2026-03-24T16:53:30: PM2 log: Stopping app:wolflix id:0
+PM2        | 2026-03-24T16:53:30: PM2 log: App [wolflix:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-03-24T16:53:30: PM2 log: pid=1843733 msg=process killed
+PM2        | 2026-03-24T16:53:30: PM2 log: App [wolflix:0] starting in -fork mode-
+PM2        | 2026-03-24T16:53:30: PM2 log: App [wolflix:0] online
+PM2        | 2026-03-24T16:54:57: PM2 log: Process 0 in a stopped status, starting it
+PM2        | 2026-03-24T16:54:57: PM2 log: Stopping app:wolflix id:0
+PM2        | 2026-03-24T16:54:57: PM2 log: App [wolflix:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-03-24T16:54:57: PM2 log: pid=1845016 msg=process killed
+PM2        | 2026-03-24T16:54:57: PM2 log: App [wolflix:0] starting in -fork mode-
+PM2        | 2026-03-24T16:54:57: PM2 log: App [wolflix:0] online
+PM2        | 2026-03-24T17:45:24: PM2 log: Stopping app:wolflix id:0
+PM2        | 2026-03-24T17:45:24: PM2 log: App [wolflix:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-03-24T17:45:24: PM2 log: pid=1845130 msg=process killed
+PM2        | 2026-03-24T17:45:24: PM2 log: App [wolflix:0] starting in -fork mode-
+PM2        | 2026-03-24T17:45:24: PM2 log: App [wolflix:0] online
+PM2        | 2026-03-24T17:45:24: PM2 log: Stopping app:pairwolf id:2
+PM2        | 2026-03-24T17:45:24: PM2 log: App [pairwolf:2] exited with code [0] via signal [SIGINT]
+PM2        | 2026-03-24T17:45:24: PM2 log: pid=1836738 msg=process killed
+PM2        | 2026-03-24T17:45:24: PM2 log: App [pairwolf:2] starting in -fork mode-
+PM2        | 2026-03-24T17:45:24: PM2 log: App [pairwolf:2] online
+
+/root/.pm2/logs/wolflix-error.log last 50 lines:
+0|wolflix  | ow"&&this._dotfiles!=="deny")throw new TypeError('dotfiles option must be "allow", "deny", or "ignore"');this._extensions
+=n.extensions!==void 0?Md(n.extensions,"extensions option"):[],this._immutable=n.immutable!==void 0?!!n.immutable:!1,this._index=n.ind
+ex!==void 0?Md(n.index,"index option"):["index.html"],this._lastModified=n.lastModified!==void 0?!!n.lastModified:!0,this._maxage=n.ma
+xAge||n.maxage,this._maxage=typeof this._maxage=="string"?I1(this._maxage):Number(this._maxage),this._maxage=isNaN(this._maxage)?0:Mat
+h.min(Math.max(0,this._maxage),D1),this._root=n.root?Gd(n.root):null}N1.inherits(G,Bd);G.prototype.error=function(e,a){if(Zd(this,"err
+or"))return this.emit("error",H1(e,a));var n=this.res,r=F1.message[e]||String(e),i=Vd("Error",$d(r));$1(n),a&&a.headers&&Z1(n,a.header
+s),n.statusCode=e,n.setHeader("Content-Type","text/html; charset=UTF-8"),n.setHeader("Content-Length",Buffer.byteLength(i)),n.setHeade
+r("Content-Security-Policy","default-src 'none'"),n.setHeader("X-Content-Type-Options","nosniff"),n.end(i)};G.prototype.hasTrailingSla
+sh=function(){return this.path[this.path.length-1]==="/"};G.prototype.isConditionalGET=function(){return this.req.headers["if-match"]|
+|this.req.headers["if-unmodified-since"]||this.req.headers["if-none-match"]||this.req.headers["if-modified-since"]};G.prototype.isPrec
+onditionFailure=function(){var e=this.req,a=this.res,n=e.headers["if-match"];if(n){var r=a.getHeader("ETag");return!r||n!=="*"&&V1(n).
+every(function(s){return s!==r&&s!=="W/"+r&&"W/"+s!==r})}var i=Un(e.headers["if-unmodified-since"]);if(!isNaN(i)){var o=Un(a.getHeader
+("Last-Modified"));return isNaN(o)||o>i}return!1};G.prototype.removeContentHeaderFields=function(){var e=this.res;e.removeHeader("Cont
+ent-Encoding"),e.removeHeader("Content-Language"),e.removeHeader("Content-Length"),e.removeHeader("Content-Range"),e.removeHeader("Con
+tent-Type")};G.prototype.notModified=function(){var e=this.res;ee("not modified"),this.removeContentHeaderFields(),e.statusCode=304,e.
+end()};G.prototype.headersAlreadySent=function(){var e=new Error("Can't set headers after they are sent.");ee("headers already sent"),
+this.error(500,e)};G.prototype.isCachable=function(){var e=this.res.statusCode;return e>=200&&e<300||e===304};G.prototype.onStatError=
+function(e){switch(e.code){case"ENAMETOOLONG":case"ENOENT":case"ENOTDIR":this.error(404,e);break;default:this.error(500,e);break}};G.p
+rototype.isFresh=function(){return R1(this.req.headers,{etag:this.res.getHeader("ETag"),"last-modified":this.res.getHeader("Last-Modif
+ied")})};G.prototype.isRangeFresh=function(){var e=this.req.headers["if-range"];if(!e)return!0;if(e.indexOf('"')!==-1){var a=this.res.
+getHeader("ETag");return!!(a&&e.indexOf(a)!==-1)}var n=this.res.getHeader("Last-Modified");return Un(n)<=Un(e)};G.prototype.redirect=f
+unction(e){var a=this.res;if(Zd(this,"directory")){this.emit("directory",a,e);return}if(this.hasTrailingSlash()){this.error(403);retur
+n}var n=A1(B1(this.path+"/")),r=Vd("Redirecting","Redirecting to "+$d(n));a.statusCode=301,a.setHeader("Content-Type","text/html; char
+set=UTF-8"),a.setHeader("Content-Length",Buffer.byteLength(r)),a.setHeader("Content-Security-Policy","default-src 'none'"),a.setHeader
+("X-Content-Type-Options","nosniff"),a.setHeader("Location",n),a.end(r)};G.prototype.pipe=function(e){var a=this._root;this.res=e;var
+n=G1(this.path);if(n===-1)return this.error(400),e;if(~n.indexOf("\0"))return this.error(400),e;var r;if(a!==null){if(n&&(n=uo("."+$n+
+n)),Ld.test(n))return ee('malicious path "%s"',n),this.error(403),e;r=n.split($n),n=uo(Hd(a,n))}else{if(Ld.test(n))return ee('maliciou
+s path "%s"',n),this.error(403),e;r=uo(n).split($n),n=Gd(n)}if(U1(r))switch(ee('%s dotfile "%s"',this._dotfiles,n),this._dotfiles){cas
+e"allow":break;case"deny":return this.error(403),e;default:return this.error(404),e}return this._index.length&&this.hasTrailingSlash()
+?(this.sendIndex(n),e):(this.sendFile(n),e)};G.prototype.send=function(e,a){var n=a.size,r=this.options,i={},o=this.res,s=this.req,p=s
+.headers.range,c=r.start||0;if(o.headersSent){this.headersAlreadySent();return}if(ee('pipe "%s"',e),this.setHeader(e,a),this.type(e),t
+his.isConditionalGET()){if(this.isPreconditionFailure()){this.error(412);return}if(this.isCachable()&&this.isFresh()){this.notModified
+();return}}if(n=Math.max(0,n-c),r.end!==void 0){var u=r.end-c+1;n>u&&(n=u)}if(this._acceptRanges&&L1.test(p)){if(p=P1(n,p,{combine:!0}
+),this.isRangeFresh()||(ee("range stale"),p=-2),p===-1)return ee("range unsatisfiable"),o.setHeader("Content-Range",Dd("bytes",n)),thi
+s.error(416,{headers:{"Content-Range":o.getHeader("Content-Range")}});p!==-2&&p.length===1&&(ee("range %j",p),o.statusCode=206,o.setHe
+ader("Content-Range",Dd("bytes",n,p[0])),c+=p[0].start,n=p[0].end-p[0].start+1)}for(var l in r)i[l]=r[l];if(i.start=c,i.end=Math.max(c
+,c+n-1),o.setHeader("Content-Length",n),s.method==="HEAD"){o.end();return}this.stream(e,i)};G.prototype.sendFile=function(e){var a=0,n
+=this;ee('stat "%s"',e),Bn.stat(e,function(o,s){var p=e[e.length-1]===$n;if(o&&o.code==="ENOENT"&&!Ud(e)&&!p)return r(o);if(o)return n
+.onStatError(o);if(s.isDirectory())return n.redirect(e);if(p)return n.error(404);n.emit("file",e,s),n.send(e,s)});function r(i){if(n._
+extensions.length<=a)return i?n.onStatError(i):n.error(404);var o=e+"."+n._extensions[a++];ee('stat "%s"',o),Bn.stat(o,function(s,p){i
+f(s)return r(s);if(p.isDirectory())return r();n.emit("file",o,p),n.send(o,p)})}};G.prototype.sendIndex=function(e){var a=-1,n=this;fun
+ction r(i){if(++a>=n._index.length)return i?n.onStatError(i):n.error(404);var o=Hd(e,n._index[a]);ee('stat "%s"',o),Bn.stat(o,function
+(s,p){if(s)return r(s);if(p.isDirectory())return r();n.emit("file",o,p),n.send(o,p)})}r()};G.prototype.stream=function(e,a){var n=this
+,r=this.res,i=Bn.createReadStream(e,a);this.emit("stream",i),i.pipe(r);function o(){i.destroy()}z1(r,o),i.on("error",function(p){o(),n
+.onStatError(p)}),i.on("end",function(){n.emit("end")})};G.prototype.type=function(e){var a=this.res;if(!a.getHeader("Content-Type")){
+var n=Ud(e),r=q1.contentType(n)||"application/octet-stream";ee("content-type %s",r),a.setHeader("Content-Type",r)}};G.prototype.setHea
+der=function(e,a){var n=this.res;if(this.emit("headers",n,e,a),this._acceptRanges&&!n.getHeader("Accept-Ranges")&&(ee("accept ranges")
+,n.setHeader("Accept-Ranges","bytes")),this._cacheControl&&!n.getHeader("Cache-Control")){var r="public, max-age="+Math.floor(this._ma
+xage/1e3);this._immutable&&(r+=", immutable"),ee("cache-control %s",r),n.setHeader("Cache-Control",r)}if(this._lastModified&&!n.getHea
+der("Last-Modified")){var i=a.mtime.toUTCString();ee("modified %s",i),n.setHeader("Last-Modified",i)}if(this._etag&&!n.getHeader("ETag
+")){var o=O1(a);ee("etag %s",o),n.setHeader("ETag",o)}};function $1(t){for(let e of t.getHeaderNames())t.removeHeader(e)}function B1(t
+){for(var e=0;e<t.length&&t[e]==="/";e++);return e>1?"/"+t.substr(e):t}function U1(t){for(var e=0;e<t.length;e++){var a=t[e];if(a.leng
+th>1&&a[0]===".")return!0}return!1}function Dd(t,e,a){return t+" "+(a?a.start+"-"+a.end:"*")+"/"+e}function Vd(t,e){return`<!DOCTYPE h
+tml>
+0|wolflix  | 
+
+
+
+
+
+
+
+0|wolflix  | 
+0|wolflix  | dt [TypeError]: Missing parameter name at index 1: *; visit https://git.new/pathToRegexpError for info
+0|wolflix  |     at s (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:20580)
+0|wolflix  |     at Zi (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:20867)
+0|wolflix  |     at Rl (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:22948)
+0|wolflix  |     at Object.wy [as match] (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:22525)
+0|wolflix  |     at r (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:25117)
+0|wolflix  |     at new Dt (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:25245)
+0|wolflix  |     at Me.route (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:31291)
+0|wolflix  |     at J.route (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:36132)
+0|wolflix  |     at J.<computed> [as get] (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:37144)
+0|wolflix  |     at Object.<anonymous> (/var/www/wolflix/artifacts/api-server/dist/index.cjs:140:2161) {
+0|wolflix  |   originalPath: '*'
+0|wolflix  | }
+0|wolflix  | 
+0|wolflix  | Node.js v22.22.0
+0|wolflix  | dt [TypeError]: Missing parameter name at index 1: *; visit https://git.new/pathToRegexpError for info
+0|wolflix  |     at s (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:20580)
+0|wolflix  |     at Zi (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:20867)
+0|wolflix  |     at Rl (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:22948)
+0|wolflix  |     at Object.wy [as match] (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:22525)
+0|wolflix  |     at r (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:25117)
+0|wolflix  |     at new Dt (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:25245)
+0|wolflix  |     at Me.route (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:31291)
+0|wolflix  |     at J.route (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:36132)
+0|wolflix  |     at J.<computed> [as get] (/var/www/wolflix/artifacts/api-server/dist/index.cjs:31:37144)
+0|wolflix  |     at Object.<anonymous> (/var/www/wolflix/artifacts/api-server/dist/index.cjs:140:2161) {
+0|wolflix  |   originalPath: '*'
+0|wolflix  | }
+
+/root/.pm2/logs/pairwolf-error.log last 50 lines:
+2|pairwolf |     },
+2|pairwolf |     headers: {}
+2|pairwolf |   }
+2|pairwolf | }
+2|pairwolf | Error: Connection Closed
+2|pairwolf |     at sendRawMessage (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:56:19)
+2|pairwolf |     at sendNode (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:75:16)
+2|pairwolf |     at file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:487:19
+2|pairwolf |     at async Object.transaction (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Utils/auth-utils.js:12
+6:26)
+2|pairwolf |     at async relayMessage (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:288:
+9)
+2|pairwolf |     at async sendPeerDataOperationMessage (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/messa
+ges-send.js:211:23)
+2|pairwolf |     at async sendRetryRequest (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js:
+100:27)
+2|pairwolf |     at async file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js:661:33
+2|pairwolf |     at async file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Utils/make-mutex.js:16:36 {
+2|pairwolf |   data: null,
+2|pairwolf |   isBoom: true,
+2|pairwolf |   isServer: false,
+2|pairwolf |   output: {
+2|pairwolf |     statusCode: 428,
+2|pairwolf |     payload: {
+2|pairwolf |       statusCode: 428,
+2|pairwolf |       error: 'Precondition Required',
+2|pairwolf |       message: 'Connection Closed'
+2|pairwolf |     },
+2|pairwolf |     headers: {}
+2|pairwolf |   }
+2|pairwolf | }
+2|pairwolf | Error: Connection Closed
+2|pairwolf |     at sendRawMessage (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:56:19)
+2|pairwolf |     at sendNode (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/socket.js:75:16)
+2|pairwolf |     at file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:487:19
+2|pairwolf |     at async Object.transaction (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Utils/auth-utils.js:12
+6:26)
+2|pairwolf |     at async relayMessage (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:288:
+9)
+2|pairwolf |     at async sendPeerDataOperationMessage (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/messa
+ges-send.js:211:23)
+2|pairwolf |     at async sendRetryRequest (file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js:
+100:27)
+2|pairwolf |     at async file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js:661:33
+2|pairwolf |     at async file:///var/www/pairwolf/node_modules/@whiskeysockets/baileys/lib/Utils/make-mutex.js:16:36 {
+2|pairwolf |   data: null,
+2|pairwolf |   isBoom: true,
+2|pairwolf |   isServer: false,
+2|pairwolf |   output: {
+2|pairwolf |     statusCode: 428,
+2|pairwolf |     payload: {
+2|pairwolf |       statusCode: 428,
+2|pairwolf |       error: 'Precondition Required',
+2|pairwolf |       message: 'Connection Closed'
+2|pairwolf |     },
+2|pairwolf |     headers: {}
+2|pairwolf |   }
+2|pairwolf | }
+
+/root/.pm2/logs/wolflix-out.log last 50 lines:
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Static files served from: /var/www/wolflix/artifacts/wolflix/dist/public
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Static files served from: /var/www/wolflix/artifacts/wolflix/dist/public
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Static files served from: /var/www/wolflix/artifacts/wolflix/dist/public
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Static files served from: /var/www/wolflix/artifacts/wolflix/dist/public
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Static files served from: /var/www/wolflix/artifacts/wolflix/dist/public
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Static files served from: /var/www/wolflix/artifacts/wolflix/dist/public
+0|wolflix  | Server listening on port 3000
+0|wolflix  | Static files served from: /var/www/wolflix/artifacts/wolflix/dist/public
+0|wolflix  | Server listening on port 3000
+
+/root/.pm2/logs/pairwolf-out.log last 50 lines:
+2|pairwolf | 5:13:46 PM [express] POST /api/generate-session 200 in 78ms :: {"sessionId":"wolf_9708bb98","pairingCode":null,"qrCode":n
+ull,"status":"pending","message":"Connecting to WhatsApp servers... Pairing code will be sent via WebSocket."}
+2|pairwolf | 5:13:46 PM [whatsapp] Session wolf_9708bb98 connection.update: connection=undefined, qr=present
+2|pairwolf | 5:13:51 PM [whatsapp] Pairing code generated for session wolf_9708bb98: HQKGLK4L
+2|pairwolf | 5:14:46 PM [whatsapp] Session wolf_9708bb98 connection.update: connection=undefined, qr=present
+2|pairwolf | 5:15:06 PM [whatsapp] Session wolf_9708bb98 connection.update: connection=undefined, qr=present
+2|pairwolf | 5:15:26 PM [whatsapp] Session wolf_9708bb98 connection.update: connection=undefined, qr=present
+2|pairwolf | 5:15:46 PM [whatsapp] Session wolf_9708bb98 connection.update: connection=undefined, qr=present
+2|pairwolf | 5:16:06 PM [whatsapp] Session wolf_9708bb98 connection.update: connection=undefined, qr=present
+2|pairwolf | 5:16:26 PM [whatsapp] Session wolf_9708bb98 connection.update: connection=close, qr=none
+2|pairwolf | 5:16:26 PM [whatsapp] Session wolf_9708bb98 connection closed. Status: 408, retry: 0/10
+2|pairwolf | 5:16:26 PM [whatsapp] Reconnecting session wolf_9708bb98 in 3000ms (attempt 1)...
+2|pairwolf | 5:16:29 PM [whatsapp] Using WhatsApp version: 2.3000.1035194821 on Server 1
+2|pairwolf | 5:16:29 PM [whatsapp] Session wolf_9708bb98 connection.update: connection=connecting, qr=none
+2|pairwolf | 5:16:31 PM [whatsapp] Session wolf_9708bb98 connection.update: connection=close, qr=none
+2|pairwolf | 5:16:31 PM [whatsapp] Session wolf_9708bb98 connection closed. Status: 401, retry: 1/10
+2|pairwolf | 5:42:05 PM [whatsapp] Creating pairing session for 233256270723 using Server 1
+2|pairwolf | 5:42:05 PM [whatsapp] Using WhatsApp version: 2.3000.1035194821 on Server 1
+2|pairwolf | 5:42:05 PM [whatsapp] Session wolf_11a5e997 connection.update: connection=connecting, qr=none
+2|pairwolf | 5:42:05 PM [express] POST /api/generate-session 200 in 78ms :: {"sessionId":"wolf_11a5e997","pairingCode":null,"qrCode":n
+ull,"status":"pending","message":"Connecting to WhatsApp servers... Pairing code will be sent via WebSocket."}
+2|pairwolf | 5:42:05 PM [whatsapp] Session wolf_11a5e997 connection.update: connection=undefined, qr=present
+2|pairwolf | 5:42:10 PM [whatsapp] Pairing code generated for session wolf_11a5e997: G5G9KEEZ
+2|pairwolf | 5:42:31 PM [whatsapp] Session wolf_11a5e997 connection.update: connection=undefined, qr=none
+2|pairwolf | {"level":50,"time":1774370552779,"pid":1836738,"hostname":"silentwolf","node":{"tag":"stream:error","attrs":{"code":"515"
+}},"msg":"stream errored out"}
+2|pairwolf | 5:42:32 PM [whatsapp] Session wolf_11a5e997 connection.update: connection=close, qr=none
+2|pairwolf | 5:42:32 PM [whatsapp] Session wolf_11a5e997 connection closed. Status: 515, retry: 0/10
+2|pairwolf | 5:42:32 PM [whatsapp] Reconnecting session wolf_11a5e997 in 3000ms (attempt 1)...
+2|pairwolf | 5:42:35 PM [whatsapp] Using WhatsApp version: 2.3000.1035194821 on Server 1
+2|pairwolf | 5:42:35 PM [whatsapp] Session wolf_11a5e997 connection.update: connection=connecting, qr=none
+2|pairwolf | 5:42:37 PM [whatsapp] Session wolf_11a5e997 connection.update: connection=undefined, qr=none
+2|pairwolf | 5:42:37 PM [whatsapp] Session wolf_11a5e997 connection.update: connection=undefined, qr=none
+2|pairwolf | 5:42:37 PM [whatsapp] Session wolf_11a5e997 connection.update: connection=open, qr=none
+2|pairwolf | 5:42:37 PM [whatsapp] Session wolf_11a5e997 connected successfully!
+2|pairwolf | 5:42:38 PM [whatsapp] Read real WhatsApp credentials for session wolf_11a5e997 (2524 chars)
+2|pairwolf | 5:42:38 PM [whatsapp] Performing post-connection actions for wolf_11a5e997
+2|pairwolf | 5:42:42 PM [whatsapp] Failed to join group: conflict
+2|pairwolf | 5:42:44 PM [whatsapp] Sending credentials to JID: 233256270723@s.whatsapp.net (raw: 233256270723:47@s.whatsapp.net)
+2|pairwolf | 5:42:45 PM [whatsapp] Sent session ID to user for session wolf_11a5e997
+2|pairwolf | 5:42:47 PM [whatsapp] Sent reply confirmation for session wolf_11a5e997
+2|pairwolf | 5:42:51 PM [whatsapp] Credentials delivered, disconnecting session wolf_11a5e997
+2|pairwolf | 5:42:51 PM [whatsapp] Session wolf_11a5e997 connection.update: connection=close, qr=none
+2|pairwolf | 5:42:51 PM [whatsapp] Session wolf_11a5e997 connection closed. Status: undefined, retry: 0/10
+2|pairwolf | 5:42:51 PM [whatsapp] Session wolf_11a5e997 fully cleaned up after credential delivery
+2|pairwolf | 5:45:09 PM [whatsapp] Creating pairing session for +254703397514 using Server 1
+2|pairwolf | 5:45:09 PM [whatsapp] Using WhatsApp version: 2.3000.1035194821 on Server 1
+2|pairwolf | 5:45:09 PM [whatsapp] Session wolf_99cffdbe connection.update: connection=connecting, qr=none
+2|pairwolf | 5:45:09 PM [express] POST /api/generate-session 200 in 58ms :: {"sessionId":"wolf_99cffdbe","pairingCode":null,"qrCode":n
+ull,"status":"pending","message":"Connecting to WhatsApp servers... Pairing code will be sent via WebSocket."}
+2|pairwolf | 5:45:10 PM [whatsapp] Session wolf_99cffdbe connection.update: connection=undefined, qr=present
+2|pairwolf | 5:45:14 PM [whatsapp] Pairing code generated for session wolf_99cffdbe: D845LK2M
+2|pairwolf | Looking for static files at: /var/www/pairwolf/dist/public
+2|pairwolf | 5:45:26 PM [express] serving on port 3002
+
+^X^X^X^X^X^X^X^C
+root@silentwolf:/var/www/wolfmusicapi# ^C
+root@silentwolf:/var/www/wolfmusicapi#

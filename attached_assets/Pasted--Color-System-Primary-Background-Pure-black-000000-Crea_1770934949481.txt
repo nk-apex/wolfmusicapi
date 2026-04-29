@@ -1,0 +1,281 @@
+🎨 Color System
+🔹 Primary Background
+
+Pure black: #000000
+
+Creates cinematic depth and contrast
+
+Makes neon elements pop dramatically
+
+🔹 Primary Neon Glow
+
+Electric Green: #00ff00
+
+Used for:
+
+Buttons
+
+Active links
+
+Highlights
+
+Borders
+
+Hover states
+
+Focus effects
+
+This glow should feel alive — like digital energy flowing through the UI.
+
+🔹 Secondary Glow
+
+Deep cyber green: #004d00
+
+Used for:
+
+Gradients
+
+Shadows
+
+Subtle borders
+
+Card accents
+
+🔹 Accent Effects
+
+Translucent glass panels with:
+
+rgba(0, 255, 0, 0.1) overlays
+
+Backdrop blur
+
+Soft glow shadows
+
+🧊 UI Style (Glass + Neon)
+Glassmorphism
+
+Semi-transparent backgrounds
+
+Soft blur
+
+Neon borders
+
+Smooth rounded corners
+
+Subtle reflection feel
+
+Every card should feel like:
+
+“A futuristic control panel floating in digital space.”
+
+💡 Glow Philosophy
+
+Neon glow must:
+
+Be smooth (not harsh)
+
+Use box-shadow with spread
+
+React on hover
+
+Feel alive
+
+Animate subtly
+
+Example concept:
+
+Button hover → glow expands
+
+Card hover → neon border intensifies
+
+Active nav item → constant soft glow
+
+🔠 Typography
+Headings — Orbitron
+
+Bold
+
+Sci-fi feel
+
+Tech-inspired
+
+Strong digital presence
+
+Used for:
+
+Hero headlines
+
+Page titles
+
+Section headers
+
+Dashboard labels
+
+Body — JetBrains Mono
+
+Clean
+
+Developer-style modern
+
+Minimal but futuristic
+
+Used for:
+
+Descriptions
+
+Metadata
+
+Settings
+
+Small text
+
+🎬 Visual Atmosphere
+
+The UI should feel:
+
+Immersive
+
+Deep
+
+Layered
+
+High-tech
+
+Elegant
+
+Premium
+
+Cinematic
+
+Like:
+
+A next-generation streaming system used in the year 2045.
+
+🌠 Background Effects
+Floating Neon Particles
+
+Small glowing green dots
+
+Slow movement
+
+Subtle parallax effect
+
+Adds life to static pages
+
+Smooth Page Transitions
+
+Fade in
+
+Fade out
+
+Slight upward motion
+
+No harsh page reload feeling
+
+🎥 Movie Cards Design
+
+Glass panel
+
+Poster centered
+
+Neon border on hover
+
+Glow intensifies when focused
+
+Play icon overlay appears smoothly
+
+Hover should feel like:
+
+“Activating a holographic movie panel.”
+
+📱 Responsive Design Philosophy
+
+Mobile-first approach.
+
+On smaller screens:
+
+Sidebar collapses into hamburger
+
+Cards stack cleanly
+
+Glow intensity slightly reduced
+
+Touch-friendly buttons
+
+Smooth slide animations
+
+🔥 Intro Loader Theme
+
+Before Home loads:
+
+Full black background
+
+Large glowing “WolfFlix”
+
+Animated neon flicker effect
+
+Floating particles
+
+Text:
+
+“WolfFlix — Loading Entertainment…”
+
+Should feel like:
+
+Booting up a futuristic cinema engine.
+
+🧠 Emotional Impact
+
+The theme should make users feel:
+
+Excited
+
+Immersed
+
+Curious
+
+Empowered
+
+In control
+
+Inside something premium
+
+It should not feel:
+
+Basic
+
+Flat
+
+Colorful
+
+Corporate
+
+Social-media-like
+
+It must feel cinematic and futuristic.
+
+🐺 Brand Personality
+
+WolfFlix represents:
+
+Power
+
+Precision
+
+Speed
+
+Intelligence
+
+Modern digital dominance
+
+It is:
+
+Bold
+
+Sharp
+
+Clean
+
+Futuristic
+
+Technological

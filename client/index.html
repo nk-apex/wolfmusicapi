@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>WolfApis - Multi-Provider API Hub</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="/og-image.jpg" />
+
+    <!-- Primary Meta -->
+    <meta name="description" content="WolfAPIs — a multi-provider API hub for music, media, search, tools and more. Built by Silent Wolf." />
+    <meta name="theme-color" content="#00ff00" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://apis.xwolf.space" />
+    <meta property="og:title" content="WolfAPIs - Multi-Provider API Hub" />
+    <meta property="og:description" content="WolfAPIs — a multi-provider API hub for music, media, search, tools and more. Built by Silent Wolf." />
+    <meta property="og:image" content="https://apis.xwolf.space/og-image.jpg" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="720" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:site_name" content="WolfAPIs" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://apis.xwolf.space" />
+    <meta name="twitter:title" content="WolfAPIs - Multi-Provider API Hub" />
+    <meta name="twitter:description" content="WolfAPIs — a multi-provider API hub for music, media, search, tools and more. Built by Silent Wolf." />
+    <meta name="twitter:image" content="https://apis.xwolf.space/og-image.jpg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      (function(){
+        document.addEventListener('contextmenu',function(e){e.preventDefault();});
+        document.addEventListener('keydown',function(e){
+          if(e.key==='F12')e.preventDefault();
+          if(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key.toUpperCase()))e.preventDefault();
+          if(e.ctrlKey&&e.key.toUpperCase()==='U')e.preventDefault();
+          if(e.metaKey&&e.altKey&&['I','J','C'].includes(e.key.toUpperCase()))e.preventDefault();
+        });
+        (function d(){try{(function(){return false;}).constructor('debugger')();} catch(e){}setTimeout(d,100);})();
+        var t=new Image();Object.defineProperty(t,'id',{get:function(){document.title='WolfAPIs';window.location.reload();}});
+        var c=console;['log','warn','error','info','debug','table','trace','dir','dirxml','group','groupEnd','time','timeEnd','assert','count','clear'].forEach(function(m){c[m]=function(){};});
+        Object.defineProperty(window,'console',{get:function(){return c;},set:function(){}});
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
