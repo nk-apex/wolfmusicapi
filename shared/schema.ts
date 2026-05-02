@@ -106,7 +106,8 @@ const aiChatEndpoints: ApiEndpoint[] = [
   { path: "/api/ai/nemotron", method: "GET", description: "Chat with Nemotron - NVIDIA's AI model", params: Q_PARAM, format: "json", category: "ai-chat", provider: "ChatEverywhere" },
   { path: "/api/ai/internlm", method: "GET", description: "Chat with InternLM - multilingual AI", params: Q_PARAM, format: "json", category: "ai-chat", provider: "ChatEverywhere" },
   { path: "/api/ai/chatglm", method: "GET", description: "Chat with ChatGLM - bilingual model", params: Q_PARAM, format: "json", category: "ai-chat", provider: "ChatEverywhere" },
-  { path: "/api/ai/wormgpt", method: "GET", description: "Chat with WormGPT - unrestricted AI model", params: Q_PARAM, format: "json", category: "ai-chat", provider: "ChatEverywhere" },
+  { path: "/api/ai/wormgpt", method: "GET", description: "Chat with WormGPT - uncensored dark-net AI with no content filters", params: Q_PARAM, format: "json", category: "ai-chat", provider: "Pollinations" },
+  { path: "/api/ai/blackbox", method: "GET", description: "Chat with Blackbox AI - coding-focused assistant with code generation and debugging", params: Q_PARAM, format: "json", category: "ai-chat", provider: "Pollinations" },
   { path: "/api/ai/replit", method: "GET", description: "Chat with Replit AI - coding assistant for code generation and debugging", params: Q_PARAM, format: "json", category: "ai-chat", provider: "ChatEverywhere" },
 ];
 
