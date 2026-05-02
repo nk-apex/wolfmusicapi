@@ -70,6 +70,10 @@ export const apiCategories = [
   { id: "converter", name: "Converter", description: "Media conversion tools for WhatsApp bots (sticker, image, video, GIF)", icon: "RefreshCw" },
   { id: "audio-fx", name: "Audio Effects", description: "25 audio effects: bass boost, robot, echo, nightcore, 8D, reverb, and more", icon: "Headphones" },
   { id: "economy", name: "Economy", description: "Live forex rates, crypto prices, stocks, gold, GDP, inflation, and financial market data", icon: "TrendingUp" },
+  { id: "quran", name: "Quran", description: "Search Quran verses, read full surahs, random ayahs, and Arabic with English translations", icon: "BookOpen" },
+  { id: "food", name: "Food & Drinks", description: "Search recipes by name or ingredient, random meals, cocktails, and drink ingredients", icon: "UtensilsCrossed" },
+  { id: "pokemon", name: "Pokemon", description: "Lookup Pokemon stats, abilities, types, and browse by type", icon: "Zap" },
+  { id: "nasa", name: "NASA", description: "Astronomy Picture of the Day, Mars rover photos, and space data", icon: "Telescope" },
 ];
 
 const Q_PARAM = [{ name: "q", type: "string", required: true, description: "Your message or question", default: "Hello! How are you?" }];
@@ -786,6 +790,10 @@ const animeEndpoints: ApiEndpoint[] = [
   { path: "/api/anime/yawn", method: "GET", description: "Get random yawn anime GIF", params: [], format: "json", category: "anime", provider: "nekos.best" },
   { path: "/api/anime/nervous", method: "GET", description: "Get random nervous anime image", params: [], format: "json", category: "anime", provider: "nekos.best" },
   { path: "/api/anime/punch", method: "GET", description: "Get random punch anime GIF", params: [], format: "json", category: "anime", provider: "nekos.best" },
+  { path: "/api/anime/search", method: "GET", description: "Search anime by title — returns scores, genres, synopsis, ratings", params: [{ name: "q", type: "string", required: true, description: "Anime title to search", default: "Naruto" }], format: "json", category: "anime", provider: "Jikan (MyAnimeList)" },
+  { path: "/api/anime/info", method: "GET", description: "Get full anime details by MyAnimeList ID — score, rank, episodes, studios, trailer", params: [{ name: "id", type: "string", required: true, description: "MyAnimeList anime ID", default: "20" }], format: "json", category: "anime", provider: "Jikan (MyAnimeList)" },
+  { path: "/api/anime/top", method: "GET", description: "Get top-ranked anime — filter by type: tv, movie, ova, special, ona, music", params: [{ name: "type", type: "string", required: false, description: "Anime type: tv | movie | ova | special | ona | music (default: tv)", default: "tv" }], format: "json", category: "anime", provider: "Jikan (MyAnimeList)" },
+  { path: "/api/anime/random-info", method: "GET", description: "Get a random anime with full details from MyAnimeList", params: [], format: "json", category: "anime", provider: "Jikan (MyAnimeList)" },
 ];
 
 const funEndpoints: ApiEndpoint[] = [
@@ -826,6 +834,8 @@ const funEndpoints: ApiEndpoint[] = [
   { path: "/api/fun/mothersday", method: "GET", description: "Get a Mother's Day message", params: [], format: "json", category: "fun", provider: "Built-in" },
   { path: "/api/fun/girlfriendsday", method: "GET", description: "Get a Girlfriend's Day message", params: [], format: "json", category: "fun", provider: "Built-in" },
   { path: "/api/fun/boyfriendsday", method: "GET", description: "Get a Boyfriend's Day message", params: [], format: "json", category: "fun", provider: "Built-in" },
+  { path: "/api/fun/chucknorris", method: "GET", description: "Get a random Chuck Norris joke, optionally filtered by category", params: [{ name: "category", type: "string", required: false, description: "Category: dev | movie | food | celebrity | science | sport | animal | history | music | travel | political (optional)", default: "" }], format: "json", category: "fun", provider: "ChuckNorris.io" },
+  { path: "/api/fun/chucknorris/categories", method: "GET", description: "List all available Chuck Norris joke categories", params: [], format: "json", category: "fun", provider: "ChuckNorris.io" },
 ];
 
 const urlShortenerEndpoints: ApiEndpoint[] = [
@@ -862,6 +872,8 @@ const toolsEndpoints: ApiEndpoint[] = [
   { path: "/api/tools/uuid", method: "GET", description: "Generate UUID v4", params: [], format: "json", category: "tools", provider: "Built-in" },
   { path: "/api/tools/password-strength", method: "GET", description: "Check password strength", params: [{ name: "password", type: "string", required: true, description: "Password to check", default: "MyP@ssw0rd123!" }], format: "json", category: "tools", provider: "Built-in" },
   { path: "/api/tools/screenshot", method: "GET", description: "Take website screenshot", params: [{ name: "url", type: "string", required: true, description: "URL to screenshot", default: "https://apis.xwolf.space" }], format: "json", category: "tools", provider: "thum.io" },
+  { path: "/api/tools/holidays", method: "GET", description: "Get public holidays for any country and year", params: [{ name: "country", type: "string", required: true, description: "ISO country code (e.g. KE, US, GB, NG)", default: "KE" }, { name: "year", type: "string", required: false, description: "Year (default: current year)", default: "2025" }], format: "json", category: "tools", provider: "Nager.Date" },
+  { path: "/api/tools/next-holiday", method: "GET", description: "Get the next upcoming public holiday for a country", params: [{ name: "country", type: "string", required: true, description: "ISO country code (e.g. KE, US, GB, NG)", default: "KE" }], format: "json", category: "tools", provider: "Nager.Date" },
 ];
 
 const securityEndpoints: ApiEndpoint[] = [
@@ -1227,6 +1239,42 @@ const economyEndpoints: ApiEndpoint[] = [
   },
 ];
 
+const quranEndpoints: ApiEndpoint[] = [
+  { path: "/api/quran/verse", method: "GET", description: "Get a Quran verse by surah and ayah number with Arabic text, English translation and audio link", params: [{ name: "surah", type: "string", required: true, description: "Surah number (1–114)", default: "2" }, { name: "ayah", type: "string", required: true, description: "Ayah number within the surah", default: "255" }], format: "json", category: "quran", provider: "Al-Quran Cloud" },
+  { path: "/api/quran/surah", method: "GET", description: "Get all verses of a full surah with English translations", params: [{ name: "number", type: "string", required: true, description: "Surah number (1–114)", default: "1" }], format: "json", category: "quran", provider: "Al-Quran Cloud" },
+  { path: "/api/quran/random", method: "GET", description: "Get a random Quran verse with Arabic text, English translation and audio link", params: [], format: "json", category: "quran", provider: "Al-Quran Cloud" },
+  { path: "/api/quran/search", method: "GET", description: "Search the Quran by keyword in English translation", params: [{ name: "q", type: "string", required: true, description: "Keyword to search", default: "mercy" }], format: "json", category: "quran", provider: "Al-Quran Cloud" },
+];
+
+const foodEndpoints: ApiEndpoint[] = [
+  { path: "/api/food/meal/search", method: "GET", description: "Search meals/recipes by name — returns ingredients, instructions, category, YouTube link", params: [{ name: "q", type: "string", required: true, description: "Meal name to search", default: "chicken" }], format: "json", category: "food", provider: "TheMealDB" },
+  { path: "/api/food/meal/random", method: "GET", description: "Get a random meal with full recipe, ingredients and instructions", params: [], format: "json", category: "food", provider: "TheMealDB" },
+  { path: "/api/food/meal/categories", method: "GET", description: "List all meal categories (beef, chicken, dessert, seafood, etc.)", params: [], format: "json", category: "food", provider: "TheMealDB" },
+  { path: "/api/food/meal/by-ingredient", method: "GET", description: "Find meals that use a specific ingredient", params: [{ name: "ingredient", type: "string", required: true, description: "Ingredient name", default: "chicken_breast" }], format: "json", category: "food", provider: "TheMealDB" },
+  { path: "/api/food/cocktail/search", method: "GET", description: "Search cocktails/drinks by name — returns ingredients, glass type and instructions", params: [{ name: "q", type: "string", required: true, description: "Cocktail name to search", default: "margarita" }], format: "json", category: "food", provider: "TheCocktailDB" },
+  { path: "/api/food/cocktail/random", method: "GET", description: "Get a random cocktail with ingredients and preparation instructions", params: [], format: "json", category: "food", provider: "TheCocktailDB" },
+  { path: "/api/food/cocktail/by-ingredient", method: "GET", description: "Find cocktails that use a specific ingredient", params: [{ name: "ingredient", type: "string", required: true, description: "Ingredient name", default: "vodka" }], format: "json", category: "food", provider: "TheCocktailDB" },
+];
+
+const pokemonEndpoints: ApiEndpoint[] = [
+  { path: "/api/pokemon/info", method: "GET", description: "Get full Pokemon details — stats, abilities, types, height, weight, official artwork", params: [{ name: "name", type: "string", required: true, description: "Pokemon name or Pokedex number", default: "pikachu" }], format: "json", category: "pokemon", provider: "PokeAPI" },
+  { path: "/api/pokemon/random", method: "GET", description: "Get a random Pokemon with full stats and official artwork", params: [], format: "json", category: "pokemon", provider: "PokeAPI" },
+  { path: "/api/pokemon/types", method: "GET", description: "List all 18 Pokemon types", params: [], format: "json", category: "pokemon", provider: "PokeAPI" },
+  { path: "/api/pokemon/by-type", method: "GET", description: "Get Pokemon belonging to a specific type", params: [{ name: "type", type: "string", required: true, description: "Pokemon type (e.g. fire, water, electric, dragon)", default: "fire" }], format: "json", category: "pokemon", provider: "PokeAPI" },
+];
+
+const nasaEndpoints: ApiEndpoint[] = [
+  { path: "/api/nasa/apod", method: "GET", description: "NASA Astronomy Picture of the Day — stunning space photos with expert explanations", params: [{ name: "date", type: "string", required: false, description: "Date in YYYY-MM-DD format (default: today)", default: "" }], format: "json", category: "nasa", provider: "NASA" },
+  { path: "/api/nasa/neo", method: "GET", description: "Near Earth Objects — today's asteroids approaching Earth with size, velocity and miss distance", params: [], format: "json", category: "nasa", provider: "NASA" },
+];
+
+const tvshowEndpoints: ApiEndpoint[] = [
+  { path: "/api/tvshow/search", method: "GET", description: "Search TV shows — returns status, genres, rating, network and summary", params: [{ name: "q", type: "string", required: true, description: "Show title to search", default: "Breaking Bad" }], format: "json", category: "movie", provider: "TVMaze" },
+  { path: "/api/tvshow/info", method: "GET", description: "Get full TV show details including cast and episode count by TVMaze ID", params: [{ name: "id", type: "string", required: true, description: "TVMaze show ID (from search results)", default: "169" }], format: "json", category: "movie", provider: "TVMaze" },
+  { path: "/api/tvshow/episodes", method: "GET", description: "Get episode list for a TV show, optionally filtered by season", params: [{ name: "id", type: "string", required: true, description: "TVMaze show ID", default: "169" }, { name: "season", type: "string", required: false, description: "Season number (optional — omit for all seasons)", default: "1" }], format: "json", category: "movie", provider: "TVMaze" },
+  { path: "/api/tvshow/schedule", method: "GET", description: "Get today's TV broadcast schedule for any country", params: [{ name: "country", type: "string", required: false, description: "Country code (default: US)", default: "US" }], format: "json", category: "movie", provider: "TVMaze" },
+];
+
 export const allEndpoints: ApiEndpoint[] = [
   ...aiChatEndpoints,
   ...aiToolEndpoints,
@@ -1250,6 +1298,11 @@ export const allEndpoints: ApiEndpoint[] = [
   ...converterEndpoints,
   ...audioFxEndpoints,
   ...economyEndpoints,
+  ...quranEndpoints,
+  ...foodEndpoints,
+  ...pokemonEndpoints,
+  ...nasaEndpoints,
+  ...tvshowEndpoints,
 ];
 
 export const endpointInfo = allEndpoints.filter(e => e.category === "music");

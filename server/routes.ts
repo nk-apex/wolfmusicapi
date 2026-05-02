@@ -1889,6 +1889,54 @@ export async function registerRoutes(
     }
   });
 
+  // ── NASA — registered early to avoid any middleware interference ──────────────
+  app.get("/api/nasa/neo", async (req, res) => {
+    try {
+      const { getNASAneo } = await import("../lib/downloaders/extras.js");
+      res.json(await getNASAneo());
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/nasa/apod", async (req, res) => {
+    try {
+      const { getNASAapod } = await import("../lib/downloaders/extras.js");
+      res.json(await getNASAapod(req.query.date as string));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  // ── ANIME INFO (Jikan) — must be before /:type catch-all ─────────────────────
+  app.get("/api/anime/search", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'q' is required" });
+      const { searchAnimeInfo } = await import("../lib/downloaders/extras.js");
+      res.json(await searchAnimeInfo(q));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/anime/info", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'id' is required" });
+      const { getAnimeInfoById } = await import("../lib/downloaders/extras.js");
+      res.json(await getAnimeInfoById(id));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/anime/top", async (req, res) => {
+    try {
+      const { getTopAnime } = await import("../lib/downloaders/extras.js");
+      res.json(await getTopAnime(req.query.type as string));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/anime/random-info", async (req, res) => {
+    try {
+      const { getRandomAnime } = await import("../lib/downloaders/extras.js");
+      res.json(await getRandomAnime());
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
   // ============== ANIME ROUTES ==============
   app.get("/api/anime/:type", async (req, res) => {
     try {
@@ -1897,6 +1945,21 @@ export async function registerRoutes(
     } catch (error: any) {
       return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: error.message });
     }
+  });
+
+  // ── CHUCK NORRIS — must be before /fun/:type catch-all ───────────────────────
+  app.get("/api/fun/chucknorris/categories", async (req, res) => {
+    try {
+      const { getChuckNorrisCategories } = await import("../lib/downloaders/extras.js");
+      res.json(await getChuckNorrisCategories());
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/fun/chucknorris", async (req, res) => {
+    try {
+      const { getChuckNorrisJoke } = await import("../lib/downloaders/extras.js");
+      res.json(await getChuckNorrisJoke(req.query.category as string));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
 
   // ============== FUN ROUTES ==============
@@ -3819,6 +3882,212 @@ export async function registerRoutes(
       if (!r.ok) throw new Error(`Blockchain.info error ${r.status}`);
       const data = await r.json();
       res.json({ success: true, creator: "APIs by Silent Wolf | A tech explorer", address, coin: "BTC", balance_btc: data.final_balance / 1e8, balance_satoshi: data.final_balance, total_received_btc: data.total_received / 1e8, total_sent_btc: data.total_sent / 1e8, tx_count: data.n_tx });
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  // ── QURAN ────────────────────────────────────────────────────────────────────
+  const extras = await import("../lib/downloaders/extras.js");
+
+  app.get("/api/quran/verse", async (req, res) => {
+    try {
+      const surah = parseInt(req.query.surah as string);
+      const ayah = parseInt(req.query.ayah as string);
+      if (!surah || !ayah) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameters 'surah' and 'ayah' are required" });
+      const result = await extras.getQuranVerse(surah, ayah);
+      res.json(result);
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/quran/surah", async (req, res) => {
+    try {
+      const num = parseInt(req.query.number as string);
+      if (!num) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'number' is required" });
+      const result = await extras.getQuranSurah(num);
+      res.json(result);
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/quran/random", async (req, res) => {
+    try { res.json(await extras.getQuranRandom()); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/quran/search", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'q' is required" });
+      res.json(await extras.searchQuran(q));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  // ── TV SHOWS ──────────────────────────────────────────────────────────────────
+  app.get("/api/tvshow/search", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'q' is required" });
+      res.json(await extras.searchTVShows(q));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/tvshow/info", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'id' is required" });
+      res.json(await extras.getTVShowInfo(id));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/tvshow/episodes", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'id' is required" });
+      res.json(await extras.getTVShowEpisodes(id, req.query.season as string));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/tvshow/schedule", async (req, res) => {
+    try { res.json(await extras.getTVSchedule(req.query.country as string)); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  // ── ANIME INFO (Jikan) ────────────────────────────────────────────────────────
+  app.get("/api/anime/search", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'q' is required" });
+      res.json(await extras.searchAnimeInfo(q));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/anime/info", async (req, res) => {
+    try {
+      const id = req.query.id as string;
+      if (!id) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'id' is required" });
+      res.json(await extras.getAnimeInfoById(id));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/anime/top", async (req, res) => {
+    try { res.json(await extras.getTopAnime(req.query.type as string)); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/anime/random-info", async (req, res) => {
+    try { res.json(await extras.getRandomAnime()); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  // ── FOOD / MEALS ──────────────────────────────────────────────────────────────
+  app.get("/api/food/meal/search", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'q' is required" });
+      res.json(await extras.searchMeals(q));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/food/meal/random", async (req, res) => {
+    try { res.json(await extras.getRandomMeal()); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/food/meal/categories", async (req, res) => {
+    try { res.json(await extras.getMealCategories()); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/food/meal/by-ingredient", async (req, res) => {
+    try {
+      const ingredient = req.query.ingredient as string;
+      if (!ingredient) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'ingredient' is required" });
+      res.json(await extras.getMealsByIngredient(ingredient));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/food/cocktail/search", async (req, res) => {
+    try {
+      const q = req.query.q as string;
+      if (!q) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'q' is required" });
+      res.json(await extras.searchCocktails(q));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/food/cocktail/random", async (req, res) => {
+    try { res.json(await extras.getRandomCocktail()); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/food/cocktail/by-ingredient", async (req, res) => {
+    try {
+      const ingredient = req.query.ingredient as string;
+      if (!ingredient) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'ingredient' is required" });
+      res.json(await extras.getCocktailsByIngredient(ingredient));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  // ── POKEMON ───────────────────────────────────────────────────────────────────
+  app.get("/api/pokemon/info", async (req, res) => {
+    try {
+      const name = req.query.name as string;
+      if (!name) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'name' is required" });
+      res.json(await extras.getPokemonInfo(name));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/pokemon/random", async (req, res) => {
+    try { res.json(await extras.getRandomPokemon()); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/pokemon/types", async (req, res) => {
+    try { res.json(await extras.getPokemonTypes()); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/pokemon/by-type", async (req, res) => {
+    try {
+      const type = req.query.type as string;
+      if (!type) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'type' is required" });
+      res.json(await extras.getPokemonByType(type));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  // ── NASA ──────────────────────────────────────────────────────────────────────
+  app.get("/api/nasa/apod", async (req, res) => {
+    try { res.json(await extras.getNASAapod(req.query.date as string)); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/nasa/neo", async (req, res) => {
+    try { res.json(await extras.getNASAneo()); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  // ── CHUCK NORRIS ──────────────────────────────────────────────────────────────
+  app.get("/api/fun/chucknorris", async (req, res) => {
+    try { res.json(await extras.getChuckNorrisJoke(req.query.category as string)); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/fun/chucknorris/categories", async (req, res) => {
+    try { res.json(await extras.getChuckNorrisCategories()); }
+    catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  // ── PUBLIC HOLIDAYS ───────────────────────────────────────────────────────────
+  app.get("/api/tools/holidays", async (req, res) => {
+    try {
+      const country = req.query.country as string;
+      if (!country) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'country' is required" });
+      res.json(await extras.getPublicHolidays(country, req.query.year as string));
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  app.get("/api/tools/next-holiday", async (req, res) => {
+    try {
+      const country = req.query.country as string;
+      if (!country) return res.status(400).json({ success: false, creator: "APIs by Silent Wolf | A tech explorer", error: "Parameter 'country' is required" });
+      res.json(await extras.getNextHoliday(country));
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
 
