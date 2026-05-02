@@ -905,6 +905,51 @@ export function registerAIRoutes(app: Express): void {
     }
   });
 
+  app.get("/api/ai/tools/image-edit", async (req: Request, res: Response) => {
+    const description = (req.query.description as string)?.trim();
+    const editPrompt = (req.query.edit_prompt as string)?.trim();
+    if (!description) return res.status(400).json({ status: false, error: "Parameter 'description' is required — describe what your current image looks like." });
+    if (!editPrompt) return res.status(400).json({ status: false, error: "Parameter 'edit_prompt' is required — describe what you want to change." });
+
+    const rawStyle = (req.query.style as string)?.trim().toLowerCase() || "realistic";
+    const styleModelMap: Record<string, { model: string; prefix: string }> = {
+      "realistic":    { model: "flux-realism", prefix: "photorealistic, ultra detailed, professional photography" },
+      "anime":        { model: "flux-anime",   prefix: "anime illustration, cel-shaded, vibrant manga art" },
+      "ghibli":       { model: "flux",         prefix: "Studio Ghibli style, Miyazaki aesthetic, watercolor, soft lighting" },
+      "oil-painting": { model: "flux",         prefix: "oil painting, thick brushstrokes, canvas texture, classical art" },
+      "cartoon":      { model: "flux",         prefix: "cartoon illustration, bold outlines, vivid flat colors" },
+      "dark":         { model: "any-dark",     prefix: "dark fantasy art, dramatic shadows, ominous mood" },
+    };
+    const styleConfig = styleModelMap[rawStyle] ?? styleModelMap["realistic"];
+    const { width, height } = parseRatio(req.query.ratio as string, 1024, 1024);
+
+    try {
+      const mergedPrompt = await chatEverywhereProxy(
+        `You are given a description of an existing image and instructions to edit it. Merge them into a single, vivid AI image generation prompt that preserves key elements of the original while applying all requested edits. Be specific about lighting, colors, composition, and atmosphere. Output ONLY the final prompt — no explanations, no quotes, no labels.\n\nOriginal image: "${description}"\nEdit instructions: "${editPrompt}"`,
+        "You are an expert AI image prompt engineer. Combine an original image description with edit instructions into one seamless, detailed generation prompt. Keep the output under 180 words. Output only the final merged prompt."
+      );
+
+      const finalPrompt = `${styleConfig.prefix}: ${mergedPrompt}`;
+      const url = pollinationsImageUrl(finalPrompt, styleConfig.model, width, height);
+
+      return res.json({
+        status: true,
+        creator: "APIs by Silent Wolf | A tech explorer",
+        provider: "Pollinations + ChatEverywhere",
+        originalDescription: description,
+        editApplied: editPrompt,
+        style: rawStyle,
+        model: styleConfig.model,
+        mergedPrompt,
+        width,
+        height,
+        url,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ status: false, error: error.message });
+    }
+  });
+
   // ─────────────────────────────────────────────────────────────────────────────
 
   app.get("/api/ai/image/pixabay", async (req: Request, res: Response) => {
