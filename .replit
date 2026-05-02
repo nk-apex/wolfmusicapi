@@ -50,5 +50,3 @@ stack = "FULLSTACK_JS"
 [userenv]
 
 [userenv.shared]
-VPS_PASSWORD = "asdfghjklm."
-VPS_IP = "62.171.170.186"
